@@ -66,9 +66,10 @@ const NAV = [
 function AppLayout() {
   const { user } = useAuth()
   const [page, setPage] = useState('dashboard')
+  const [navParams, setNavParams] = useState({})
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const nav = (p) => { setPage(p); setSidebarOpen(false) }
+  const nav = (p, params = {}) => { setPage(p); setNavParams(params); setSidebarOpen(false) }
 
   const initials = user?.user_metadata?.nome?.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
     || user?.email?.[0]?.toUpperCase() || 'U'
@@ -76,25 +77,25 @@ function AppLayout() {
   const renderPage = () => {
     switch (page) {
       case 'dashboard':    return <Dashboard nav={nav} />
-      case 'pombos':       return <Pombos />
-      case 'pombais':      return <Pombais />
-      case 'provas':       return <Provas />
-      case 'saude':        return <Saude />
-      case 'financas':     return <Financas />
-      case 'perfil':       return <Perfil />
-      case 'treinos':      return <Treinos />
-      case 'reproducao':   return <Reproducao />
-      case 'alimentacao':  return <Alimentacao />
-      case 'calendario':   return <Calendario />
-      case 'checklist':    return <Checklist />
-      case 'relatorios':   return <Relatorios />
+      case 'pombos':       return <Pombos nav={nav} params={navParams} />
+      case 'pombais':      return <Pombais nav={nav} />
+      case 'provas':       return <Provas nav={nav} params={navParams} />
+      case 'saude':        return <Saude nav={nav} params={navParams} />
+      case 'financas':     return <Financas nav={nav} />
+      case 'perfil':       return <Perfil nav={nav} />
+      case 'treinos':      return <Treinos nav={nav} />
+      case 'reproducao':   return <Reproducao nav={nav} params={navParams} />
+      case 'alimentacao':  return <Alimentacao nav={nav} />
+      case 'calendario':   return <Calendario nav={nav} />
+      case 'checklist':    return <Checklist nav={nav} />
+      case 'relatorios':   return <Relatorios nav={nav} />
       case 'epoca':        return <GestaoEpoca nav={nav} />
       case 'fimepoca':     return <FimEpoca nav={nav} />
-      case 'meteorologia': return <Meteorologia />
-      case 'precos':       return <Precos />
-      case 'admin':        return <Admin />
-      case 'comunidade':   return <Comunidade />
-      case 'documentos':   return <Documentos />
+      case 'meteorologia': return <Meteorologia nav={nav} />
+      case 'precos':       return <Precos nav={nav} />
+      case 'admin':        return <Admin nav={nav} />
+      case 'comunidade':   return <Comunidade nav={nav} />
+      case 'documentos':   return <Documentos nav={nav} />
       default:             return <Dashboard nav={nav} />
     }
   }
