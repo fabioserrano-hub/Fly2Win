@@ -14,6 +14,28 @@ const statusBadge = { ativo: 'green', reproducao: 'yellow', lesionado: 'red', in
 const extBadge = { proprio: 'green', emprestado: 'yellow', cedido: 'blue', vendido: 'gray', oferecido: 'blue', falecido: 'red' }
 const EMPTY = { anilha: '', nome: '', sexo: 'M', cor: '', peso: '', esp: ['velocidade'], estado: 'ativo', estado_ext: 'proprio', pombal: '', pai: '', mae: '', obs: '', emoji: '🐦', criador: '', data_aquisicao: '', valor_aquisicao: '', obs_aquisicao: '', destino_nome: '', destino_data: '', destino_valor: '', destino_obs: '' }
 
+// Idade aproximada extraída do ano embutido na anilha (formato PT-24-0184 → ano 2024)
+function idadeDoPombo(anilha) {
+  const m = anilha?.match(/-(\d{2})-/)
+  if (!m) return null
+  const ano2d = parseInt(m[1])
+  const anoNasc = ano2d > 50 ? 1900 + ano2d : 2000 + ano2d
+  return anoAtual - anoNasc
+}
+
+// Classificação automática: o que este pombo está "pronto" a fazer agora, com base nos dados já existentes
+export function classificarPombo(p) {
+  if (p.estado === 'lesionado') return { tag: 'Lesionado', cor: '#f87171', prioridade: 0 }
+  const idade = idadeDoPombo(p.anilha)
+  const percentil = p.percentil || 0
+  const provas = p.provas || 0
+  if (provas >= 3 && percentil > 0 && percentil < 35) return { tag: 'Em queda', cor: '#f87171', prioridade: 1 }
+  if (idade !== null && idade >= 1 && percentil >= 65 && provas >= 3) return { tag: 'Pronto a reproduzir', cor: '#D4AF37', prioridade: 3 }
+  if (p.estado === 'ativo' && (p.forma || 50) >= 60) return { tag: 'Pronto a competir', cor: '#2DD4A7', prioridade: 3 }
+  if (p.estado === 'reproducao') return { tag: 'Em reprodução', cor: '#c084fc', prioridade: 3 }
+  return { tag: 'Em repouso', cor: '#7A8699', prioridade: 4 }
+}
+
 function PesoChart({ registos }) {
   const pontos = registos.filter(r => r.peso).slice(0, 10).reverse()
   if (pontos.length < 2) {
@@ -147,19 +169,23 @@ export default function Pombos({ nav }) {
   const irParaPedigree = (pombo) => { close(); nav?.('reproducao', { tab: 'pedigree', pomboId: pombo.id }) }
 
   const PomboCard = ({ p }) => {
-    const fc = (p.forma || 50) >= 80 ? '#1ed98a' : (p.forma || 50) >= 60 ? '#facc15' : '#f87171'
+    const fc = (p.forma || 50) >= 80 ? '#2DD4A7' : (p.forma || 50) >= 60 ? '#D4AF37' : '#f87171'
+    const classificacao = classificarPombo(p)
     return (
-      <div className="pombo-card" onClick={() => openDetail(p)}>
+      <div className="pombo-card" onClick={() => openDetail(p)} style={classificacao.prioridade <= 1 ? { borderColor: classificacao.cor + '44' } : undefined}>
         <div className="pombo-photo" style={{ height: 160 }}>
           {p.foto_url ? <img src={p.foto_url} alt={p.nome} /> : p.emoji}
           <div style={{ position: 'absolute', top: 6, right: 6, background: 'rgba(0,0,0,.6)', borderRadius: 6, padding: '2px 6px', fontSize: 11, fontWeight: 700 }}>{p.sexo === 'M' ? '♂' : '♀'}</div>
-          {p.estado_ext && p.estado_ext !== 'proprio' && <div style={{ position: 'absolute', top: 6, left: 6, background: 'rgba(0,0,0,.7)', borderRadius: 6, padding: '2px 6px', fontSize: 10, fontWeight: 700, color: '#facc15' }}>{p.estado_ext.toUpperCase()}</div>}
+          {p.estado_ext && p.estado_ext !== 'proprio' && <div style={{ position: 'absolute', top: 6, left: 6, background: 'rgba(0,0,0,.7)', borderRadius: 6, padding: '2px 6px', fontSize: 10, fontWeight: 700, color: '#D4AF37' }}>{p.estado_ext.toUpperCase()}</div>}
         </div>
         <div className="pombo-info">
           <div className="pombo-anel">{p.anilha}</div>
           <div className="pombo-nome">{p.nome}</div>
-          <Badge v={statusBadge[p.estado]}>{p.estado}</Badge>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, color: classificacao.cor, marginBottom: 6 }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: classificacao.cor, flexShrink: 0 }} />
+            {classificacao.tag}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div className="progress" style={{ flex: 1 }}><div className="progress-bar" style={{ width: `${p.forma || 50}%`, background: fc }} /></div>
             <span style={{ fontSize: 11, fontWeight: 700, color: fc }}>{p.forma || 50}%</span>
           </div>
@@ -215,7 +241,23 @@ export default function Pombos({ nav }) {
       {loading ? <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}><Spinner lg /></div>
         : filtered.length === 0 ? <EmptyState icon="🐦" title="Sem pombos" desc="Nenhum pombo nesta categoria" action={tabPrincipal === 'efectivo' ? <button className="btn btn-primary" onClick={openNew}>＋ Novo Pombo</button> : null} />
         : tabPrincipal === 'efectivo'
-          ? <div className="grid-auto">{filtered.map(p => <PomboCard key={p.id} p={p} />)}</div>
+          ? (() => {
+              const comPrioridade = filtered.map(p => ({ p, c: classificarPombo(p) }))
+              const grupos = [
+                { label: '🚨 Precisam de atenção', items: comPrioridade.filter(x => x.c.prioridade <= 1) },
+                { label: '🕊️ Efectivo', items: comPrioridade.filter(x => x.c.prioridade > 1) },
+              ].filter(g => g.items.length > 0)
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+                  {grupos.map(g => (
+                    <div key={g.label}>
+                      {grupos.length > 1 && <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 10, letterSpacing: '.1em', color: '#7A8699', textTransform: 'uppercase', marginBottom: 10 }}>{g.label} ({g.items.length})</div>}
+                      <div className="grid-auto">{g.items.map(({ p }) => <PomboCard key={p.id} p={p} />)}</div>
+                    </div>
+                  ))}
+                </div>
+              )
+            })()
           : <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>{filtered.map(p => <ExternoCard key={p.id} p={p} />)}</div>
       }
 
@@ -289,10 +331,15 @@ export default function Pombos({ nav }) {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
-                <span style={{ fontFamily: 'JetBrains Mono', fontSize: 11, color: '#1ed98a' }}>{selected.anilha}</span>
+                <span style={{ fontFamily: "'Space Mono',monospace", fontSize: 11, color: '#D4AF37' }}>{selected.anilha}</span>
                 <Badge v={statusBadge[selected.estado]}>{selected.estado}</Badge>
                 {selected.estado_ext && selected.estado_ext !== 'proprio' && <Badge v={extBadge[selected.estado_ext] || 'gray'}>{selected.estado_ext}</Badge>}
               </div>
+              {(() => { const c = classificarPombo(selected); return (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 700, color: c.cor, marginBottom: 6 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: c.cor }} />{c.tag}
+                </div>
+              )})()}
               <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 2 }}>{selected.sexo === 'M' ? '♂ Macho' : '♀ Fêmea'} · {selected.cor || '—'}</div>
               <div style={{ fontSize: 13, color: '#94a3b8' }}>🏠 {selected.pombal || '—'}</div>
             </div>
