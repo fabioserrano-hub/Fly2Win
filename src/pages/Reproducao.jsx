@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { db } from '../lib/supabase'
 import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../components/ui'
+import { classificarPombo } from './Pombos'
 
 const ESTADOS = ['em_progresso', 'concluido', 'cancelado']
 const estadoLabel = { em_progresso: 'Em Progresso', concluido: 'Concluído', cancelado: 'Cancelado' }
@@ -104,20 +105,27 @@ export default function Reproducao({ nav, params }) {
 
   const PedigreeNode = ({ node, label }) => {
     if (!node) return (
-      <div style={{ background: '#1a2840', borderRadius: 8, padding: '6px 10px', fontSize: 11, color: '#475569', textAlign: 'center', minWidth: 110 }}>
+      <div style={{ background: '#101F40', borderRadius: 8, padding: '6px 10px', fontSize: 11, color: '#7A8699', textAlign: 'center', minWidth: 110 }}>
         {label || 'Desconhecido'}
       </div>
     )
+    const c = node.nome ? classificarPombo(node) : null
     return (
-      <div style={{ background: '#1a2840', border: '1px solid #243860', borderRadius: 8, padding: '6px 10px', fontSize: 11, textAlign: 'center', minWidth: 110 }}>
+      <div style={{ background: '#101F40', border: '1px solid #1B2D52', borderRadius: 8, padding: '6px 10px', fontSize: 11, textAlign: 'center', minWidth: 110 }}>
         <div style={{ color: '#fff', fontWeight: 600 }}>{node.nome || '—'}</div>
-        <div style={{ fontFamily: 'JetBrains Mono', fontSize: 9, color: '#1ed98a' }}>{node.anilha}</div>
+        <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 9, color: '#2DD4A7' }}>{node.anilha}</div>
+        {c && <div style={{ fontSize: 9, color: c.cor, marginTop: 2 }}>{c.tag}</div>}
       </div>
     )
   }
 
   const acasalamentosOrdenados = [...acasalamentos].sort((a, b) => new Date(b.data_acasalamento) - new Date(a.data_acasalamento))
   const ativos = acasalamentos.filter(a => a.estado === 'em_progresso')
+  const eclosoesProximas = ativos.filter(a => {
+    if (!a.data_eclosao_prev) return false
+    const dias = (new Date(a.data_eclosao_prev) - new Date()) / 86400000
+    return dias >= -2 && dias <= 5
+  }).sort((a, b) => new Date(a.data_eclosao_prev) - new Date(b.data_eclosao_prev))
 
   return (
     <div>
@@ -126,34 +134,45 @@ export default function Reproducao({ nav, params }) {
         {tab === 'acasalamentos' && <button className="btn btn-primary" onClick={openNew}>＋ Novo Acasalamento</button>}
       </div>
 
-      <div style={{ display: 'flex', gap: 4, background: '#1a2840', borderRadius: 10, padding: 4, marginBottom: 16 }}>
+      <div style={{ display: 'flex', gap: 4, background: '#101F40', borderRadius: 8, padding: 4, marginBottom: 16 }}>
         {[['acasalamentos', '🥚 Acasalamentos'], ['pedigree', '🌳 Pedigree']].map(([t, l]) => (
-          <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: '8px 14px', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: 'inherit', background: tab === t ? '#1ed98a' : 'none', color: tab === t ? '#0a0f14' : '#94a3b8' }}>{l}</button>
+          <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: '8px 14px', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: 'inherit', background: tab === t ? '#1E5FD9' : 'none', color: tab === t ? '#fff' : '#94a3b8' }}>{l}</button>
         ))}
       </div>
 
       {tab === 'acasalamentos' && (
         loading ? <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}><Spinner lg /></div>
         : acasalamentos.length === 0 ? <EmptyState icon="🥚" title="Sem acasalamentos" desc="Registe o primeiro acasalamento da época" action={<button className="btn btn-primary" onClick={openNew}>＋ Novo Acasalamento</button>} />
-        : <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {acasalamentosOrdenados.map(a => (
+        : <>
+            {eclosoesProximas.length > 0 && (
+              <div style={{ background: 'rgba(212,175,55,.08)', border: '1px solid rgba(212,175,55,.2)', borderRadius: 8, padding: '12px 16px', marginBottom: 16 }}>
+                <div style={{ fontWeight: 600, color: '#D4AF37', marginBottom: 6 }}>🐣 {eclosoesProximas.length} eclosão(ões) próxima(s)</div>
+                {eclosoesProximas.map(a => {
+                  const dias = Math.round((new Date(a.data_eclosao_prev) - new Date()) / 86400000)
+                  return <div key={a.id} style={{ fontSize: 12, color: '#cbd5e1' }}>{a.pai_nome} × {a.mae_nome} — {dias < 0 ? `prevista há ${Math.abs(dias)} dia(s)` : dias === 0 ? 'hoje' : `em ${dias} dia(s)`}</div>
+                })}
+              </div>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {acasalamentosOrdenados.map(a => (
               <div key={a.id} className="card card-p">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                   <div style={{ fontSize: 22 }}>🥚</div>
                   <div style={{ flex: 1, minWidth: 180 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{a.pai_nome} × {a.mae_nome}</div>
-                    <div style={{ fontSize: 11, color: '#64748b' }}>{a.cacifo ? `Cacifo ${a.cacifo} · ` : ''}Acasalado: {new Date(a.data_acasalamento).toLocaleDateString('pt-PT')}{a.data_eclosao_prev ? ` · 🐣 prev. ${new Date(a.data_eclosao_prev).toLocaleDateString('pt-PT')}` : ''}</div>
+                    <div style={{ fontSize: 11, color: '#7A8699' }}>{a.cacifo ? `Cacifo ${a.cacifo} · ` : ''}Acasalado: {new Date(a.data_acasalamento).toLocaleDateString('pt-PT')}{a.data_eclosao_prev ? ` · 🐣 prev. ${new Date(a.data_eclosao_prev).toLocaleDateString('pt-PT')}` : ''}</div>
                     {a.obs && <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{a.obs}</div>}
                   </div>
                   <Badge v={estadoBadge[a.estado]}>{estadoLabel[a.estado]}</Badge>
-                  <div style={{ fontSize: 12, color: '#facc15', fontWeight: 600 }}>{a.ninhadas || 0} ninhada(s)</div>
+                  <div style={{ fontSize: 12, color: '#D4AF37', fontWeight: 600 }}>{a.ninhadas || 0} ninhada(s)</div>
                   {a.estado === 'em_progresso' && <button className="btn btn-secondary btn-sm" onClick={() => criarBorrachinho(a)}>🐣 Registar Nascimento</button>}
                   <button className="btn btn-icon btn-sm" onClick={() => openEdit(a)}>✏️</button>
                   <button className="btn btn-icon btn-sm" onClick={() => setConfirm(a)}>🗑️</button>
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+          </>
       )}
 
       {tab === 'pedigree' && (
@@ -169,7 +188,7 @@ export default function Reproducao({ nav, params }) {
             <div className="card card-p" style={{ marginTop: 16, overflowX: 'auto' }}>
               <div style={{ textAlign: 'center', marginBottom: 16 }}>
                 <div style={{ fontSize: 16, fontWeight: 700, color: '#fff' }}>{pedigreePombo.nome}</div>
-                <div style={{ fontFamily: 'JetBrains Mono', fontSize: 11, color: '#1ed98a' }}>{pedigreePombo.anilha}</div>
+                <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 11, color: '#2DD4A7' }}>{pedigreePombo.anilha}</div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20, alignItems: 'center', minWidth: 500 }}>
                 <div style={{ display: 'flex', gap: 40 }}>
@@ -224,4 +243,3 @@ export default function Reproducao({ nav, params }) {
     </div>
   )
 }
-
