@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { db } from '../lib/supabase'
 import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../components/ui'
+import { classificarPombo } from './Pombos'
 
 const TIPOS = ['Voo Livre', 'Treino em Linha', 'Solta Local', 'Adestramento']
 const RETORNOS = ['Completo', 'Parcial', 'Com Perdas']
@@ -89,11 +90,11 @@ export default function Treinos({ nav }) {
             {treinosOrdenados.map(t => (
               <div key={t.id} className="card card-p">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 10, background: '#1a2840', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>🎯</div>
+                  <div style={{ width: 44, height: 44, borderRadius: 10, background: '#101F40', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>🎯</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>{t.local}</div>
-                    <div style={{ fontSize: 12, color: '#64748b' }}>{t.tipo} · {t.dist ? t.dist + 'km · ' : ''}{t.pombos_n || '?'} pombos · {new Date(t.data_reg).toLocaleDateString('pt-PT')}</div>
-                    {t.velocidade && <div style={{ fontSize: 11, color: '#1ed98a', fontFamily: 'JetBrains Mono', marginTop: 2 }}>⚡ {t.velocidade} km/h</div>}
+                    <div style={{ fontSize: 12, color: '#7A8699' }}>{t.tipo} · {t.dist ? t.dist + 'km · ' : ''}{t.pombos_n || '?'} pombos · {new Date(t.data_reg).toLocaleDateString('pt-PT')}</div>
+                    {t.velocidade && <div style={{ fontSize: 11, color: '#2DD4A7', fontFamily: "'Space Mono',monospace", marginTop: 2 }}>⚡ {t.velocidade} km/h</div>}
                   </div>
                   <Badge v={retornoBadge[t.retorno] || 'gray'}>{t.retorno}</Badge>
                   <button className="btn btn-icon btn-sm" onClick={() => openEdit(t)}>✏️</button>
@@ -117,13 +118,22 @@ export default function Treinos({ nav }) {
           <Field label="Custo (€)"><input className="input" type="number" step="0.01" placeholder="combustível, portagens..." value={form.custo} onChange={e => sf('custo', e.target.value)} /></Field>
           <div className="col-2">
             <Field label={`Pombos participantes (${form.pombosIds.length} seleccionados)`}>
+              {form.pombosIds.some(id => { const p = pombosAtivos.find(x => x.id === id); return p && classificarPombo(p).prioridade <= 1 }) && (
+                <div style={{ background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)', borderRadius: 8, padding: '8px 12px', marginBottom: 8, fontSize: 11, color: '#f87171' }}>
+                  ⚠️ Seleccionou pombo(s) lesionado(s) ou em queda de rendimento — confirme se estão aptos para o treino.
+                </div>
+              )}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxHeight: 160, overflowY: 'auto', padding: '8px 0' }}>
-                {pombosAtivos.map(p => (
-                  <button key={p.id} type="button" onClick={() => togglePombo(p.id)}
-                    className={`chip${form.pombosIds.includes(p.id) ? ' active' : ''}`} style={{ fontSize: 11 }}>
-                    {p.emoji} {p.nome}
-                  </button>
-                ))}
+                {pombosAtivos.map(p => {
+                  const c = classificarPombo(p)
+                  const atencao = c.prioridade <= 1
+                  return (
+                    <button key={p.id} type="button" onClick={() => togglePombo(p.id)}
+                      className={`chip${form.pombosIds.includes(p.id) ? ' active' : ''}`} style={{ fontSize: 11, borderColor: atencao && !form.pombosIds.includes(p.id) ? 'rgba(239,68,68,.3)' : undefined }}>
+                      {p.emoji} {p.nome}{atencao ? ' 🏥' : ''}
+                    </button>
+                  )
+                })}
               </div>
               {form.pombosIds.length === 0 && <input className="input" type="number" placeholder="Ou indique apenas o número de pombos" value={form.pombos_n} onChange={e => sf('pombos_n', e.target.value)} style={{ marginTop: 6 }} />}
             </Field>
