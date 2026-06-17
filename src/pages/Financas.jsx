@@ -9,6 +9,7 @@ const EMPTY = { tipo: 'despesa', cat: 'Alimentação', val: '', data_reg: new Da
 export default function Financas({ nav }) {
   const toast = useToast()
   const [lista, setLista] = useState([])
+  const [pombos, setPombos] = useState([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState(false)
   const [selected, setSelected] = useState(null)
@@ -21,7 +22,7 @@ export default function Financas({ nav }) {
 
   const load = useCallback(async () => {
     setLoading(true)
-    try { setLista(await db.getFinancas()) }
+    try { const [f, p] = await Promise.all([db.getFinancas(), db.getPombos()]); setLista(f); setPombos(p) }
     catch (e) { toast('Erro: ' + e.message, 'err') }
     finally { setLoading(false) }
   }, [])
@@ -66,6 +67,18 @@ export default function Financas({ nav }) {
   const topCategorias = Object.entries(porCategoria).sort((a, b) => b[1] - a[1]).slice(0, 5)
   const maxCat = topCategorias[0]?.[1] || 1
 
+  // Despesa associada a um pombo específico: só quando a descrição menciona claramente o nome dele
+  // (não há noção de "rentabilidade" monetária — prémios em columbofilia são tipicamente honoríficos, não em dinheiro)
+  const despesasPorPombo = {}
+  filtered.filter(t => t.tipo === 'despesa' && t.desc).forEach(t => {
+    pombos.forEach(p => {
+      if (p.nome && t.desc.toLowerCase().includes(p.nome.toLowerCase())) {
+        despesasPorPombo[p.nome] = (despesasPorPombo[p.nome] || 0) + t.val
+      }
+    })
+  })
+  const topDespesaPombo = Object.entries(despesasPorPombo).sort((a, b) => b[1] - a[1]).slice(0, 3)
+
   return (
     <div>
       <div className="section-header">
@@ -74,9 +87,9 @@ export default function Financas({ nav }) {
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', gap: 4, background: '#1a2840', borderRadius: 10, padding: 4 }}>
+        <div style={{ display: 'flex', gap: 4, background: '#101F40', borderRadius: 10, padding: 4 }}>
           {[['mes', 'Este Mês'], ['ano', 'Este Ano'], ['todos', 'Tudo']].map(([p, l]) => (
-            <button key={p} onClick={() => setPeriodo(p)} style={{ padding: '6px 12px', borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: 'inherit', background: periodo === p ? '#1ed98a' : 'none', color: periodo === p ? '#0a0f14' : '#94a3b8' }}>{l}</button>
+            <button key={p} onClick={() => setPeriodo(p)} style={{ padding: '6px 12px', borderRadius: 6, fontSize: 12, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: 'inherit', background: periodo === p ? '#1E5FD9' : 'none', color: periodo === p ? '#fff' : '#94a3b8' }}>{l}</button>
           ))}
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
@@ -89,8 +102,23 @@ export default function Financas({ nav }) {
       <div className="grid-3 mb-6">
         <div className="kpi"><div className="kpi-val text-green">+{rec.toFixed(0)}€</div><div className="kpi-label">Receitas</div></div>
         <div className="kpi"><div className="kpi-val text-red">-{dep.toFixed(0)}€</div><div className="kpi-label">Despesas</div></div>
-        <div className="kpi"><div className="kpi-val" style={{ color: saldo >= 0 ? '#1ed98a' : '#f87171' }}>{saldo >= 0 ? '+' : ''}{saldo.toFixed(0)}€</div><div className="kpi-label">Saldo</div></div>
+        <div className="kpi"><div className="kpi-val" style={{ color: saldo >= 0 ? '#2DD4A7' : '#f87171' }}>{saldo >= 0 ? '+' : ''}{saldo.toFixed(0)}€</div><div className="kpi-label">Saldo</div></div>
       </div>
+
+      {topDespesaPombo.length > 0 && (
+        <div className="card card-p mb-6">
+          <div style={{ fontWeight: 600, color: '#fff', marginBottom: 4 }}>🐦 Despesa Associada a Pombos</div>
+          <div style={{ fontSize: 11, color: '#7A8699', marginBottom: 12 }}>Calculado a partir da descrição dos movimentos. A rentabilidade real de um pombo é desportiva (provas, percentil) — isto mostra só custo.</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {topDespesaPombo.map(([nome, val]) => (
+              <div key={nome} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                <span style={{ color: '#cbd5e1' }}>{nome}</span>
+                <span style={{ color: '#f87171', fontWeight: 600 }}>{val.toFixed(0)}€</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {topCategorias.length > 0 && (
         <div className="card card-p mb-6">
@@ -118,9 +146,9 @@ export default function Financas({ nav }) {
                   <div style={{ fontSize: 20 }}>{t.tipo === 'receita' ? '💰' : '💸'}</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 13, fontWeight: 500, color: '#fff' }}>{t.cat}</div>
-                    <div style={{ fontSize: 11, color: '#64748b' }}>{t.desc || '—'} · {new Date(t.data_reg).toLocaleDateString('pt-PT')}</div>
+                    <div style={{ fontSize: 11, color: '#7A8699' }}>{t.desc || '—'} · {new Date(t.data_reg).toLocaleDateString('pt-PT')}</div>
                   </div>
-                  <div style={{ fontFamily: 'Barlow Condensed', fontSize: 18, fontWeight: 700, color: t.tipo === 'receita' ? '#1ed98a' : '#f87171' }}>{t.tipo === 'receita' ? '+' : '-'}{t.val.toFixed(2)}€</div>
+                  <div style={{ fontFamily: "'Fraunces',serif", fontSize: 18, fontWeight: 700, color: t.tipo === 'receita' ? '#2DD4A7' : '#f87171' }}>{t.tipo === 'receita' ? '+' : '-'}{t.val.toFixed(2)}€</div>
                   <button className="btn btn-icon btn-sm" onClick={() => openEdit(t)}>✏️</button>
                   <button className="btn btn-icon btn-sm" onClick={() => setConfirm(t)}>🗑️</button>
                 </div>
@@ -135,7 +163,7 @@ export default function Financas({ nav }) {
           <div style={{ display: 'flex', gap: 8 }}>
             {['despesa', 'receita'].map(t => (
               <button key={t} type="button" onClick={() => sf('tipo', t)}
-                style={{ flex: 1, padding: '10px', borderRadius: 10, border: form.tipo === t ? `1px solid ${t === 'receita' ? '#1ed98a' : '#f87171'}` : '1px solid #243860', background: form.tipo === t ? (t === 'receita' ? 'rgba(30,217,138,.08)' : 'rgba(239,68,68,.08)') : '#1a2840', color: form.tipo === t ? (t === 'receita' ? '#1ed98a' : '#f87171') : '#94a3b8', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
+                style={{ flex: 1, padding: '10px', borderRadius: 8, border: form.tipo === t ? `1px solid ${t === 'receita' ? '#2DD4A7' : '#f87171'}` : '1px solid #1B2D52', background: form.tipo === t ? (t === 'receita' ? 'rgba(45,212,167,.08)' : 'rgba(239,68,68,.08)') : '#101F40', color: form.tipo === t ? (t === 'receita' ? '#2DD4A7' : '#f87171') : '#94a3b8', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
                 {t === 'receita' ? '💰 Receita' : '💸 Despesa'}
               </button>
             ))}
