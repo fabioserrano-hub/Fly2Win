@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { db } from '../lib/supabase'
 import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../components/ui'
+import { classificarPombo } from './Pombos'
 
-const CORES = ['#1ed98a', '#D94F4F', '#2E7DD4', '#C9A44A', '#6C4FBB', '#E07B39']
-const EMPTY = { nome: '', tipo: 'Misto', cap: '40', loc: '', lat: '', lon: '', cor: '#1ed98a' }
+const CORES = ['#2DD4A7', '#D94F4F', '#4C8DFF', '#D4AF37', '#6C4FBB', '#E07B39']
+const EMPTY = { nome: '', tipo: 'Misto', cap: '40', loc: '', lat: '', lon: '', cor: '#2DD4A7' }
 
 export default function Pombais({ nav }) {
   const toast = useToast()
@@ -82,7 +83,7 @@ export default function Pombais({ nav }) {
               {pombais.map(pb => {
                 const n = pombos.filter(p => p.pombal === pb.nome).length
                 const pct = Math.round(n / Math.max(pb.cap, 1) * 100)
-                const bar = pct > 90 ? '#f87171' : pct > 70 ? '#facc15' : '#1ed98a'
+                const bar = pct > 90 ? '#f87171' : pct > 70 ? '#D4AF37' : '#2DD4A7'
                 return (
                   <div key={pb.id} className="card card-p">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
@@ -104,18 +105,28 @@ export default function Pombais({ nav }) {
                       <span style={{ fontWeight: 600, color: pct > 100 ? '#f87171' : '#fff' }}>{n}/{pb.cap} ({pct}%)</span>
                     </div>
                     <div className="progress"><div className="progress-bar" style={{ width: `${Math.min(pct, 100)}%`, background: bar }} /></div>
-                    {pb.loc && <div style={{ fontSize: 11, color: '#64748b', marginTop: 8 }}>📍 {pb.loc}</div>}
+                    {pb.loc && <div style={{ fontSize: 11, color: '#7A8699', marginTop: 8 }}>📍 {pb.loc}</div>}
+                    {n > 0 && (() => {
+                      const moradores = pombos.filter(p => p.pombal === pb.nome)
+                      const comAtencao = moradores.filter(p => classificarPombo(p).prioridade <= 1)
+                      return comAtencao.length > 0 ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, fontSize: 11, color: '#f87171' }}>
+                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#f87171' }} />
+                          {comAtencao.length} a precisar de atenção
+                        </div>
+                      ) : null
+                    })()}
                     {n > 0 && (
-                      <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid #1e3050' }}>
+                      <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid #1B2D52' }}>
                         <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 6 }}>Pombos ({n}):</div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                           {pombos.filter(p => p.pombal === pb.nome).slice(0, 8).map(p => (
-                            <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 3, background: '#1a2840', borderRadius: 6, padding: '2px 8px', fontSize: 11 }}>
+                            <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 3, background: '#101F40', borderRadius: 6, padding: '2px 8px', fontSize: 11 }}>
                               <span>{p.emoji}</span>
                               <span style={{ color: '#cbd5e1' }}>{p.nome}</span>
                             </div>
                           ))}
-                          {n > 8 && <div style={{ fontSize: 11, color: '#64748b' }}>+{n - 8} mais</div>}
+                          {n > 8 && <div style={{ fontSize: 11, color: '#7A8699' }}>+{n - 8} mais</div>}
                         </div>
                       </div>
                     )}
