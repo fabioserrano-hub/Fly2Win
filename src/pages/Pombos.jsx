@@ -384,6 +384,7 @@ export default function Pombos({ nav }) {
             {loadingDetail ? (
               <div style={{ display: 'flex', justifyContent: 'center', padding: 20 }}><Spinner /></div>
             ) : (
+              <>
               <div className="grid-2" style={{ gap: 12 }}>
                 <div style={{ background: '#101F40', borderRadius: 8, padding: 12 }}>
                   <div style={{ fontSize: 12, fontWeight: 600, color: '#fff', marginBottom: 8 }}>📈 Evolução de Peso</div>
@@ -433,6 +434,7 @@ export default function Pombos({ nav }) {
                     })()
                 }
               </div>
+              </>
             )}
           </div>
         </Modal>
