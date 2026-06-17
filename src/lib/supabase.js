@@ -356,4 +356,25 @@ export const db = {
     const { error } = await supabase.from('treatment_applications').delete().eq('id', id)
     if (error) throw error
   },
+
+  async getTreatmentProducts() {
+    const { data, error } = await supabase.from('treatment_products').select('*').order('nome')
+    if (error) { if (error.code === '42P01') return []; throw error }
+    return data || []
+  },
+  async createTreatmentProduct(p) {
+    const uid = await this.uid()
+    const { data, error } = await supabase.from('treatment_products').insert({ ...p, user_id: uid }).select().single()
+    if (error) throw error
+    return data
+  },
+  async updateTreatmentProduct(id, c) {
+    const { data, error } = await supabase.from('treatment_products').update(c).eq('id', id).select().single()
+    if (error) throw error
+    return data
+  },
+  async deleteTreatmentProduct(id) {
+    const { error } = await supabase.from('treatment_products').delete().eq('id', id)
+    if (error) throw error
+  },
 }
