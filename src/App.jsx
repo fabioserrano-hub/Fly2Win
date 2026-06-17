@@ -17,8 +17,7 @@ import Alimentacao  from './pages/Alimentacao'
 import Calendario   from './pages/Calendario'
 import Checklist    from './pages/Checklist'
 import Relatorios   from './pages/Relatorios'
-import FimEpoca     from './pages/FimEpoca'
-import GestaoEpoca  from './pages/GestaoEpoca'
+import Epoca        from './pages/Epoca'
 import Meteorologia from './pages/Meteorologia'
 import Comunidade   from './pages/Comunidade'
 import Precos       from './pages/Precos'
@@ -48,14 +47,13 @@ const NAV = [
   ]},
   { section: 'Análise', items: [
     { id: 'relatorios',  icon: '📊', label: 'Relatórios' },
-    { id: 'fimepoca',    icon: '🏁', label: 'Fim de Época' },
+    { id: 'epoca',       icon: '🏁', label: 'Época' },
     { id: 'meteorologia',icon: '🌦️', label: 'Meteorologia' },
   ]},
   { section: 'Social', items: [
     { id: 'comunidade',  icon: '🌐', label: 'Comunidade' },
   ]},
   { section: 'Sistema', items: [
-    { id: 'epoca',       icon: '🗓️', label: 'Gestão Época' },
     { id: 'precos',      icon: '💳', label: 'Planos' },
     { id: 'admin',       icon: '👑', label: 'Admin' },
     { id: 'perfil',      icon: '⚙️', label: 'Perfil' },
@@ -117,8 +115,7 @@ function AppLayout() {
       case 'calendario':   return <Calendario nav={nav} />
       case 'checklist':    return <Checklist nav={nav} />
       case 'relatorios':   return <Relatorios nav={nav} />
-      case 'epoca':        return <GestaoEpoca nav={nav} />
-      case 'fimepoca':     return <FimEpoca nav={nav} />
+      case 'epoca':        return <Epoca nav={nav} />
       case 'meteorologia': return <Meteorologia nav={nav} />
       case 'precos':       return <Precos nav={nav} />
       case 'admin':        return <Admin nav={nav} />
