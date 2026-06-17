@@ -16,7 +16,7 @@ export default function Dashboard({ nav }) {
     async function load() {
       setLoading(true)
       try {
-        const [pombos, provas, fin, saude, treinos, tarefas, acas, stock, eventos, treatmentPlans, treatmentApps] = await Promise.all([
+        const [pombos, provas, fin, saude, treinos, tarefas, acas, stock, eventos, treatmentPlans, treatmentApps, treatmentProducts] = await Promise.all([
           db.getPombos(),
           db.getProvas(),
           db.getFinancas(),
@@ -28,6 +28,7 @@ export default function Dashboard({ nav }) {
           db.getEventosCal().catch(() => []),
           db.getTreatmentPlans().catch(() => []),
           db.getTreatmentApplications().catch(() => []),
+          db.getTreatmentProducts().catch(() => []),
         ])
 
         const ano = new Date().getFullYear()
@@ -59,6 +60,7 @@ export default function Dashboard({ nav }) {
         const aplicacaoHoje = treatmentApps.find(a => a.semana_inicio === segundaDesta)
         const planoHoje = aplicacaoHoje ? treatmentPlans.find(p => p.id === aplicacaoHoje.plan_id) : null
         const itemTratamentoHoje = planoHoje?.itens?.find(it => it.dia_semana === hojeKey) || null
+        const produtoTratamentoHoje = itemTratamentoHoje ? treatmentProducts.find(p => p.id === itemTratamentoHoje.product_id) : null
 
         const alertas = []
 
@@ -90,7 +92,7 @@ export default function Dashboard({ nav }) {
           total: pombos.filter(p => !p.estado_ext || p.estado_ext === 'proprio').length,
           top, vitorias, treinos, acas, ano,
           provasProximas, tarefasHojeOuAtraso, tarefasProximas, eventosHoje, alertas,
-          itemTratamentoHoje, aplicacaoHoje, hojeKey,
+          itemTratamentoHoje, aplicacaoHoje, hojeKey, produtoTratamentoHoje,
         })
       } catch (e) { toast('Erro: ' + e.message, 'err') }
       finally { setLoading(false) }
@@ -150,7 +152,7 @@ export default function Dashboard({ nav }) {
                     <button onClick={toggleTratamentoHoje} style={{ width: 18, height: 18, borderRadius: 5, border: feito ? 'none' : '2px solid #1B2D52', background: feito ? '#2DD4A7' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, fontSize: 11, padding: 0 }}>
                       {feito && '✓'}
                     </button>
-                    <div style={{ flex: 1, fontSize: 13, color: feito ? '#7A8699' : '#fff', textDecoration: feito ? 'line-through' : 'none' }}>🧪 {data.itemTratamentoHoje.produto || 'Tratamento'}{data.itemTratamentoHoje.dosagem ? ` — ${data.itemTratamentoHoje.dosagem}` : ''}</div>
+                    <div style={{ flex: 1, fontSize: 13, color: feito ? '#7A8699' : '#fff', textDecoration: feito ? 'line-through' : 'none' }}>🧪 {data.produtoTratamentoHoje?.nome || 'Tratamento'}{data.produtoTratamentoHoje?.dosagem_valor ? ` — ${data.produtoTratamentoHoje.dosagem_valor}${data.produtoTratamentoHoje.dosagem_unidade || ''}` : ''}</div>
                     <span style={{ fontSize: 11, color: '#D4AF37' }} onClick={() => nav('tratamentos')}>Hoje</span>
                   </div>
                 )
