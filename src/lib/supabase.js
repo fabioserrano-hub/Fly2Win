@@ -314,4 +314,46 @@ export const db = {
     if (error) throw error
     return data
   },
+
+  async getTreatmentPlans() {
+    const { data, error } = await supabase.from('treatment_plans').select('*').order('nome')
+    if (error) { if (error.code === '42P01') return []; throw error }
+    return data || []
+  },
+  async createTreatmentPlan(p) {
+    const uid = await this.uid()
+    const { data, error } = await supabase.from('treatment_plans').insert({ ...p, user_id: uid }).select().single()
+    if (error) throw error
+    return data
+  },
+  async updateTreatmentPlan(id, c) {
+    const { data, error } = await supabase.from('treatment_plans').update({ ...c, updated_at: new Date().toISOString() }).eq('id', id).select().single()
+    if (error) throw error
+    return data
+  },
+  async deleteTreatmentPlan(id) {
+    const { error } = await supabase.from('treatment_plans').delete().eq('id', id)
+    if (error) throw error
+  },
+
+  async getTreatmentApplications() {
+    const { data, error } = await supabase.from('treatment_applications').select('*').order('semana_inicio', { ascending: false })
+    if (error) { if (error.code === '42P01') return []; throw error }
+    return data || []
+  },
+  async createTreatmentApplication(a) {
+    const uid = await this.uid()
+    const { data, error } = await supabase.from('treatment_applications').insert({ ...a, user_id: uid }).select().single()
+    if (error) throw error
+    return data
+  },
+  async updateTreatmentApplication(id, c) {
+    const { data, error } = await supabase.from('treatment_applications').update({ ...c, updated_at: new Date().toISOString() }).eq('id', id).select().single()
+    if (error) throw error
+    return data
+  },
+  async deleteTreatmentApplication(id) {
+    const { error } = await supabase.from('treatment_applications').delete().eq('id', id)
+    if (error) throw error
+  },
 }
