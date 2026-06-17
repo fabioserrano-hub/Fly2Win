@@ -92,6 +92,11 @@ export default function Saude({ nav, params }) {
   const kpiObs = registos.filter(r => (r.apt || r.aptidao) === 'Em Observação').length
   const kpiLes = registos.filter(r => ['Lesionado', 'Doente'].includes(r.apt || r.aptidao)).length
 
+  const vacinasAtrasadas = vacinas.filter(v => {
+    if (!v.proxima_dose) return false
+    const dias = (new Date(v.proxima_dose) - new Date()) / 86400000
+    return dias < 0
+  })
   const vacinasProximas = vacinas.filter(v => {
     if (!v.proxima_dose) return false
     const dias = (new Date(v.proxima_dose) - new Date()) / 86400000
@@ -106,8 +111,8 @@ export default function Saude({ nav, params }) {
       </div>
 
       <div style={{ display: 'flex', gap: 4, background: '#1a2840', borderRadius: 10, padding: 4, marginBottom: 16 }}>
-        {[['registos', '🏥 Registos Clínicos'], ['vacinas', `💉 Vacinas${vacinasProximas.length ? ` (${vacinasProximas.length})` : ''}`]].map(([t, l]) => (
-          <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: '8px 14px', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: 'inherit', background: tab === t ? '#1ed98a' : 'none', color: tab === t ? '#0a0f14' : '#94a3b8' }}>{l}</button>
+        {[['registos', '🏥 Registos Clínicos'], ['vacinas', `💉 Vacinas${(vacinasAtrasadas.length + vacinasProximas.length) ? ` (${vacinasAtrasadas.length + vacinasProximas.length})` : ''}`]].map(([t, l]) => (
+          <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: '8px 14px', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: 'inherit', background: tab === t ? '#1E5FD9' : 'none', color: tab === t ? '#fff' : '#94a3b8' }}>{l}</button>
         ))}
       </div>
 
@@ -115,7 +120,7 @@ export default function Saude({ nav, params }) {
         <>
           <div className="grid-3 mb-6">
             <div className="kpi"><div className="kpi-val text-green">{kpiApt}</div><div className="kpi-label">Aptos</div></div>
-            <div className="kpi"><div className="kpi-val text-yellow">{kpiObs}</div><div className="kpi-label">Em Observação</div></div>
+            <div className="kpi"><div className="kpi-val" style={{ color: '#D4AF37' }}>{kpiObs}</div><div className="kpi-label">Em Observação</div></div>
             <div className="kpi"><div className="kpi-val text-red">{kpiLes}</div><div className="kpi-label">Lesionados/Doentes</div></div>
           </div>
 
@@ -146,27 +151,36 @@ export default function Saude({ nav, params }) {
 
       {tab === 'vacinas' && (
         <div>
+          {vacinasAtrasadas.length > 0 && (
+            <div style={{ background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)', borderRadius: 8, padding: '12px 16px', marginBottom: 12 }}>
+              <div style={{ fontWeight: 600, color: '#f87171', marginBottom: 6 }}>🚨 {vacinasAtrasadas.length} dose(s) em atraso</div>
+              {vacinasAtrasadas.map(v => <div key={v.id} style={{ fontSize: 12, color: '#cbd5e1' }}>{v.nome_pombo} — {v.nome} devia ter sido em {new Date(v.proxima_dose).toLocaleDateString('pt-PT')}</div>)}
+            </div>
+          )}
           {vacinasProximas.length > 0 && (
-            <div style={{ background: 'rgba(234,179,8,.08)', border: '1px solid rgba(234,179,8,.2)', borderRadius: 12, padding: '12px 16px', marginBottom: 16 }}>
-              <div style={{ fontWeight: 600, color: '#facc15', marginBottom: 6 }}>💉 {vacinasProximas.length} próxima(s) dose(s) nos próximos 14 dias</div>
+            <div style={{ background: 'rgba(212,175,55,.08)', border: '1px solid rgba(212,175,55,.2)', borderRadius: 8, padding: '12px 16px', marginBottom: 16 }}>
+              <div style={{ fontWeight: 600, color: '#D4AF37', marginBottom: 6 }}>💉 {vacinasProximas.length} próxima(s) dose(s) nos próximos 14 dias</div>
               {vacinasProximas.map(v => <div key={v.id} style={{ fontSize: 12, color: '#cbd5e1' }}>{v.nome_pombo} — {v.nome} em {new Date(v.proxima_dose).toLocaleDateString('pt-PT')}</div>)}
             </div>
           )}
           {vacinas.length === 0
             ? <EmptyState icon="💉" title="Sem vacinas registadas" desc="Registe vacinas e tratamentos preventivos" action={<button className="btn btn-primary" onClick={openNewVac}>＋ Nova Vacina</button>} />
             : <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {vacinas.map(v => (
-                  <div key={v.id} className="card card-p">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ fontSize: 22 }}>💉</div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{v.nome} — {v.nome_pombo}</div>
-                        <div style={{ fontSize: 11, color: '#64748b' }}>Aplicada: {new Date(v.data_aplicacao).toLocaleDateString('pt-PT')}{v.proxima_dose ? ` · Próxima: ${new Date(v.proxima_dose).toLocaleDateString('pt-PT')}` : ''}</div>
+                {vacinas.map(v => {
+                  const atrasada = vacinasAtrasadas.some(a => a.id === v.id)
+                  return (
+                    <div key={v.id} className="card card-p" style={atrasada ? { borderColor: 'rgba(239,68,68,.3)' } : undefined}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ fontSize: 22 }}>💉</div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{v.nome} — {v.nome_pombo}</div>
+                          <div style={{ fontSize: 11, color: atrasada ? '#f87171' : '#7A8699' }}>Aplicada: {new Date(v.data_aplicacao).toLocaleDateString('pt-PT')}{v.proxima_dose ? ` · Próxima: ${new Date(v.proxima_dose).toLocaleDateString('pt-PT')}${atrasada ? ' (atrasada)' : ''}` : ''}</div>
+                        </div>
+                        <button className="btn btn-danger btn-sm" onClick={() => delVac(v.id)}>🗑️</button>
                       </div>
-                      <button className="btn btn-danger btn-sm" onClick={() => delVac(v.id)}>🗑️</button>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
           }
         </div>
