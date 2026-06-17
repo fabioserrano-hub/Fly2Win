@@ -124,6 +124,11 @@ export const db = {
     if (error) throw error
     return data
   },
+  async updateTreino(id, c) {
+    const { data, error } = await supabase.from('treinos').update(c).eq('id', id).select().single()
+    if (error) throw error
+    return data
+  },
   async deleteTreino(id) {
     const { error } = await supabase.from('treinos').delete().eq('id', id)
     if (error) throw error
@@ -139,6 +144,11 @@ export const db = {
   async createSaude(s) {
     const uid = await this.uid()
     const { data, error } = await supabase.from('health').insert({ ...s, user_id: uid }).select().single()
+    if (error) throw error
+    return data
+  },
+  async updateSaude(id, c) {
+    const { data, error } = await supabase.from('health').update(c).eq('id', id).select().single()
     if (error) throw error
     return data
   },
@@ -158,6 +168,11 @@ export const db = {
     if (error) throw error
     return data
   },
+  async updateFinanca(id, c) {
+    const { data, error } = await supabase.from('financas').update(c).eq('id', id).select().single()
+    if (error) throw error
+    return data
+  },
   async deleteFinanca(id) {
     const { error } = await supabase.from('financas').delete().eq('id', id)
     if (error) throw error
@@ -170,5 +185,133 @@ export const db = {
     if (error) throw error
     const { data } = supabase.storage.from('fotos-pombos').getPublicUrl(path)
     return data.publicUrl
+  },
+
+  async getAcasalamentos() {
+    const { data, error } = await supabase.from('breeding').select('*').order('created_at', { ascending: false })
+    if (error) throw error
+    return data || []
+  },
+  async createAcasalamento(a) {
+    const uid = await this.uid()
+    const { data, error } = await supabase.from('breeding').insert({ ...a, user_id: uid }).select().single()
+    if (error) throw error
+    return data
+  },
+  async updateAcasalamento(id, c) {
+    const { data, error } = await supabase.from('breeding').update(c).eq('id', id).select().single()
+    if (error) throw error
+    return data
+  },
+  async deleteAcasalamento(id) {
+    const { error } = await supabase.from('breeding').delete().eq('id', id)
+    if (error) throw error
+  },
+
+  async getStock() {
+    const { data, error } = await supabase.from('stock').select('*').order('nome')
+    if (error) throw error
+    return data || []
+  },
+  async createStockItem(s) {
+    const uid = await this.uid()
+    const { data, error } = await supabase.from('stock').insert({ ...s, user_id: uid }).select().single()
+    if (error) throw error
+    return data
+  },
+  async updateStockItem(id, c) {
+    const { data, error } = await supabase.from('stock').update(c).eq('id', id).select().single()
+    if (error) throw error
+    return data
+  },
+  async deleteStockItem(id) {
+    const { error } = await supabase.from('stock').delete().eq('id', id)
+    if (error) throw error
+  },
+
+  async getTarefas() {
+    const { data, error } = await supabase.from('tarefas').select('*').order('data_prevista', { ascending: true, nullsFirst: false })
+    if (error) throw error
+    return data || []
+  },
+  async createTarefa(t) {
+    const uid = await this.uid()
+    const { data, error } = await supabase.from('tarefas').insert({ ...t, user_id: uid }).select().single()
+    if (error) throw error
+    return data
+  },
+  async updateTarefa(id, c) {
+    const { data, error } = await supabase.from('tarefas').update(c).eq('id', id).select().single()
+    if (error) throw error
+    return data
+  },
+  async deleteTarefa(id) {
+    const { error } = await supabase.from('tarefas').delete().eq('id', id)
+    if (error) throw error
+  },
+
+  async getEventosCal() {
+    const { data, error } = await supabase.from('eventos_cal').select('*').order('data_evento')
+    if (error) { if (error.code === '42P01') return []; throw error }
+    return data || []
+  },
+  async createEventoCal(e) {
+    const uid = await this.uid()
+    const { data, error } = await supabase.from('eventos_cal').insert({ ...e, user_id: uid }).select().single()
+    if (error) throw error
+    return data
+  },
+  async deleteEventoCal(id) {
+    const { error } = await supabase.from('eventos_cal').delete().eq('id', id)
+    if (error) throw error
+  },
+
+  async getEpocas() {
+    const { data, error } = await supabase.from('epocas').select('*').order('ano', { ascending: false })
+    if (error) { if (error.code === '42P01') return []; throw error }
+    return data || []
+  },
+  async createEpoca(e) {
+    const uid = await this.uid()
+    const { data, error } = await supabase.from('epocas').insert({ ...e, user_id: uid }).select().single()
+    if (error) throw error
+    return data
+  },
+
+  async getFeedPosts() {
+    const { data, error } = await supabase.from('community_posts').select('*').order('created_at', { ascending: false }).limit(30)
+    if (error) { if (error.code === '42P01') return []; throw error }
+    return data || []
+  },
+  async createFeedPost(p) {
+    const uid = await this.uid()
+    const { data, error } = await supabase.from('community_posts').insert({ ...p, user_id: uid }).select().single()
+    if (error) throw error
+    return data
+  },
+  async deleteFeedPost(id) {
+    const { error } = await supabase.from('community_posts').delete().eq('id', id)
+    if (error) throw error
+  },
+  async getRankingComunidade() {
+    const { data, error } = await supabase.from('community_ranking').select('*').order('pontos', { ascending: false }).limit(50)
+    if (error) { if (error.code === '42P01') return []; throw error }
+    return data || []
+  },
+
+  async isAdmin(email) {
+    const { data, error } = await supabase.from('admin_users').select('*').eq('email', email).maybeSingle()
+    if (error) return false
+    return !!data
+  },
+  async getLicencas() {
+    const { data, error } = await supabase.from('licencas').select('*').order('created_at', { ascending: false })
+    if (error) throw error
+    return data || []
+  },
+  async updateLicenca(id, c) {
+    const { data, error } = await supabase.from('licencas').update(c).eq('id', id).select().single()
+    if (error) throw error
+    return data
   },
 }
