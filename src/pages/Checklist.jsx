@@ -16,7 +16,7 @@ const SUGESTOES = [
 ]
 const CATS = ['Manutenção', 'Alimentação', 'Saúde', 'Administrativo', 'Treino', 'Outro']
 const catIcon = { 'Manutenção': '🧹', 'Alimentação': '🌾', 'Saúde': '🏥', 'Administrativo': '📋', 'Treino': '🎯', 'Outro': '📌' }
-const EMPTY = { titulo: '', cat: 'Manutenção', data_prevista: new Date().toISOString().slice(0, 10), estado: 'por_iniciar', obs: '' }
+const EMPTY = { titulo: '', cat: 'Manutenção', data_prevista: new Date().toISOString().slice(0, 10), estado: 'por_iniciar', obs: '', recorrencia_dias: '' }
 
 export default function Checklist({ nav }) {
   const toast = useToast()
@@ -42,15 +42,15 @@ export default function Checklist({ nav }) {
   const hoje = new Date().toISOString().slice(0, 10)
   const isAtrasada = (t) => t.estado === 'por_iniciar' && t.data_prevista && t.data_prevista < hoje
 
-  const openNew = (presetTitulo) => { setForm(presetTitulo ? { ...EMPTY, titulo: presetTitulo.titulo, cat: presetTitulo.cat, data_prevista: new Date(Date.now() + presetTitulo.dias * 86400000).toISOString().slice(0, 10) } : EMPTY); setSelected(null); setModal(true) }
-  const openEdit = (t) => { setSelected(t); setForm({ titulo: t.titulo || '', cat: t.cat || 'Manutenção', data_prevista: t.data_prevista || '', estado: t.estado || 'por_iniciar', obs: t.obs || '' }); setModal(true) }
+  const openNew = (presetTitulo) => { setForm(presetTitulo ? { ...EMPTY, titulo: presetTitulo.titulo, cat: presetTitulo.cat, data_prevista: new Date(Date.now() + presetTitulo.dias * 86400000).toISOString().slice(0, 10), recorrencia_dias: presetTitulo.dias } : EMPTY); setSelected(null); setModal(true) }
+  const openEdit = (t) => { setSelected(t); setForm({ titulo: t.titulo || '', cat: t.cat || 'Manutenção', data_prevista: t.data_prevista || '', estado: t.estado || 'por_iniciar', obs: t.obs || '', recorrencia_dias: t.recorrencia_dias || '' }); setModal(true) }
   const close = () => { setModal(false); setSelected(null) }
 
   const save = async () => {
     if (!form.titulo.trim()) { toast('Título obrigatório', 'warn'); return }
     setSaving(true)
     try {
-      const payload = { titulo: form.titulo.trim(), cat: form.cat, data_prevista: form.data_prevista || null, estado: form.estado, obs: form.obs }
+      const payload = { titulo: form.titulo.trim(), cat: form.cat, data_prevista: form.data_prevista || null, estado: form.estado, obs: form.obs, recorrencia_dias: form.recorrencia_dias ? parseInt(form.recorrencia_dias) : null }
       selected ? await db.updateTarefa(selected.id, payload) : await db.createTarefa(payload)
       toast(selected ? 'Actualizada!' : 'Tarefa adicionada!', 'ok'); close(); load()
     } catch (e) { toast('Erro: ' + e.message, 'err') }
@@ -62,9 +62,23 @@ export default function Checklist({ nav }) {
     catch (e) { toast('Erro: ' + e.message, 'err') }
   }
 
+  const [confirmRecorrencia, setConfirmRecorrencia] = useState(null)
+
   const toggleConcluida = async (t) => {
-    try { await db.updateTarefa(t.id, { estado: t.estado === 'concluida' ? 'por_iniciar' : 'concluida' }); load() }
-    catch (e) { toast('Erro: ' + e.message, 'err') }
+    try {
+      const ficouConcluida = t.estado !== 'concluida'
+      await db.updateTarefa(t.id, { estado: ficouConcluida ? 'concluida' : 'por_iniciar' })
+      if (ficouConcluida && t.recorrencia_dias) { setConfirmRecorrencia(t); return }
+      load()
+    } catch (e) { toast('Erro: ' + e.message, 'err') }
+  }
+
+  const criarProximaOcorrencia = async () => {
+    try {
+      const proxData = new Date(Date.now() + confirmRecorrencia.recorrencia_dias * 86400000).toISOString().slice(0, 10)
+      await db.createTarefa({ titulo: confirmRecorrencia.titulo, cat: confirmRecorrencia.cat, data_prevista: proxData, estado: 'por_iniciar', obs: confirmRecorrencia.obs, recorrencia_dias: confirmRecorrencia.recorrencia_dias })
+      toast('Próxima ocorrência agendada!', 'ok'); setConfirmRecorrencia(null); load()
+    } catch (e) { toast('Erro: ' + e.message, 'err') }
   }
 
   const filtered = tarefas.filter(t => {
@@ -100,9 +114,9 @@ export default function Checklist({ nav }) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 4, background: '#1a2840', borderRadius: 10, padding: 4, marginBottom: 16, overflowX: 'auto' }}>
+      <div style={{ display: 'flex', gap: 4, background: '#101F40', borderRadius: 8, padding: 4, marginBottom: 16, overflowX: 'auto' }}>
         {[['pendentes', 'Pendentes'], ['atrasadas', 'Atrasadas'], ['concluidas', 'Concluídas'], ['todas', 'Todas']].map(([f, l]) => (
-          <button key={f} onClick={() => setFiltro(f)} style={{ flex: 1, padding: '8px 12px', borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: 'inherit', whiteSpace: 'nowrap', background: filtro === f ? '#1ed98a' : 'none', color: filtro === f ? '#0a0f14' : '#94a3b8' }}>{l}</button>
+          <button key={f} onClick={() => setFiltro(f)} style={{ flex: 1, padding: '8px 12px', borderRadius: 6, fontSize: 12, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: 'inherit', whiteSpace: 'nowrap', background: filtro === f ? '#1E5FD9' : 'none', color: filtro === f ? '#fff' : '#94a3b8' }}>{l}</button>
         ))}
       </div>
 
@@ -114,13 +128,13 @@ export default function Checklist({ nav }) {
               return (
                 <div key={t.id} className="card card-p" style={{ borderColor: atrasada ? 'rgba(239,68,68,.3)' : undefined }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <button onClick={() => toggleConcluida(t)} style={{ width: 22, height: 22, borderRadius: 6, border: t.estado === 'concluida' ? 'none' : '2px solid #243860', background: t.estado === 'concluida' ? '#1ed98a' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, fontSize: 13 }}>
+                    <button onClick={() => toggleConcluida(t)} style={{ width: 22, height: 22, borderRadius: 6, border: t.estado === 'concluida' ? 'none' : '2px solid #1B2D52', background: t.estado === 'concluida' ? '#2DD4A7' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, fontSize: 13 }}>
                       {t.estado === 'concluida' && '✓'}
                     </button>
                     <div style={{ fontSize: 18 }}>{catIcon[t.cat] || '📌'}</div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 500, color: t.estado === 'concluida' ? '#64748b' : '#fff', textDecoration: t.estado === 'concluida' ? 'line-through' : 'none' }}>{t.titulo}</div>
-                      <div style={{ fontSize: 11, color: atrasada ? '#f87171' : '#64748b' }}>{t.cat}{t.data_prevista ? ` · ${atrasada ? '⚠️ Atrasada desde ' : 'Prevista para '}${new Date(t.data_prevista).toLocaleDateString('pt-PT')}` : ''}</div>
+                      <div style={{ fontSize: 13, fontWeight: 500, color: t.estado === 'concluida' ? '#7A8699' : '#fff', textDecoration: t.estado === 'concluida' ? 'line-through' : 'none' }}>{t.titulo}</div>
+                      <div style={{ fontSize: 11, color: atrasada ? '#f87171' : '#7A8699' }}>{t.cat}{t.data_prevista ? ` · ${atrasada ? '⚠️ Atrasada desde ' : 'Prevista para '}${new Date(t.data_prevista).toLocaleDateString('pt-PT')}` : ''}{t.recorrencia_dias ? ` · 🔁 a cada ${t.recorrencia_dias}d` : ''}</div>
                     </div>
                     <button className="btn btn-icon btn-sm" onClick={() => openEdit(t)}>✏️</button>
                     <button className="btn btn-icon btn-sm" onClick={() => setConfirm(t)}>🗑️</button>
@@ -148,12 +162,19 @@ export default function Checklist({ nav }) {
             </Field>
           )}
           <Field label="Observações"><textarea className="input" rows={2} style={{ resize: 'none' }} value={form.obs} onChange={e => sf('obs', e.target.value)} /></Field>
+          <Field label="Repetir a cada (dias) — opcional">
+            <input className="input" type="number" placeholder="Ex: 90 (deixe vazio se não for recorrente)" value={form.recorrencia_dias} onChange={e => sf('recorrencia_dias', e.target.value)} />
+          </Field>
         </div>
       </Modal>
 
       <Modal open={!!confirm} onClose={() => setConfirm(null)} title="Eliminar tarefa"
         footer={<><button className="btn btn-secondary" onClick={() => setConfirm(null)}>Cancelar</button><button className="btn btn-danger" onClick={del}>Eliminar</button></>}>
         <p style={{ fontSize: 14, color: '#cbd5e1' }}>Eliminar "{confirm?.titulo}"?</p>
+      </Modal>
+      <Modal open={!!confirmRecorrencia} onClose={() => { setConfirmRecorrencia(null); load() }} title="🔁 Tarefa Recorrente"
+        footer={<><button className="btn btn-secondary" onClick={() => { setConfirmRecorrencia(null); load() }}>Não, só esta vez</button><button className="btn btn-primary" onClick={criarProximaOcorrencia}>Sim, agendar próxima</button></>}>
+        <p style={{ fontSize: 14, color: '#cbd5e1' }}>"{confirmRecorrencia?.titulo}" repete-se a cada {confirmRecorrencia?.recorrencia_dias} dias. Quer agendar já a próxima ocorrência?</p>
       </Modal>
     </div>
   )
