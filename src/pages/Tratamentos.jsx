@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback } from 'react'
 import { db } from '../lib/supabase'
 import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../components/ui'
 
-const PRODUTOS_SUGERIDOS = ['Amprolium', 'Ronidazol', 'Enrofloxacina', 'Doxiciclina', 'Spartrix', 'Tylan', 'Baycox', 'Eskazole', 'Vitaminas A+D3+E', 'Eletrólitos', 'Probióticos', 'Levedura de Cerveja']
 const ESPECIALIDADES = ['velocidade', 'meio_fundo', 'fundo', 'geral']
 const espLabel = { velocidade: 'Velocidade', meio_fundo: 'Meio-Fundo', fundo: 'Fundo', geral: 'Geral' }
+const MODO_LABEL = { agua: '💧 Na água', racao: '🌾 Na ração', direto: '💊 Direto ao pombo' }
+const BASE_LABEL = { pombo: 'por pombo', litro: 'por litro', kg: 'por kg' }
 const DIAS = [
   { key: 'domingo', label: 'Domingo', idx: 0 },
   { key: 'segunda', label: 'Segunda', idx: 1 },
@@ -16,7 +17,6 @@ const DIAS = [
 ]
 const diaIdx = (key) => DIAS.find(d => d.key === key)?.idx ?? 0
 
-// Calcula D-N a partir do dia da semana do item e do dia de prova de referência do plano
 function calcularDN(diaItemKey, diaProvaKey) {
   const idxItem = diaIdx(diaItemKey)
   const idxProva = diaIdx(diaProvaKey)
@@ -25,37 +25,27 @@ function calcularDN(diaItemKey, diaProvaKey) {
   return diff === 0 ? 'Dia da prova' : `D-${diff}`
 }
 
-// Segunda-feira da semana corrente, em formato YYYY-MM-DD
 function segundaFeiraDesta(data = new Date()) {
   const d = new Date(data)
-  const diff = (d.getDay() + 6) % 7 // 0 = segunda
+  const diff = (d.getDay() + 6) % 7
   d.setDate(d.getDate() - diff)
   return d.toISOString().slice(0, 10)
 }
 
-// Calcula a dosagem total a partir de um texto como "1ml por litro" ou "1 comprimido por pombo", multiplicando pelo nº de pombos
-function calcularDosagemTotal(dosagemTexto, nPombos) {
-  const match = dosagemTexto.match(/^([\d.,]+)\s*(\w+)\s*por\s*(pombo|litro)/i)
-  if (!match) return dosagemTexto
-  const valor = parseFloat(match[1].replace(',', '.'))
-  const unidade = match[2]
-  const base = match[3].toLowerCase()
-  if (base === 'pombo') {
-    const total = valor * nPombos
-    return `${dosagemTexto} → total: ${total}${unidade} para ${nPombos} pombos`
-  }
-  return dosagemTexto
-}
-
-const ITEM_VAZIO = { dia_semana: 'quarta', produto: '', dosagem: '', notas: '' }
+const ITEM_VAZIO = { dia_semana: 'quarta', product_id: '', notas: '' }
 const PLANO_VAZIO = { nome: '', especialidade: 'velocidade', dia_prova: 'domingo', itens: [], obs: '' }
+const PRODUTO_VAZIO = { nome: '', modo: 'agua', dosagem_valor: '', dosagem_unidade: 'ml', dosagem_base: 'litro', obs: '' }
 
 export default function Tratamentos({ nav }) {
   const toast = useToast()
   const [planos, setPlanos] = useState([])
   const [aplicacoes, setAplicacoes] = useState([])
+  const [produtos, setProdutos] = useState([])
+  const [pombos, setPombos] = useState([])
+  const [stock, setStock] = useState([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('semana')
+
   const [modal, setModal] = useState(null)
   const [selected, setSelected] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -63,15 +53,21 @@ export default function Tratamentos({ nav }) {
   const [form, setForm] = useState(PLANO_VAZIO)
   const sf = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
+  const [formProduto, setFormProduto] = useState(PRODUTO_VAZIO)
+  const sfp = (k, v) => setFormProduto(f => ({ ...f, [k]: v }))
+  const [confirmProduto, setConfirmProduto] = useState(null)
+
   const [modalAplicar, setModalAplicar] = useState(false)
   const [planoParaAplicar, setPlanoParaAplicar] = useState(null)
-  const [nPombosAplicar, setNPombosAplicar] = useState('20')
+  const [pombosSelecionados, setPombosSelecionados] = useState([])
   const [savingAplicar, setSavingAplicar] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
-    try { const [p, a] = await Promise.all([db.getTreatmentPlans(), db.getTreatmentApplications()]); setPlanos(p); setAplicacoes(a) }
-    catch (e) { toast('Erro: ' + e.message + ' (verifique se as tabelas treatment_plans/treatment_applications existem)', 'err') }
+    try {
+      const [p, a, pr, pb, st] = await Promise.all([db.getTreatmentPlans(), db.getTreatmentApplications(), db.getTreatmentProducts(), db.getPombos(), db.getStock().catch(() => [])])
+      setPlanos(p); setAplicacoes(a); setProdutos(pr); setPombos(pb); setStock(st)
+    } catch (e) { toast('Erro: ' + e.message, 'err') }
     finally { setLoading(false) }
   }, [])
 
@@ -80,6 +76,8 @@ export default function Tratamentos({ nav }) {
   const semanaAtual = segundaFeiraDesta()
   const aplicacaoAtiva = aplicacoes.find(a => a.semana_inicio === semanaAtual)
   const planoAtivo = aplicacaoAtiva ? planos.find(p => p.id === aplicacaoAtiva.plan_id) : null
+  const produto = (id) => produtos.find(p => p.id === id)
+  const efectivoAtivo = pombos.filter(p => (!p.estado_ext || p.estado_ext === 'proprio') && p.estado === 'ativo')
 
   const openNewPlano = () => { setForm(PLANO_VAZIO); setSelected(null); setModal('plano') }
   const openEditPlano = (p) => { setSelected(p); setForm({ nome: p.nome, especialidade: p.especialidade || 'geral', dia_prova: p.dia_prova || 'domingo', itens: p.itens || [], obs: p.obs || '' }); setModal('plano') }
@@ -92,6 +90,7 @@ export default function Tratamentos({ nav }) {
   const savePlano = async () => {
     if (!form.nome.trim()) { toast('Nome do plano obrigatório', 'warn'); return }
     if (form.itens.length === 0) { toast('Adicione pelo menos um dia ao plano', 'warn'); return }
+    if (form.itens.some(it => !it.product_id)) { toast('Escolha um produto da biblioteca para cada dia', 'warn'); return }
     setSaving(true)
     try {
       const payload = { nome: form.nome.trim(), especialidade: form.especialidade, dia_prova: form.dia_prova, itens: form.itens, obs: form.obs }
@@ -106,12 +105,63 @@ export default function Tratamentos({ nav }) {
     catch (e) { toast('Erro: ' + e.message, 'err') }
   }
 
-  const abrirAplicar = (plano) => { setPlanoParaAplicar(plano); setNPombosAplicar('20'); setModalAplicar(true) }
+  const openNewProduto = () => { setFormProduto(PRODUTO_VAZIO); setSelected(null); setModal('produto') }
+  const openEditProduto = (p) => { setSelected(p); setFormProduto({ nome: p.nome, modo: p.modo, dosagem_valor: p.dosagem_valor || '', dosagem_unidade: p.dosagem_unidade || '', dosagem_base: p.dosagem_base || 'litro', obs: p.obs || '' }); setModal('produto') }
+  const closeProduto = () => { setModal(null); setSelected(null) }
+
+  const saveProduto = async () => {
+    if (!formProduto.nome.trim()) { toast('Nome do produto obrigatório', 'warn'); return }
+    setSaving(true)
+    try {
+      const payload = { nome: formProduto.nome.trim(), modo: formProduto.modo, dosagem_valor: parseFloat(formProduto.dosagem_valor) || null, dosagem_unidade: formProduto.dosagem_unidade, dosagem_base: formProduto.dosagem_base, obs: formProduto.obs }
+      selected ? await db.updateTreatmentProduct(selected.id, payload) : await db.createTreatmentProduct(payload)
+      toast(selected ? 'Produto actualizado!' : 'Produto criado!', 'ok'); closeProduto(); load()
+    } catch (e) { toast('Erro: ' + e.message, 'err') }
+    finally { setSaving(false) }
+  }
+
+  const delProduto = async () => {
+    try { await db.deleteTreatmentProduct(confirmProduto.id); toast('Produto eliminado', 'ok'); setConfirmProduto(null); load() }
+    catch (e) { toast('Erro: ' + e.message, 'err') }
+  }
+
+  const abrirAplicar = (plano) => {
+    setPlanoParaAplicar(plano)
+    const sugeridos = plano.especialidade && plano.especialidade !== 'geral'
+      ? efectivoAtivo.filter(p => (p.esp || []).includes(plano.especialidade)).map(p => p.id)
+      : efectivoAtivo.map(p => p.id)
+    setPombosSelecionados(sugeridos)
+    setModalAplicar(true)
+  }
+
+  const togglePomboSel = (id) => setPombosSelecionados(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id])
+  const selecionarPorEsp = (esp) => setPombosSelecionados(efectivoAtivo.filter(p => (p.esp || []).includes(esp)).map(p => p.id))
+  const selecionarPorSexo = (sexo) => setPombosSelecionados(efectivoAtivo.filter(p => p.sexo === sexo).map(p => p.id))
+  const selecionarTodos = () => setPombosSelecionados(efectivoAtivo.map(p => p.id))
+  const limparSelecao = () => setPombosSelecionados([])
+
+  const avisosStock = (() => {
+    if (!planoParaAplicar) return []
+    const n = pombosSelecionados.length
+    const avisos = []
+    planoParaAplicar.itens.forEach(it => {
+      const prod = produto(it.product_id)
+      if (!prod || !prod.dosagem_valor) return
+      const itemStock = stock.find(s => s.nome.toLowerCase() === prod.nome.toLowerCase())
+      if (!itemStock) return
+      const necessario = prod.dosagem_base === 'pombo' ? prod.dosagem_valor * n : prod.dosagem_valor
+      if (itemStock.qtd < necessario) {
+        avisos.push(`${prod.nome}: precisa de ~${necessario}${prod.dosagem_unidade || ''}, só tem ${itemStock.qtd}${itemStock.unidade || ''} em stock`)
+      }
+    })
+    return avisos
+  })()
 
   const confirmarAplicar = async () => {
+    if (pombosSelecionados.length === 0) { toast('Seleccione pelo menos um pombo', 'warn'); return }
     setSavingAplicar(true)
     try {
-      await db.createTreatmentApplication({ plan_id: planoParaAplicar.id, semana_inicio: semanaAtual, n_pombos: parseInt(nPombosAplicar) || 0, estado_dias: {} })
+      await db.createTreatmentApplication({ plan_id: planoParaAplicar.id, semana_inicio: semanaAtual, pombos_ids: pombosSelecionados, n_pombos: pombosSelecionados.length, estado_dias: {} })
       toast('Plano aplicado a esta semana!', 'ok'); setModalAplicar(false); load()
     } catch (e) { toast('Erro: ' + e.message, 'err') }
     finally { setSavingAplicar(false) }
@@ -142,16 +192,19 @@ export default function Tratamentos({ nav }) {
     })
   }
 
+  const nPombosAtivos = aplicacaoAtiva?.pombos_ids?.length || aplicacaoAtiva?.n_pombos || 0
+
   return (
     <div>
       <div className="section-header">
-        <div><div className="section-title">Tratamentos</div><div className="section-sub">{planos.length} plano(s) · {aplicacaoAtiva ? 'plano activo esta semana' : 'sem plano activo esta semana'}</div></div>
+        <div><div className="section-title">Tratamentos</div><div className="section-sub">{planos.length} plano(s) · {produtos.length} produto(s) na biblioteca</div></div>
         {tab === 'planos' && <button className="btn btn-primary" onClick={openNewPlano}>＋ Novo Plano</button>}
+        {tab === 'produtos' && <button className="btn btn-primary" onClick={openNewProduto}>＋ Novo Produto</button>}
       </div>
 
-      <div style={{ display: 'flex', gap: 4, background: '#101F40', borderRadius: 8, padding: 4, marginBottom: 16 }}>
-        {[['semana', '📅 Esta Semana'], ['planos', '🧪 Os Meus Planos']].map(([t, l]) => (
-          <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: '8px 14px', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: 'inherit', background: tab === t ? '#1E5FD9' : 'none', color: tab === t ? '#fff' : '#94a3b8' }}>{l}</button>
+      <div style={{ display: 'flex', gap: 4, background: '#101F40', borderRadius: 8, padding: 4, marginBottom: 16, overflowX: 'auto' }}>
+        {[['semana', '📅 Esta Semana'], ['planos', '🧪 Os Meus Planos'], ['produtos', '💊 Biblioteca de Produtos']].map(([t, l]) => (
+          <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: '8px 14px', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: 'inherit', whiteSpace: 'nowrap', background: tab === t ? '#1E5FD9' : 'none', color: tab === t ? '#fff' : '#94a3b8' }}>{l}</button>
         ))}
       </div>
 
@@ -161,7 +214,7 @@ export default function Tratamentos({ nav }) {
             <div>
               {!aplicacaoAtiva ? (
                 planos.length === 0 ? (
-                  <EmptyState icon="🧪" title="Sem planos de tratamento" desc="Crie o seu primeiro plano em 'Os Meus Planos' para começar a aplicá-lo semana a semana" action={<button className="btn btn-primary" onClick={() => setTab('planos')}>Criar Plano →</button>} />
+                  <EmptyState icon="🧪" title="Sem planos de tratamento" desc="Crie primeiro a biblioteca de produtos e depois um plano em 'Os Meus Planos'" action={<button className="btn btn-primary" onClick={() => setTab('produtos')}>Começar →</button>} />
                 ) : (
                   <div>
                     <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 12 }}>Nenhum plano activo nesta semana. Escolha um plano para aplicar:</div>
@@ -187,7 +240,7 @@ export default function Tratamentos({ nav }) {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
                       <div>
                         <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 700, fontSize: 16, color: '#fff' }}>{planoAtivo?.nome || 'Plano'}</div>
-                        <div style={{ fontSize: 11, color: '#7A8699' }}>{espLabel[planoAtivo?.especialidade] || ''} · {aplicacaoAtiva.n_pombos} pombo(s) a tratar</div>
+                        <div style={{ fontSize: 11, color: '#7A8699' }}>{espLabel[planoAtivo?.especialidade] || ''} · {nPombosAtivos} pombo(s) seleccionado(s)</div>
                       </div>
                       <Badge v="blue">Activo</Badge>
                     </div>
@@ -197,6 +250,8 @@ export default function Tratamentos({ nav }) {
                     {itensOrdenadosPorDia(planoAtivo).map((item, i) => {
                       const dn = calcularDN(item.dia_semana, planoAtivo.dia_prova)
                       const feito = !!aplicacaoAtiva.estado_dias[item.dia_semana]
+                      const prod = produto(item.product_id)
+                      const doseTotal = prod && prod.dosagem_valor && prod.dosagem_base === 'pombo' ? (prod.dosagem_valor * nPombosAtivos).toFixed(1) : null
                       return (
                         <div key={i} className="card card-p" style={{ borderColor: feito ? 'rgba(45,212,167,.3)' : undefined }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -204,8 +259,9 @@ export default function Tratamentos({ nav }) {
                               {feito && '✓'}
                             </button>
                             <div style={{ flex: 1 }}>
-                              <div style={{ fontSize: 13, fontWeight: 500, color: feito ? '#7A8699' : '#fff', textDecoration: feito ? 'line-through' : 'none' }}>{DIAS.find(d => d.key === item.dia_semana)?.label} <span style={{ color: '#D4AF37', fontWeight: 600 }}>({dn})</span> — {item.produto || 'Produto não definido'}</div>
-                              {item.dosagem && <div style={{ fontSize: 11, color: '#7A8699' }}>{calcularDosagemTotal(item.dosagem, aplicacaoAtiva.n_pombos)}</div>}
+                              <div style={{ fontSize: 13, fontWeight: 500, color: feito ? '#7A8699' : '#fff', textDecoration: feito ? 'line-through' : 'none' }}>{DIAS.find(d => d.key === item.dia_semana)?.label} <span style={{ color: '#D4AF37', fontWeight: 600 }}>({dn})</span> — {prod?.nome || 'Produto removido'}</div>
+                              {prod && <div style={{ fontSize: 11, color: '#7A8699' }}>{MODO_LABEL[prod.modo]} · {prod.dosagem_valor}{prod.dosagem_unidade} {BASE_LABEL[prod.dosagem_base]}{doseTotal ? ` → total: ${doseTotal}${prod.dosagem_unidade} para ${nPombosAtivos} pombos` : ''}</div>}
+                              {item.notas && <div style={{ fontSize: 11, color: '#7A8699', fontStyle: 'italic' }}>{item.notas}</div>}
                             </div>
                           </div>
                         </div>
@@ -239,6 +295,25 @@ export default function Tratamentos({ nav }) {
                 ))}
               </div>
           )}
+
+          {tab === 'produtos' && (
+            produtos.length === 0 ? <EmptyState icon="💊" title="Biblioteca vazia" desc="Adicione produtos com dosagem padrão para usar facilmente na construção dos planos" action={<button className="btn btn-primary" onClick={openNewProduto}>＋ Novo Produto</button>} />
+            : <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {produtos.map(p => (
+                  <div key={p.id} className="card card-p">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                      <div style={{ fontSize: 20 }}>💊</div>
+                      <div style={{ flex: 1, minWidth: 160 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{p.nome}</div>
+                        <div style={{ fontSize: 11, color: '#7A8699' }}>{MODO_LABEL[p.modo]} · {p.dosagem_valor ? `${p.dosagem_valor}${p.dosagem_unidade} ${BASE_LABEL[p.dosagem_base]}` : 'sem dosagem definida'}</div>
+                      </div>
+                      <button className="btn btn-secondary btn-sm" onClick={() => openEditProduto(p)}>✏️ Editar</button>
+                      <button className="btn btn-icon btn-sm" onClick={() => setConfirmProduto(p)}>🗑️</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+          )}
         </>
       )}
 
@@ -250,10 +325,16 @@ export default function Tratamentos({ nav }) {
           <Field label="Dia da Prova (referência para D-N)"><select className="input" value={form.dia_prova} onChange={e => sf('dia_prova', e.target.value)}>{DIAS.map(d => <option key={d.key} value={d.key}>{d.label}</option>)}</select></Field>
         </div>
 
+        {produtos.length === 0 && (
+          <div style={{ background: 'rgba(212,175,55,.08)', border: '1px solid rgba(212,175,55,.2)', borderRadius: 8, padding: '10px 14px', marginTop: 12, fontSize: 12, color: '#D4AF37' }}>
+            💊 A biblioteca de produtos está vazia. Vá a "Biblioteca de Produtos" e crie pelo menos um produto antes de continuar.
+          </div>
+        )}
+
         <div style={{ marginTop: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>Dias de Tratamento</div>
-            <button className="btn btn-secondary btn-sm" onClick={addItem}>＋ Adicionar Dia</button>
+            <button className="btn btn-secondary btn-sm" onClick={addItem} disabled={produtos.length === 0}>＋ Adicionar Dia</button>
           </div>
           {form.itens.length === 0 ? (
             <div style={{ fontSize: 12, color: '#7A8699', textAlign: 'center', padding: '16px 0' }}>Ainda sem dias. Adicione o primeiro.</div>
@@ -274,14 +355,13 @@ export default function Tratamentos({ nav }) {
                     </div>
                     <button className="btn btn-icon btn-sm" onClick={() => removeItem(i)}>🗑️</button>
                   </div>
-                  <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                    <div style={{ flex: 1 }}>
-                      <input className="input" list={`produtos-${i}`} placeholder="Produto (ex: Eletrólitos)" value={item.produto} onChange={e => updateItem(i, 'produto', e.target.value)} />
-                      <datalist id={`produtos-${i}`}>{PRODUTOS_SUGERIDOS.map(p => <option key={p} value={p} />)}</datalist>
-                    </div>
-                    <input className="input" style={{ flex: 1 }} placeholder="Dosagem (ex: 1ml por litro de água)" value={item.dosagem} onChange={e => updateItem(i, 'dosagem', e.target.value)} />
-                  </div>
-                  <input className="input" placeholder="Notas (opcional)" value={item.notas} onChange={e => updateItem(i, 'notas', e.target.value)} />
+                  <Field label="Produto (da biblioteca)">
+                    <select className="input" value={item.product_id} onChange={e => updateItem(i, 'product_id', e.target.value)}>
+                      <option value="">— Escolher produto —</option>
+                      {produtos.map(p => <option key={p.id} value={p.id}>{p.nome} ({MODO_LABEL[p.modo]})</option>)}
+                    </select>
+                  </Field>
+                  <input className="input" style={{ marginTop: 8 }} placeholder="Notas (opcional)" value={item.notas} onChange={e => updateItem(i, 'notas', e.target.value)} />
                 </div>
               ))}
             </div>
@@ -293,19 +373,67 @@ export default function Tratamentos({ nav }) {
         </div>
       </Modal>
 
-      <Modal open={modalAplicar} onClose={() => setModalAplicar(false)} title={`Aplicar "${planoParaAplicar?.nome}" a esta semana`}
-        footer={<><button className="btn btn-secondary" onClick={() => setModalAplicar(false)}>Cancelar</button><button className="btn btn-primary" onClick={confirmarAplicar} disabled={savingAplicar}>{savingAplicar ? <Spinner /> : null}Aplicar</button></>}>
-        <Field label="Quantos pombos vai tratar nesta aplicação?">
-          <input className="input" type="number" value={nPombosAplicar} onChange={e => setNPombosAplicar(e.target.value)} />
+      <Modal open={modal === 'produto'} onClose={closeProduto} title={selected ? '✏️ Editar Produto' : '💊 Novo Produto'}
+        footer={<><button className="btn btn-secondary" onClick={closeProduto}>Cancelar</button><button className="btn btn-primary" onClick={saveProduto} disabled={saving}>{saving ? <Spinner /> : null}{selected ? 'Guardar' : 'Criar Produto'}</button></>}>
+        <Field label="Nome do Produto *"><input className="input" placeholder="Ex: Eletrólitos" value={formProduto.nome} onChange={e => sfp('nome', e.target.value)} /></Field>
+        <div style={{ fontSize: 11, color: '#7A8699', margin: '4px 0 12px' }}>💡 Se tiver um item de Stock com o mesmo nome exacto, a app verifica automaticamente se o stock é suficiente ao aplicar o plano.</div>
+        <Field label="Modo de Administração">
+          <select className="input" value={formProduto.modo} onChange={e => sfp('modo', e.target.value)}>
+            <option value="agua">💧 Na água</option>
+            <option value="racao">🌾 Na ração</option>
+            <option value="direto">💊 Direto ao pombo</option>
+          </select>
         </Field>
-        <div style={{ fontSize: 11, color: '#7A8699', marginTop: 8 }}>Este número é independente do efectivo geral — indique apenas os pombos que vai tratar nesta aplicação concreta (ex: só os que vão a prova este fim de semana).</div>
+        <div className="form-grid">
+          <Field label="Dosagem"><input className="input" type="number" step="0.1" placeholder="Ex: 1" value={formProduto.dosagem_valor} onChange={e => sfp('dosagem_valor', e.target.value)} /></Field>
+          <Field label="Unidade"><input className="input" placeholder="ml, g, comprimido..." value={formProduto.dosagem_unidade} onChange={e => sfp('dosagem_unidade', e.target.value)} /></Field>
+          <Field label="Por">
+            <select className="input" value={formProduto.dosagem_base} onChange={e => sfp('dosagem_base', e.target.value)}>
+              <option value="pombo">Pombo</option>
+              <option value="litro">Litro de água</option>
+              <option value="kg">Kg de ração</option>
+            </select>
+          </Field>
+        </div>
+        <Field label="Observações"><textarea className="input" rows={2} style={{ resize: 'none' }} value={formProduto.obs} onChange={e => sfp('obs', e.target.value)} /></Field>
+      </Modal>
+
+      <Modal open={modalAplicar} onClose={() => setModalAplicar(false)} title={`Aplicar "${planoParaAplicar?.nome}" a esta semana`} wide
+        footer={<><button className="btn btn-secondary" onClick={() => setModalAplicar(false)}>Cancelar</button><button className="btn btn-primary" onClick={confirmarAplicar} disabled={savingAplicar}>{savingAplicar ? <Spinner /> : null}Aplicar a {pombosSelecionados.length} pombo(s)</button></>}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+          <button className="btn btn-secondary btn-sm" onClick={selecionarTodos}>Todo o efectivo</button>
+          {ESPECIALIDADES.filter(e => e !== 'geral').map(e => <button key={e} className="btn btn-secondary btn-sm" onClick={() => selecionarPorEsp(e)}>{espLabel[e]}</button>)}
+          <button className="btn btn-secondary btn-sm" onClick={() => selecionarPorSexo('M')}>Machos</button>
+          <button className="btn btn-secondary btn-sm" onClick={() => selecionarPorSexo('F')}>Fêmeas</button>
+          <button className="btn btn-secondary btn-sm" onClick={limparSelecao}>Limpar</button>
+        </div>
+
+        {avisosStock.length > 0 && (
+          <div style={{ background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)', borderRadius: 8, padding: '10px 14px', marginBottom: 12, fontSize: 12, color: '#f87171' }}>
+            <div style={{ fontWeight: 600, marginBottom: 4 }}>⚠️ Stock insuficiente para esta semana:</div>
+            {avisosStock.map((a, i) => <div key={i}>{a}</div>)}
+          </div>
+        )}
+
+        <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 8 }}>{pombosSelecionados.length} pombo(s) seleccionado(s) de {efectivoAtivo.length} no efectivo activo</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxHeight: 220, overflowY: 'auto', padding: '4px 0' }}>
+          {efectivoAtivo.map(p => (
+            <button key={p.id} type="button" onClick={() => togglePomboSel(p.id)} className={`chip${pombosSelecionados.includes(p.id) ? ' active' : ''}`} style={{ fontSize: 11 }}>
+              {p.emoji} {p.nome}
+            </button>
+          ))}
+        </div>
       </Modal>
 
       <Modal open={!!confirm} onClose={() => setConfirm(null)} title="Eliminar plano"
         footer={<><button className="btn btn-secondary" onClick={() => setConfirm(null)}>Cancelar</button><button className="btn btn-danger" onClick={delPlano}>Eliminar</button></>}>
         <p style={{ fontSize: 14, color: '#cbd5e1' }}>Eliminar o plano "{confirm?.nome}"? As aplicações semanais já feitas não serão apagadas.</p>
       </Modal>
+
+      <Modal open={!!confirmProduto} onClose={() => setConfirmProduto(null)} title="Eliminar produto"
+        footer={<><button className="btn btn-secondary" onClick={() => setConfirmProduto(null)}>Cancelar</button><button className="btn btn-danger" onClick={delProduto}>Eliminar</button></>}>
+        <p style={{ fontSize: 14, color: '#cbd5e1' }}>Eliminar "{confirmProduto?.nome}"? Planos que já usam este produto deixarão de o mostrar correctamente.</p>
+      </Modal>
     </div>
   )
 }
-
