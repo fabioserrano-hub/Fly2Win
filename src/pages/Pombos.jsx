@@ -39,7 +39,7 @@ export function classificarPombo(p) {
 function PesoChart({ registos }) {
   const pontos = registos.filter(r => r.peso).slice(0, 10).reverse()
   if (pontos.length < 2) {
-    return <div style={{ fontSize: 12, color: '#64748b', textAlign: 'center', padding: '16px 0' }}>Sem dados suficientes de peso (mínimo 2 registos)</div>
+    return <div style={{ fontSize: 12, color: '#7A8699', textAlign: 'center', padding: '16px 0' }}>Sem dados suficientes de peso (mínimo 2 registos)</div>
   }
   const pesos = pontos.map(p => p.peso)
   const min = Math.min(...pesos) - 10
@@ -67,7 +67,7 @@ function PesoChart({ registos }) {
         <path d={path} fill="none" stroke="#60a5fa" strokeWidth="2" />
         {coords.map((c, i) => <circle key={i} cx={c[0]} cy={c[1]} r="2.5" fill="#60a5fa" />)}
       </svg>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#64748b', marginTop: 4 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#7A8699', marginTop: 4 }}>
         <span>{pesos[0]}g</span>
         <span style={{ color: '#94a3b8' }}>{pontos.length} registos</span>
         <span>{pesos[pesos.length - 1]}g</span>
@@ -93,6 +93,7 @@ export default function Pombos({ nav }) {
   const [photoPreview, setPhotoPreview] = useState(null)
   const [historicoProvas, setHistoricoProvas] = useState([])
   const [historicoSaude, setHistoricoSaude] = useState([])
+  const [historicoTreinos, setHistoricoTreinos] = useState([])
   const [loadingDetail, setLoadingDetail] = useState(false)
 
   const [anilhaPais, setAnilhaPais] = useState('PT')
@@ -130,17 +131,19 @@ export default function Pombos({ nav }) {
   const openDetail = async (p) => {
     setSelected(p); setModal('detail'); setLoadingDetail(true)
     try {
-      const [provasRes, saudeRes] = await Promise.all([
+      const [provasRes, saudeRes, treinosRes] = await Promise.all([
         supabase.from('race_results').select('*, races(nome,data_reg,dist,local_solta)').eq('pigeon_id', p.id).order('created_at', { ascending: false }).limit(8),
         supabase.from('health').select('*').eq('pigeon_id', p.id).order('created_at', { ascending: false }).limit(10),
+        supabase.from('treinos').select('*').contains('pombos_ids', [p.id]).order('data_reg', { ascending: false }),
       ])
       setHistoricoProvas(provasRes.data || [])
       setHistoricoSaude(saudeRes.data || [])
-    } catch (e) { setHistoricoProvas([]); setHistoricoSaude([]) }
+      setHistoricoTreinos(treinosRes.data || [])
+    } catch (e) { setHistoricoProvas([]); setHistoricoSaude([]); setHistoricoTreinos([]) }
     finally { setLoadingDetail(false) }
   }
 
-  const close = () => { setModal(null); setSelected(null); setPhotoFile(null); setPhotoPreview(null); setHistoricoProvas([]); setHistoricoSaude([]) }
+  const close = () => { setModal(null); setSelected(null); setPhotoFile(null); setPhotoPreview(null); setHistoricoProvas([]); setHistoricoSaude([]); setHistoricoTreinos([]) }
 
   const save = async () => {
     if (!form.nome.trim()) { toast('Nome obrigatório', 'warn'); return }
@@ -197,14 +200,14 @@ export default function Pombos({ nav }) {
   const ExternoCard = ({ p }) => (
     <div className="card card-p" style={{ cursor: 'pointer' }} onClick={() => openDetail(p)}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div style={{ width: 44, height: 44, borderRadius: 10, background: '#1a2840', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, overflow: 'hidden', flexShrink: 0 }}>
+        <div style={{ width: 44, height: 44, borderRadius: 10, background: '#101F40', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, overflow: 'hidden', flexShrink: 0 }}>
           {p.foto_url ? <img src={p.foto_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.emoji || '🐦'}
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{p.nome}</div>
-          <div style={{ fontFamily: 'JetBrains Mono', fontSize: 10, color: '#1ed98a' }}>{p.anilha}</div>
+          <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 10, color: '#2DD4A7' }}>{p.anilha}</div>
           {p.destino_nome && <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>→ {p.destino_nome}{p.destino_data ? ` · ${new Date(p.destino_data).toLocaleDateString('pt-PT')}` : ''}</div>}
-          {p.destino_valor && <div style={{ fontSize: 11, color: '#facc15' }}>💶 {p.destino_valor}€</div>}
+          {p.destino_valor && <div style={{ fontSize: 11, color: '#D4AF37' }}>💶 {p.destino_valor}€</div>}
         </div>
         <Badge v={extBadge[p.estado_ext] || 'gray'}>{p.estado_ext}</Badge>
       </div>
@@ -218,9 +221,9 @@ export default function Pombos({ nav }) {
         <button className="btn btn-primary" onClick={openNew}>＋ Novo Pombo</button>
       </div>
 
-      <div style={{ display: 'flex', gap: 4, background: '#1a2840', borderRadius: 10, padding: 4, marginBottom: 16, overflowX: 'auto' }}>
+      <div style={{ display: 'flex', gap: 4, background: '#101F40', borderRadius: 10, padding: 4, marginBottom: 16, overflowX: 'auto' }}>
         {[['efectivo', `🐦 Efectivo (${efectivo.length})`], ['emprestados', `🔄 Emprestados (${emprestados.length})`], ['cedidos', `🤝 Cedidos (${cedidos.length})`], ['vendidos', `💰 Vendidos/Oferecidos (${vendidos.length})`]].map(([t, l]) => (
-          <button key={t} onClick={() => setTabPrincipal(t)} style={{ padding: '8px 14px', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: 'inherit', whiteSpace: 'nowrap', background: tabPrincipal === t ? '#1ed98a' : 'none', color: tabPrincipal === t ? '#0a0f14' : '#94a3b8' }}>{l}</button>
+          <button key={t} onClick={() => setTabPrincipal(t)} style={{ padding: '8px 14px', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: 'inherit', whiteSpace: 'nowrap', background: tabPrincipal === t ? '#1E5FD9' : 'none', color: tabPrincipal === t ? '#fff' : '#94a3b8' }}>{l}</button>
         ))}
       </div>
 
@@ -230,7 +233,7 @@ export default function Pombos({ nav }) {
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {FILTROS.map(f => <button key={f.id} onClick={() => setFiltro(f.id)} className={`chip${filtro === f.id ? ' active' : ''}`} style={{ fontSize: 11 }}>{f.label}</button>)}
           </div>
-          <div style={{ fontSize: 12, color: '#64748b' }}>{filtered.length} pombo(s)</div>
+          <div style={{ fontSize: 12, color: '#7A8699' }}>{filtered.length} pombo(s)</div>
         </div>
       )}
 
@@ -279,7 +282,7 @@ export default function Pombos({ nav }) {
               <select className="input" style={{ width: 88 }} value={anilhaAno} onChange={e => setAnilhaAno(e.target.value)}>{anos.map(a => <option key={a}>{a}</option>)}</select>
               <input className="input" style={{ flex: 1 }} placeholder="00000" maxLength={5} value={anilhaNum} onChange={e => setAnilhaNum(e.target.value.replace(/[^0-9]/g, ''))} />
             </div>
-            <div style={{ fontSize: 11, color: '#1ed98a', marginTop: 4 }}>🏷️ {anilhaPais}-{anilhaAno}-{(anilhaNum || '?????').padStart(5, '0')}</div>
+            <div style={{ fontSize: 11, color: '#2DD4A7', marginTop: 4 }}>🏷️ {anilhaPais}-{anilhaAno}-{(anilhaNum || '?????').padStart(5, '0')}</div>
           </Field>
           <Field label="Nome *"><input className="input" placeholder="Nome do pombo" value={form.nome} onChange={e => sf('nome', e.target.value)} /></Field>
           <Field label="Sexo"><select className="input" value={form.sexo} onChange={e => sf('sexo', e.target.value)}><option value="M">♂ Macho</option><option value="F">♀ Fêmea</option></select></Field>
@@ -301,7 +304,7 @@ export default function Pombos({ nav }) {
           {form.estado_ext !== 'proprio' && (
             <>
               <div className="col-2" style={{ borderTop: '1px solid #1e3050', paddingTop: 12, marginTop: 4 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: '#facc15', marginBottom: 10 }}>🎯 Destino ({form.estado_ext})</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#D4AF37', marginBottom: 10 }}>🎯 Destino ({form.estado_ext})</div>
               </div>
               <Field label="Destino (nome/entidade)"><input className="input" placeholder="Nome do destinatário" value={form.destino_nome} onChange={e => sf('destino_nome', e.target.value)} /></Field>
               <Field label="Data"><input className="input" type="date" value={form.destino_data} onChange={e => sf('destino_data', e.target.value)} /></Field>
@@ -326,7 +329,7 @@ export default function Pombos({ nav }) {
             </div>
           }>
           <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
-            <div style={{ width: 80, height: 80, borderRadius: 14, background: '#1a2840', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, overflow: 'hidden', flexShrink: 0, border: '1px solid #243860' }}>
+            <div style={{ width: 80, height: 80, borderRadius: 14, background: '#101F40', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, overflow: 'hidden', flexShrink: 0, border: '1px solid #243860' }}>
               {selected.foto_url ? <img src={selected.foto_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : selected.emoji || '🐦'}
             </div>
             <div style={{ flex: 1 }}>
@@ -344,63 +347,91 @@ export default function Pombos({ nav }) {
               <div style={{ fontSize: 13, color: '#94a3b8' }}>🏠 {selected.pombal || '—'}</div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, textAlign: 'center' }}>
-              {[['provas', 'Provas', '#facc15'], ['percentil', 'Percentil %', '#1ed98a'], ['forma', 'Forma %', '#60a5fa']].map(([k, l, cor]) => (
-                <div key={k}><div style={{ fontFamily: 'Barlow Condensed', fontSize: 24, fontWeight: 700, color: cor }}>{selected[k] ?? 0}</div><div style={{ fontSize: 10, color: '#64748b' }}>{l}</div></div>
+              {[['provas', 'Provas', '#D4AF37'], ['percentil', 'Percentil %', '#2DD4A7'], ['forma', 'Forma %', '#4C8DFF']].map(([k, l, cor]) => (
+                <div key={k}><div style={{ fontFamily: "'Fraunces',serif", fontSize: 24, fontWeight: 700, color: cor }}>{selected[k] ?? 0}</div><div style={{ fontSize: 10, color: '#7A8699' }}>{l}</div></div>
               ))}
             </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-            <div><div className="label">Pai</div><div style={{ fontFamily: 'JetBrains Mono', fontSize: 11, color: '#1ed98a' }}>{selected.pai || '—'}</div></div>
-            <div><div className="label">Mãe</div><div style={{ fontFamily: 'JetBrains Mono', fontSize: 11, color: '#1ed98a' }}>{selected.mae || '—'}</div></div>
+            <div><div className="label">Pai</div><div style={{ fontFamily: "'Space Mono',monospace", fontSize: 11, color: '#2DD4A7' }}>{selected.pai || '—'}</div></div>
+            <div><div className="label">Mãe</div><div style={{ fontFamily: "'Space Mono',monospace", fontSize: 11, color: '#2DD4A7' }}>{selected.mae || '—'}</div></div>
           </div>
 
           {(selected.criador || selected.data_aquisicao || selected.valor_aquisicao) && (
-            <div style={{ background: '#1a2840', borderRadius: 10, padding: '10px 12px', marginBottom: 10 }}>
+            <div style={{ background: '#101F40', borderRadius: 10, padding: '10px 12px', marginBottom: 10 }}>
               <div style={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', marginBottom: 6 }}>📦 ORIGEM</div>
               {selected.criador && <div style={{ fontSize: 12, color: '#cbd5e1' }}>Criador: {selected.criador}</div>}
               {selected.data_aquisicao && <div style={{ fontSize: 12, color: '#cbd5e1' }}>Data: {new Date(selected.data_aquisicao).toLocaleDateString('pt-PT')}</div>}
-              {selected.valor_aquisicao && <div style={{ fontSize: 12, color: '#facc15' }}>Valor: {selected.valor_aquisicao}€</div>}
-              {selected.obs_aquisicao && <div style={{ fontSize: 12, color: '#64748b' }}>{selected.obs_aquisicao}</div>}
+              {selected.valor_aquisicao && <div style={{ fontSize: 12, color: '#D4AF37' }}>Valor: {selected.valor_aquisicao}€</div>}
+              {selected.obs_aquisicao && <div style={{ fontSize: 12, color: '#7A8699' }}>{selected.obs_aquisicao}</div>}
             </div>
           )}
 
           {selected.estado_ext && selected.estado_ext !== 'proprio' && selected.destino_nome && (
             <div style={{ background: 'rgba(234,179,8,.08)', border: '1px solid rgba(234,179,8,.2)', borderRadius: 10, padding: '10px 12px', marginBottom: 10 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#facc15', marginBottom: 6 }}>🎯 DESTINO — {selected.estado_ext.toUpperCase()}</div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#D4AF37', marginBottom: 6 }}>🎯 DESTINO — {selected.estado_ext.toUpperCase()}</div>
               <div style={{ fontSize: 12, color: '#cbd5e1' }}>{selected.destino_nome}</div>
               {selected.destino_data && <div style={{ fontSize: 12, color: '#94a3b8' }}>{new Date(selected.destino_data).toLocaleDateString('pt-PT')}</div>}
-              {selected.destino_valor && <div style={{ fontSize: 12, color: '#facc15' }}>💶 {selected.destino_valor}€</div>}
-              {selected.destino_obs && <div style={{ fontSize: 12, color: '#64748b' }}>{selected.destino_obs}</div>}
+              {selected.destino_valor && <div style={{ fontSize: 12, color: '#D4AF37' }}>💶 {selected.destino_valor}€</div>}
+              {selected.destino_obs && <div style={{ fontSize: 12, color: '#7A8699' }}>{selected.destino_obs}</div>}
             </div>
           )}
 
           {selected.obs && <div style={{ marginBottom: 14 }}><div className="label">Observações</div><div style={{ fontSize: 13, color: '#cbd5e1', marginTop: 4 }}>{selected.obs}</div></div>}
 
-          <div style={{ borderTop: '1px solid #1e3050', paddingTop: 14, marginTop: 4 }}>
+          <div style={{ borderTop: '1px solid #1B2D52', paddingTop: 14, marginTop: 4 }}>
             {loadingDetail ? (
               <div style={{ display: 'flex', justifyContent: 'center', padding: 20 }}><Spinner /></div>
             ) : (
               <div className="grid-2" style={{ gap: 12 }}>
-                <div style={{ background: '#1a2840', borderRadius: 10, padding: 12 }}>
+                <div style={{ background: '#101F40', borderRadius: 8, padding: 12 }}>
                   <div style={{ fontSize: 12, fontWeight: 600, color: '#fff', marginBottom: 8 }}>📈 Evolução de Peso</div>
                   <PesoChart registos={historicoSaude} />
                 </div>
-                <div style={{ background: '#1a2840', borderRadius: 10, padding: 12 }}>
+                <div style={{ background: '#101F40', borderRadius: 8, padding: 12 }}>
                   <div style={{ fontSize: 12, fontWeight: 600, color: '#fff', marginBottom: 8 }}>🏆 Histórico de Provas</div>
                   {historicoProvas.length === 0
-                    ? <div style={{ fontSize: 11, color: '#64748b', textAlign: 'center', padding: '12px 0' }}>Sem provas registadas para este pombo</div>
+                    ? <div style={{ fontSize: 11, color: '#7A8699', textAlign: 'center', padding: '12px 0' }}>Sem provas registadas para este pombo</div>
                     : <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 130, overflowY: 'auto' }}>
                         {historicoProvas.map(r => (
                           <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11 }}>
-                            <span style={{ fontFamily: 'Barlow Condensed', fontWeight: 700, width: 24, color: r.posicao === 1 ? '#facc15' : '#94a3b8' }}>{r.posicao ? r.posicao + 'º' : '—'}</span>
+                            <span style={{ fontFamily: "'Fraunces',serif", fontWeight: 700, width: 24, color: r.posicao === 1 ? '#D4AF37' : '#94a3b8' }}>{r.posicao ? r.posicao + 'º' : '—'}</span>
                             <span style={{ flex: 1, color: '#cbd5e1', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.races?.nome || 'Prova'}</span>
-                            <span style={{ color: '#64748b' }}>{r.races?.data_reg ? new Date(r.races.data_reg).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' }) : ''}</span>
+                            <span style={{ color: '#7A8699' }}>{r.races?.data_reg ? new Date(r.races.data_reg).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' }) : ''}</span>
                           </div>
                         ))}
                       </div>
                   }
                 </div>
+              </div>
+
+              <div style={{ background: '#101F40', borderRadius: 8, padding: 12, marginTop: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#fff', marginBottom: 8 }}>🎯 Treinos</div>
+                {historicoTreinos.length === 0
+                  ? <div style={{ fontSize: 11, color: '#7A8699', textAlign: 'center', padding: '8px 0' }}>Este pombo ainda não participou em treinos registados</div>
+                  : (() => {
+                      const comVelocidade = historicoTreinos.filter(t => t.velocidade)
+                      const velMedia = comVelocidade.length ? Math.round(comVelocidade.reduce((s, t) => s + t.velocidade, 0) / comVelocidade.length) : null
+                      return (
+                        <div>
+                          <div style={{ display: 'flex', gap: 16, marginBottom: 8 }}>
+                            <div><span style={{ fontFamily: "'Fraunces',serif", fontSize: 18, fontWeight: 900, color: '#4C8DFF' }}>{historicoTreinos.length}</span> <span style={{ fontSize: 11, color: '#7A8699' }}>treino{historicoTreinos.length !== 1 ? 's' : ''}</span></div>
+                            {velMedia && <div><span style={{ fontFamily: "'Fraunces',serif", fontSize: 18, fontWeight: 900, color: '#2DD4A7' }}>{velMedia}</span> <span style={{ fontSize: 11, color: '#7A8699' }}>km/h média</span></div>}
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 90, overflowY: 'auto' }}>
+                            {historicoTreinos.slice(0, 5).map(t => (
+                              <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11 }}>
+                                <span style={{ flex: 1, color: '#cbd5e1', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.local}</span>
+                                {t.velocidade && <span style={{ color: '#2DD4A7', fontFamily: "'Space Mono',monospace" }}>{t.velocidade}km/h</span>}
+                                <span style={{ color: '#7A8699' }}>{new Date(t.data_reg).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' })}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    })()
+                }
               </div>
             )}
           </div>
