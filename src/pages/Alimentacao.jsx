@@ -74,6 +74,16 @@ export default function Alimentacao() {
   const efectivoAtivo = pombos.filter(p => (!p.estado_ext || p.estado_ext === 'proprio') && p.estado === 'ativo').length
   const consumoCalc = (parseFloat(calcPombos) || 0) * (parseFloat(calcGPorPombo) || 0) * (parseFloat(calcDias) || 0) / 1000
 
+  // Previsão de esgotamento: assume consumo diário padrão (35g/pombo/dia) só para itens de Cereal/Ração Comercial
+  const G_POR_POMBO_DIA = 35
+  const consumoDiarioKg = (efectivoAtivo * G_POR_POMBO_DIA) / 1000
+  function diasParaEsgotar(item) {
+    if (!['Cereal', 'Ração Comercial'].includes(item.tipo) || consumoDiarioKg <= 0) return null
+    const qtdEmKg = item.unidade === 'g' ? item.qtd / 1000 : item.unidade === 'kg' ? item.qtd : null
+    if (qtdEmKg === null) return null
+    return Math.floor(qtdEmKg / consumoDiarioKg)
+  }
+
   return (
     <div>
       <div className="section-header">
@@ -81,9 +91,9 @@ export default function Alimentacao() {
         {tab === 'stock' && <button className="btn btn-primary" onClick={openNew}>＋ Novo Item</button>}
       </div>
 
-      <div style={{ display: 'flex', gap: 4, background: '#1a2840', borderRadius: 10, padding: 4, marginBottom: 16 }}>
+      <div style={{ display: 'flex', gap: 4, background: '#101F40', borderRadius: 8, padding: 4, marginBottom: 16 }}>
         {[['stock', '📦 Stock'], ['calculadora', '🧮 Calculadora']].map(([t, l]) => (
-          <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: '8px 14px', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: 'inherit', background: tab === t ? '#1ed98a' : 'none', color: tab === t ? '#0a0f14' : '#94a3b8' }}>{l}</button>
+          <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: '8px 14px', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: 'inherit', background: tab === t ? '#1E5FD9' : 'none', color: tab === t ? '#fff' : '#94a3b8' }}>{l}</button>
         ))}
       </div>
 
@@ -99,7 +109,7 @@ export default function Alimentacao() {
               )}
               {validadeProxima.length > 0 && (
                 <div style={{ background: 'rgba(234,179,8,.08)', border: '1px solid rgba(234,179,8,.2)', borderRadius: 12, padding: '12px 16px' }}>
-                  <div style={{ fontWeight: 600, color: '#facc15', marginBottom: 4 }}>📅 {validadeProxima.length} item(ns) a expirar em 30 dias</div>
+                  <div style={{ fontWeight: 600, color: '#D4AF37', marginBottom: 4 }}>📅 {validadeProxima.length} item(ns) a expirar em 30 dias</div>
                   {validadeProxima.map(s => <div key={s.id} style={{ fontSize: 12, color: '#cbd5e1' }}>{s.nome} — válido até {new Date(s.validade).toLocaleDateString('pt-PT')}</div>)}
                 </div>
               )}
@@ -122,19 +132,25 @@ export default function Alimentacao() {
                         <div style={{ fontSize: 22 }}>{icon}</div>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{s.nome}</div>
-                          <div style={{ fontSize: 11, color: '#64748b' }}>{s.tipo}</div>
+                          <div style={{ fontSize: 11, color: '#7A8699' }}>{s.tipo}</div>
                         </div>
                         <button className="btn btn-icon btn-sm" onClick={() => openEdit(s)}>✏️</button>
                         <button className="btn btn-icon btn-sm" onClick={() => setConfirm(s)}>🗑️</button>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                         <button className="btn btn-icon btn-sm" onClick={() => ajustarQtd(s, -1)}>−</button>
-                        <div style={{ flex: 1, textAlign: 'center', fontFamily: 'Barlow Condensed', fontSize: 22, fontWeight: 700, color: baixo ? '#f87171' : '#fff' }}>{s.qtd}{s.unidade}</div>
+                        <div style={{ flex: 1, textAlign: 'center', fontFamily: "'Fraunces',serif", fontSize: 22, fontWeight: 700, color: baixo ? '#f87171' : '#fff' }}>{s.qtd}{s.unidade}</div>
                         <button className="btn btn-icon btn-sm" onClick={() => ajustarQtd(s, 1)}>＋</button>
                       </div>
-                      {s.qtd_minima && <div className="progress"><div className="progress-bar" style={{ width: `${Math.min(100, (s.qtd / (s.qtd_minima * 3)) * 100)}%`, background: baixo ? '#f87171' : '#1ed98a' }} /></div>}
-                      {s.validade && <div style={{ fontSize: 11, color: '#64748b', marginTop: 6 }}>📅 Válido até {new Date(s.validade).toLocaleDateString('pt-PT')}</div>}
-                      {s.preco && <div style={{ fontSize: 11, color: '#facc15', marginTop: 2 }}>💶 {s.preco}€</div>}
+                      {s.qtd_minima && <div className="progress"><div className="progress-bar" style={{ width: `${Math.min(100, (s.qtd / (s.qtd_minima * 3)) * 100)}%`, background: baixo ? '#f87171' : '#2DD4A7' }} /></div>}
+                      {(() => {
+                        const dias = diasParaEsgotar(s)
+                        if (dias === null) return null
+                        const cor = dias <= 5 ? '#f87171' : dias <= 14 ? '#D4AF37' : '#7A8699'
+                        return <div style={{ fontSize: 11, color: cor, marginTop: 6, fontWeight: dias <= 14 ? 600 : 400 }}>⏳ Esgota em ~{dias} dia{dias !== 1 ? 's' : ''} ao ritmo actual</div>
+                      })()}
+                      {s.validade && <div style={{ fontSize: 11, color: '#7A8699', marginTop: 2 }}>📅 Válido até {new Date(s.validade).toLocaleDateString('pt-PT')}</div>}
+                      {s.preco && <div style={{ fontSize: 11, color: '#D4AF37', marginTop: 2 }}>💶 {s.preco}€</div>}
                     </div>
                   )
                 })}
@@ -152,9 +168,9 @@ export default function Alimentacao() {
             <div className="col-2"><Field label="Período (dias)"><input className="input" type="number" value={calcDias} onChange={e => setCalcDias(e.target.value)} /></Field></div>
           </div>
           <button className="btn btn-secondary btn-sm" style={{ marginTop: 4, marginBottom: 16 }} onClick={() => setCalcPombos(String(efectivoAtivo))}>Usar efectivo activo ({efectivoAtivo} pombos)</button>
-          <div style={{ background: '#1a2840', borderRadius: 12, padding: 20, textAlign: 'center' }}>
-            <div style={{ fontFamily: 'Barlow Condensed', fontSize: 40, fontWeight: 700, color: '#1ed98a' }}>{consumoCalc.toFixed(1)} kg</div>
-            <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>Consumo total estimado no período</div>
+          <div style={{ background: '#101F40', borderRadius: 12, padding: 20, textAlign: 'center' }}>
+            <div style={{ fontFamily: "'Fraunces',serif", fontSize: 40, fontWeight: 700, color: '#2DD4A7' }}>{consumoCalc.toFixed(1)} kg</div>
+            <div style={{ fontSize: 12, color: '#7A8699', marginTop: 4 }}>Consumo total estimado no período</div>
           </div>
           <div style={{ marginTop: 16, fontSize: 12, color: '#94a3b8' }}>
             <div style={{ fontWeight: 600, marginBottom: 6, color: '#cbd5e1' }}>📊 Referências comuns:</div>
@@ -162,6 +178,9 @@ export default function Alimentacao() {
             <div>Pré-competição: 30-35g/pombo/dia</div>
             <div>Competição/Treino intenso: 35-45g/pombo/dia</div>
             <div>Reprodução: 40-50g/pombo/dia</div>
+          </div>
+          <div style={{ marginTop: 12, fontSize: 11, color: '#7A8699' }}>
+            ℹ️ A previsão "Esgota em N dias" no Stock usa 35g/pombo/dia × {efectivoAtivo} pombos activos como referência. Ajuste o efectivo activo em Pombos para maior precisão.
           </div>
         </div>
       )}
