@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { db, supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../components/ui'
+import { classificarPombo } from './Pombos'
 
 const TIPOS = ['Velocidade', 'Meio-Fundo', 'Fundo', 'Grande Fundo', 'Treino Federado']
 const EMPTY_PROVA = { nome: '', tipo: 'Velocidade', dist: '', data_reg: new Date().toISOString().slice(0, 10), local_solta: '', lat_solta: '', lon_solta: '', hora_solta: '08:00', n_pombos: '', n_socios: '', custo: '', posicao_geral: '' }
@@ -15,6 +16,28 @@ function calcVelocidade(distKm, horaSolta, horaChegada) {
   const horas = mins / 60
   const vel = (distKm / horas)
   return { mins, vel: Math.round(vel * 100) / 100, mpm: Math.round((distKm * 1000 / mins) * 100) / 100 }
+}
+
+// Rumo geográfico (bearing) do ponto de solta para o pombal, em graus (0=Norte, 90=Este...)
+function calcRumoVoo(latSolta, lonSolta, latPombal, lonPombal) {
+  const toRad = (d) => d * Math.PI / 180
+  const toDeg = (r) => r * 180 / Math.PI
+  const dLon = toRad(lonPombal - lonSolta)
+  const y = Math.sin(dLon) * Math.cos(toRad(latPombal))
+  const x = Math.cos(toRad(latSolta)) * Math.sin(toRad(latPombal)) - Math.sin(toRad(latSolta)) * Math.cos(toRad(latPombal)) * Math.cos(dLon)
+  return (toDeg(Math.atan2(y, x)) + 360) % 360
+}
+
+// Classifica o vento relativo ao rumo de voo: cauda (favorável), proa (contra), ou lateral
+function classificarVento(rumoVoo, direcaoVento) {
+  // direcaoVento é a direção DE ONDE o vento vem (convenção meteorológica padrão).
+  // Se o vento vem da mesma direção do rumo de voo, está a "empurrar pelas costas" -> vento de cauda.
+  // Se vem da direção oposta ao rumo de voo, está a soprar de frente -> vento de proa.
+  let diff = Math.abs(rumoVoo - direcaoVento)
+  if (diff > 180) diff = 360 - diff
+  if (diff <= 45) return { tipo: 'Vento de Cauda', icon: '⬆️', cor: '#2DD4A7', desc: 'Vento a favor — condições propícias a boas médias' }
+  if (diff >= 135) return { tipo: 'Vento de Proa', icon: '⬇️', cor: '#f87171', desc: 'Vento contra o voo — pode atrasar a chegada' }
+  return { tipo: 'Vento Lateral', icon: '↔️', cor: '#D4AF37', desc: 'Vento de lado — pode dispersar o bando' }
 }
 
 export default function Provas({ nav, params }) {
@@ -36,10 +59,13 @@ export default function Provas({ nav, params }) {
   const [encestados, setEncestados] = useState([])
   const [meteo, setMeteo] = useState(null)
   const [loadingMeteo, setLoadingMeteo] = useState(false)
+  const [historicoSemelhante, setHistoricoSemelhante] = useState(null)
+
+  const [perfil, setPerfil] = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true)
-    try { const [p, pb] = await Promise.all([db.getProvas(), db.getPombos()]); setProvas(p); setPombos(pb) }
+    try { const [p, pb, pf] = await Promise.all([db.getProvas(), db.getPombos(), db.getPerfil()]); setProvas(p); setPombos(pb); setPerfil(pf) }
     catch (e) { toast('Erro: ' + e.message, 'err') }
     finally { setLoading(false) }
   }, [])
@@ -59,7 +85,7 @@ export default function Provas({ nav, params }) {
     setForm({ nome: p.nome || '', tipo: p.tipo || 'Velocidade', dist: String(p.dist || ''), data_reg: p.data_reg?.slice(0, 10) || '', local_solta: p.local_solta || '', lat_solta: String(p.lat_solta || ''), lon_solta: String(p.lon_solta || ''), hora_solta: p.hora_solta || '08:00', n_pombos: String(p.n_pombos || ''), n_socios: String(p.n_socios || ''), custo: String(p.custo || ''), posicao_geral: String(p.posicao_geral || '') })
     setModal('form')
   }
-  const close = () => { setModal(null); setSelected(null); setResultados([]); setEncestados([]); setMeteo(null) }
+  const close = () => { setModal(null); setSelected(null); setResultados([]); setEncestados([]); setMeteo(null); setHistoricoSemelhante(null) }
 
   const uploadAnexo = async (file) => {
     if (!file) return
@@ -102,8 +128,24 @@ export default function Provas({ nav, params }) {
 
   const openDetail = async (p) => {
     setSelected(p); setModal('detail'); setLoadingRes(true)
-    try { setResultados(await db.getResultados(p.id)) }
-    catch (e) { setResultados([]) }
+    try {
+      setResultados(await db.getResultados(p.id))
+      // Histórico de desempenho em provas semelhantes (mesma distância ±50km ou mesmo local de solta)
+      const semelhantes = provas.filter(o => o.id !== p.id && (
+        (p.local_solta && o.local_solta === p.local_solta) ||
+        (p.dist && o.dist && Math.abs(o.dist - p.dist) <= 50)
+      ))
+      if (semelhantes.length > 0) {
+        const { data } = await supabase.from('race_results').select('posicao, velocidade, race_id').in('race_id', semelhantes.map(s => s.id)).not('posicao', 'is', null)
+        const comPos = data || []
+        if (comPos.length > 0) {
+          const top3 = comPos.filter(r => r.posicao <= 3).length
+          const velMedia = comPos.filter(r => r.velocidade).reduce((s, r) => s + r.velocidade, 0) / (comPos.filter(r => r.velocidade).length || 1)
+          setHistoricoSemelhante({ nProvas: semelhantes.length, nResultados: comPos.length, top3, velMedia: Math.round(velMedia * 10) / 10 })
+        } else setHistoricoSemelhante({ nProvas: semelhantes.length, nResultados: 0 })
+      } else setHistoricoSemelhante(null)
+    }
+    catch (e) { setResultados([]); setHistoricoSemelhante(null) }
     finally { setLoadingRes(false) }
   }
 
@@ -139,8 +181,11 @@ export default function Provas({ nav, params }) {
     if (!selected?.lat_solta || !selected?.lon_solta) { toast('Sem coordenadas GPS de solta nesta prova', 'warn'); return }
     setLoadingMeteo(true)
     try {
-      const dataStr = selected.data_reg.slice(0, 10)
-      const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${selected.lat_solta}&longitude=${selected.lon_solta}&hourly=temperature_2m,windspeed_10m,winddirection_10m,precipitation,cloudcover&start_date=${dataStr}&end_date=${dataStr}`)
+      const dataProva = new Date(selected.data_reg)
+      const inicio = new Date(dataProva); inicio.setDate(inicio.getDate() - 1)
+      const fim = new Date(dataProva); fim.setDate(fim.getDate() + 1)
+      const fmt = (d) => d.toISOString().slice(0, 10)
+      const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${selected.lat_solta}&longitude=${selected.lon_solta}&hourly=temperature_2m,windspeed_10m,winddirection_10m,precipitation,cloudcover&start_date=${fmt(inicio)}&end_date=${fmt(fim)}`)
       const data = await res.json()
       setMeteo(data)
     } catch (e) { toast('Erro ao obter meteorologia', 'err') }
@@ -149,6 +194,9 @@ export default function Provas({ nav, params }) {
 
   const provasOrdenadas = [...provas].sort((a, b) => new Date(b.data_reg) - new Date(a.data_reg))
   const PombosNaoEncestados = pombos.filter(p => (!p.estado_ext || p.estado_ext === 'proprio') && p.estado === 'ativo')
+  const PombosNaoEncestadosClassificados = PombosNaoEncestados
+    .map(p => ({ ...p, classificacao: classificarPombo(p) }))
+    .sort((a, b) => b.classificacao.prioridade - a.classificacao.prioridade)
 
   return (
     <div>
@@ -211,6 +259,19 @@ export default function Provas({ nav, params }) {
             <div className="kpi"><div className="kpi-val" style={{ fontSize: 22 }}>{resultados.filter(r => r.posicao).length}</div><div className="kpi-label">Com Resultado</div></div>
           </div>
 
+          {historicoSemelhante && (
+            <div className="card card-p" style={{ marginBottom: 16 }}>
+              <div style={{ fontWeight: 600, color: '#fff', marginBottom: 6 }}>📊 Histórico em Provas Semelhantes</div>
+              {historicoSemelhante.nResultados === 0 ? (
+                <div style={{ fontSize: 12, color: '#7A8699' }}>{historicoSemelhante.nProvas} prova(s) com distância ou local parecido, mas ainda sem resultados registados.</div>
+              ) : (
+                <div style={{ fontSize: 12, color: '#94a3b8' }}>
+                  Em <strong style={{ color: '#cbd5e1' }}>{historicoSemelhante.nProvas}</strong> prova(s) parecidas (mesma distância ±50km ou mesmo local de solta), os seus pombos ficaram entre os 3 primeiros <strong style={{ color: '#2DD4A7' }}>{historicoSemelhante.top3}</strong> vez(es), com velocidade média de <strong style={{ color: '#cbd5e1' }}>{historicoSemelhante.velMedia} km/h</strong>.
+                </div>
+              )}
+            </div>
+          )}
+
           {selected.local_solta && (
             <div style={{ marginBottom: 16 }}>
               <div className="label" style={{ marginBottom: 6 }}>📍 Local de Solta</div>
@@ -224,22 +285,60 @@ export default function Provas({ nav, params }) {
 
           {meteo && (
             <div className="card card-p" style={{ marginBottom: 16, background: '#101F40' }}>
-              <div style={{ fontWeight: 600, color: '#fff', marginBottom: 10 }}>🌦️ Condições no dia da solta</div>
-              {meteo.hourly ? (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, textAlign: 'center' }}>
-                  {[8, 11, 14, 17].map(h => {
-                    const idx = meteo.hourly.time?.findIndex(t => t.endsWith(`${String(h).padStart(2, '0')}:00`))
-                    if (idx === undefined || idx < 0) return null
-                    return (
-                      <div key={h}>
-                        <div style={{ fontSize: 11, color: '#7A8699' }}>{h}h</div>
-                        <div style={{ fontSize: 16, fontWeight: 700, color: '#fff' }}>{meteo.hourly.temperature_2m?.[idx]}°C</div>
-                        <div style={{ fontSize: 10, color: '#4C8DFF' }}>💨 {meteo.hourly.windspeed_10m?.[idx]}km/h</div>
+              <div style={{ fontWeight: 600, color: '#fff', marginBottom: 10 }}>🌦️ Previsão — Dia Anterior, da Prova e Seguinte</div>
+              {meteo.hourly ? (() => {
+                const diaProvaStr = selected.data_reg.slice(0, 10)
+                const diasUnicos = [...new Set(meteo.hourly.time.map(t => t.slice(0, 10)))]
+                const ventoInfo = (() => {
+                  if (!perfil?.pombal_lat || !perfil?.pombal_lon || !selected.lat_solta || !selected.lon_solta) return null
+                  const rumo = calcRumoVoo(selected.lat_solta, selected.lon_solta, perfil.pombal_lat, perfil.pombal_lon)
+                  const horaSolta = selected.hora_solta || '08:00'
+                  const idxSolta = meteo.hourly.time.findIndex(t => t === `${diaProvaStr}T${horaSolta.slice(0, 2)}:00`)
+                  if (idxSolta < 0) return null
+                  const direcaoVento = meteo.hourly.winddirection_10m?.[idxSolta]
+                  if (direcaoVento === undefined) return null
+                  return { ...classificarVento(rumo, direcaoVento), velocidadeVento: meteo.hourly.windspeed_10m?.[idxSolta] }
+                })()
+                return (
+                  <div>
+                    {ventoInfo && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, background: `${ventoInfo.cor}14`, border: `1px solid ${ventoInfo.cor}40`, marginBottom: 10 }}>
+                        <span style={{ fontSize: 20 }}>{ventoInfo.icon}</span>
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: ventoInfo.cor }}>{ventoInfo.tipo} ({ventoInfo.velocidadeVento}km/h) na hora de solta</div>
+                          <div style={{ fontSize: 11, color: '#94a3b8' }}>{ventoInfo.desc}</div>
+                        </div>
                       </div>
-                    )
-                  })}
-                </div>
-              ) : <div style={{ fontSize: 12, color: '#7A8699' }}>Sem dados meteorológicos disponíveis</div>}
+                    )}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      {diasUnicos.map(diaStr => {
+                        const isDiaProva = diaStr === diaProvaStr
+                        return (
+                          <div key={diaStr} style={{ border: isDiaProva ? '1px solid rgba(212,175,55,.35)' : '1px solid #1B2D52', borderRadius: 8, padding: '8px 10px', background: isDiaProva ? 'rgba(212,175,55,.05)' : 'transparent' }}>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: isDiaProva ? '#D4AF37' : '#94a3b8', marginBottom: 6 }}>{isDiaProva ? '🏁 ' : ''}{new Date(diaStr).toLocaleDateString('pt-PT', { weekday: 'short', day: '2-digit', month: '2-digit' })}{isDiaProva ? ' (dia da prova)' : ''}</div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, textAlign: 'center' }}>
+                              {[8, 11, 14, 17].map(h => {
+                                const idx = meteo.hourly.time.findIndex(t => t === `${diaStr}T${String(h).padStart(2, '0')}:00`)
+                                if (idx < 0) return null
+                                return (
+                                  <div key={h}>
+                                    <div style={{ fontSize: 10, color: '#7A8699' }}>{h}h</div>
+                                    <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{meteo.hourly.temperature_2m?.[idx]}°C</div>
+                                    <div style={{ fontSize: 9, color: '#4C8DFF' }}>💨 {meteo.hourly.windspeed_10m?.[idx]}km/h</div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                    {!ventoInfo && (!perfil?.pombal_lat || !perfil?.pombal_lon) && (
+                      <div style={{ fontSize: 11, color: '#7A8699', marginTop: 10 }}>💡 Defina as coordenadas GPS do pombal em Perfil para ver a análise de vento de cauda/proa.</div>
+                    )}
+                  </div>
+                )
+              })() : <div style={{ fontSize: 12, color: '#7A8699' }}>Sem dados meteorológicos disponíveis</div>}
             </div>
           )}
 
@@ -279,18 +378,19 @@ export default function Provas({ nav, params }) {
       {selected && (
         <Modal open={modal === 'encestamento'} onClose={() => setModal('detail')} title="📦 Encestamento"
           footer={<><button className="btn btn-secondary" onClick={() => setModal('detail')}>Cancelar</button><button className="btn btn-primary" onClick={confirmarEncestamento} disabled={saving}>{saving ? <Spinner /> : null}Confirmar ({encestados.length})</button></>}>
-          <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 12 }}>Seleccione os pombos a encestar para esta prova:</div>
-          {PombosNaoEncestados.some(p => p.estado === 'lesionado') && (
+          <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 12 }}>Seleccione os pombos a encestar para esta prova. Pombos "Prontos a competir" aparecem primeiro.</div>
+          {PombosNaoEncestadosClassificados.some(p => p.classificacao.prioridade <= 1) && (
             <div style={{ background: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.2)', borderRadius: 8, padding: '10px 14px', marginBottom: 12, fontSize: 12, color: '#f87171' }}>
-              ⚠️ Há pombos lesionados na lista — evite encestar pombos que não estejam aptos.
+              ⚠️ Há pombos lesionados ou em queda de rendimento na lista — evite encestar pombos que não estejam aptos.
             </div>
           )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 360, overflowY: 'auto' }}>
-            {PombosNaoEncestados.map(p => {
-              const problemaSaude = p.estado === 'lesionado'
+            {PombosNaoEncestadosClassificados.map(p => {
+              const c = p.classificacao
+              const atencao = c.prioridade <= 1
               return (
                 <div key={p.id} onClick={() => toggleEncestado(p.id)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 8, cursor: 'pointer', background: encestados.includes(p.id) ? 'rgba(76,141,255,.08)' : '#101F40', border: encestados.includes(p.id) ? '1px solid #4C8DFF' : problemaSaude ? '1px solid rgba(239,68,68,.3)' : '1px solid #1B2D52' }}>
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 8, cursor: 'pointer', background: encestados.includes(p.id) ? 'rgba(76,141,255,.08)' : '#101F40', border: encestados.includes(p.id) ? '1px solid #4C8DFF' : atencao ? '1px solid rgba(239,68,68,.3)' : '1px solid #1B2D52' }}>
                   <input type="checkbox" checked={encestados.includes(p.id)} onChange={() => {}} style={{ accentColor: '#4C8DFF', width: 16, height: 16 }} />
                   <div style={{ width: 28, height: 28, borderRadius: 6, background: '#0B1830', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, overflow: 'hidden', flexShrink: 0 }}>
                     {p.foto_url ? <img src={p.foto_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : p.emoji}
@@ -299,7 +399,7 @@ export default function Provas({ nav, params }) {
                     <div style={{ fontSize: 13, color: '#fff' }}>{p.nome}</div>
                     <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 10, color: '#7A8699' }}>{p.anilha}</div>
                   </div>
-                  {problemaSaude && <span style={{ fontSize: 11, color: '#f87171', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>🏥 Lesionado</span>}
+                  <span style={{ fontSize: 10, fontWeight: 700, color: c.cor, display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>{atencao ? '🏥' : ''} {c.tag}</span>
                 </div>
               )
             })}
