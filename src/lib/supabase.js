@@ -264,7 +264,7 @@ export const db = {
   },
 
   async getEventosCal() {
-    const { data, error } = await supabase.from('eventos_cal').select('*').order('data_evento')
+    const { data, error } = await supabase.from('eventos_cal').select('*').order('data_ev')
     if (error) { if (error.code === '42P01') return []; throw error }
     return data || []
   },
@@ -406,9 +406,10 @@ export const db = {
   async createLeague(l) {
     const uid = await this.uid()
     const invite_code = Math.random().toString(36).slice(2, 8).toUpperCase()
-    const { data, error } = await supabase.from('leagues').insert({ ...l, creator_id: uid, invite_code }).select().single()
+    const { nome_membro, ...ligaPayload } = l
+    const { data, error } = await supabase.from('leagues').insert({ ...ligaPayload, creator_id: uid, invite_code }).select().single()
     if (error) throw error
-    await supabase.from('league_members').insert({ league_id: data.id, user_id: uid, nome: l.nome_membro || 'Eu', role: 'admin' })
+    await supabase.from('league_members').insert({ league_id: data.id, user_id: uid, nome: nome_membro || 'Eu', role: 'admin' })
     return data
   },
   async entrarLigaPorCodigo(invite_code, nome) {
