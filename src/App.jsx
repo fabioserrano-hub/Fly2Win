@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ToastProvider } from './components/ui'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 
