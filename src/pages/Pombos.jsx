@@ -6,9 +6,10 @@ import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../component
 const anoAtual = new Date().getFullYear()
 const anos = Array.from({ length: 10 }, (_, i) => anoAtual - i)
 const paises = ['PT', 'ES', 'FR', 'BE', 'NL', 'DE', 'IT', 'GB', 'PL', 'CZ']
-const CORES_POMBO = ['Azul barrado', 'Azul sem barra', 'Azul xadrez', 'Vermelho barrado', 'Vermelho sem barra', 'Branco', 'Branco com marcas', 'Amarelo', 'Alazão', 'Cinzento', 'Meado', 'Tigrado']
+const CORES_POMBO = ['Azul barrado', 'Azul xadrezado', 'Azul sem barras', 'Vermelho barrado', 'Vermelho xadrezado', 'Vermelho sem barras', 'Amarelo', 'Branco', 'Branco com marcas', 'Preto', 'Cinzento', 'Castanho', 'Alazão', 'Meado', 'Tigrado', 'Pied azul', 'Pied vermelho', 'Pied branco', 'Recessivo vermelho', 'Recessivo amarelo']
 const FILTROS = [{ id: 'todos', label: 'Todos' }, { id: 'M', label: '♂ Machos' }, { id: 'F', label: '♀ Fêmeas' }, { id: 'ativo', label: 'Voadores' }, { id: 'reproducao', label: 'Reprodução' }, { id: 'lesionado', label: 'Lesionados' }, { id: 'velocidade', label: 'Velocidade' }, { id: 'meio_fundo', label: 'Meio-Fundo' }, { id: 'fundo', label: 'Fundo' }, { id: 'grande_fundo', label: 'G.Fundo' }]
 const ESTADOS_EXT = ['proprio', 'emprestado', 'cedido', 'vendido', 'oferecido', 'falecido']
+const CORES_COLUMBOFILIA = ['Azul barrado', 'Azul xadrezado', 'Azul sem barras', 'Vermelho barrado', 'Vermelho xadrezado', 'Amarelo', 'Branco', 'Preto', 'Cinzento', 'Castanho', 'Beige', 'Pied azul', 'Pied vermelho', 'Pied branco', 'Recessivo vermelho', 'Recessivo amarelo']
 const ESPS = [['velocidade', 'Velocidade'], ['meio_fundo', 'Meio-Fundo'], ['fundo', 'Fundo'], ['grande_fundo', 'G.Fundo']]
 const statusBadge = { ativo: 'green', reproducao: 'yellow', lesionado: 'red', inativo: 'gray' }
 const extBadge = { proprio: 'green', emprestado: 'yellow', cedido: 'blue', vendido: 'gray', oferecido: 'blue', falecido: 'red' }
@@ -288,7 +289,10 @@ export default function Pombos({ nav }) {
           <Field label="Sexo"><select className="input" value={form.sexo} onChange={e => sf('sexo', e.target.value)}><option value="M">♂ Macho</option><option value="F">♀ Fêmea</option></select></Field>
           <Field label="Estado"><select className="input" value={form.estado} onChange={e => sf('estado', e.target.value)}>{['ativo', 'reproducao', 'lesionado', 'inativo'].map(s => <option key={s}>{s}</option>)}</select></Field>
           <Field label="Situação"><select className="input" value={form.estado_ext} onChange={e => sf('estado_ext', e.target.value)}>{ESTADOS_EXT.map(s => <option key={s}>{s}</option>)}</select></Field>
-          <Field label="Cor"><select className="input" value={form.cor} onChange={e => sf('cor', e.target.value)}><option value="">— Seleccionar —</option>{CORES_POMBO.map(co => <option key={co}>{co}</option>)}</select></Field>
+          <Field label="Cor">
+            <input className="input" list="cores-pombo-list" placeholder="Ex: Azul barrado" value={form.cor} onChange={e => sf('cor', e.target.value)} />
+            <datalist id="cores-pombo-list">{CORES_POMBO.map(c => <option key={c} value={c} />)}</datalist>
+          </Field>
           <Field label="Peso (g)"><input className="input" type="number" placeholder="420" value={form.peso} onChange={e => sf('peso', e.target.value)} /></Field>
           <Field label="Pombal"><select className="input" value={form.pombal} onChange={e => sf('pombal', e.target.value)}><option value="">— Sem pombal —</option>{pombais.map(pb => <option key={pb.id}>{pb.nome}</option>)}</select></Field>
           <div className="col-2"><Field label="Especialidades"><div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>{ESPS.map(([v, l]) => <button key={v} type="button" className={`chip${form.esp.includes(v) ? ' active' : ''}`} onClick={() => toggleEsp(v)}>{l}</button>)}</div></Field></div>
