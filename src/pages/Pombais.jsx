@@ -121,9 +121,10 @@ export default function Pombais({ nav }) {
                         <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 6 }}>Pombos ({n}):</div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                           {pombos.filter(p => p.pombal === pb.nome).slice(0, 8).map(p => (
-                            <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 3, background: '#101F40', borderRadius: 6, padding: '2px 8px', fontSize: 11 }}>
+                            <div key={p.id} onClick={() => nav('pombos')} title={`Ver ${p.nome}`} style={{ display: 'flex', alignItems: 'center', gap: 3, background: '#101F40', borderRadius: 6, padding: '2px 8px', fontSize: 11, cursor: 'pointer', border: `1px solid ${classificarPombo(p).prioridade <= 1 ? 'rgba(248,113,113,.3)' : '#1B2D52'}` }}>
                               <span>{p.emoji}</span>
                               <span style={{ color: '#cbd5e1' }}>{p.nome}</span>
+                              {classificarPombo(p).prioridade <= 1 && <span style={{ color: '#f87171' }}>⚠️</span>}
                             </div>
                           ))}
                           {n > 8 && <div style={{ fontSize: 11, color: '#7A8699' }}>+{n - 8} mais</div>}
