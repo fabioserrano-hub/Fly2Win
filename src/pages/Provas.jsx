@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { db, supabase } from '../lib/supabase'
+import { useAuth } from '../hooks/useAuth'
 import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../components/ui'
 
 const TIPOS = ['Velocidade', 'Meio-Fundo', 'Fundo', 'Grande Fundo', 'Treino Federado']
-const EMPTY_PROVA = { nome: '', tipo: 'Velocidade', dist: '', data_reg: new Date().toISOString().slice(0, 10), local_solta: '', lat_solta: '', lon_solta: '', hora_solta: '08:00', n_pombos: '', n_socios: '', custo: '' }
+const EMPTY_PROVA = { nome: '', tipo: 'Velocidade', dist: '', data_reg: new Date().toISOString().slice(0, 10), local_solta: '', lat_solta: '', lon_solta: '', hora_solta: '08:00', n_pombos: '', n_socios: '', custo: '', posicao_geral: '' }
 
 function calcVelocidade(distKm, horaSolta, horaChegada) {
   if (!distKm || !horaSolta || !horaChegada) return null
@@ -18,6 +19,8 @@ function calcVelocidade(distKm, horaSolta, horaChegada) {
 
 export default function Provas({ nav, params }) {
   const toast = useToast()
+  const { user } = useAuth()
+  const [uploadingAnexo, setUploadingAnexo] = useState(false)
   const [provas, setProvas] = useState([])
   const [pombos, setPombos] = useState([])
   const [loading, setLoading] = useState(true)
@@ -53,16 +56,39 @@ export default function Provas({ nav, params }) {
   const openNew = () => { setForm(EMPTY_PROVA); setSelected(null); setModal('form') }
   const openEdit = (p) => {
     setSelected(p)
-    setForm({ nome: p.nome || '', tipo: p.tipo || 'Velocidade', dist: String(p.dist || ''), data_reg: p.data_reg?.slice(0, 10) || '', local_solta: p.local_solta || '', lat_solta: String(p.lat_solta || ''), lon_solta: String(p.lon_solta || ''), hora_solta: p.hora_solta || '08:00', n_pombos: String(p.n_pombos || ''), n_socios: String(p.n_socios || ''), custo: String(p.custo || '') })
+    setForm({ nome: p.nome || '', tipo: p.tipo || 'Velocidade', dist: String(p.dist || ''), data_reg: p.data_reg?.slice(0, 10) || '', local_solta: p.local_solta || '', lat_solta: String(p.lat_solta || ''), lon_solta: String(p.lon_solta || ''), hora_solta: p.hora_solta || '08:00', n_pombos: String(p.n_pombos || ''), n_socios: String(p.n_socios || ''), custo: String(p.custo || ''), posicao_geral: String(p.posicao_geral || '') })
     setModal('form')
   }
   const close = () => { setModal(null); setSelected(null); setResultados([]); setEncestados([]); setMeteo(null) }
+
+  const uploadAnexo = async (file) => {
+    if (!file) return
+    setUploadingAnexo(true)
+    try {
+      const anexo = await db.uploadAnexoProva(user.id, selected.id, file)
+      const novosAnexos = [...(selected.anexos || []), anexo]
+      await db.updateProva(selected.id, { anexos: novosAnexos })
+      setSelected(s => ({ ...s, anexos: novosAnexos }))
+      toast('Anexo carregado!', 'ok')
+    } catch (e) { toast('Erro: ' + e.message + ' (verifique se o bucket documentos-provas existe)', 'err') }
+    finally { setUploadingAnexo(false) }
+  }
+
+  const removerAnexo = async (anexo) => {
+    try {
+      await db.deleteAnexoProva(anexo.path)
+      const novosAnexos = (selected.anexos || []).filter(a => a.path !== anexo.path)
+      await db.updateProva(selected.id, { anexos: novosAnexos })
+      setSelected(s => ({ ...s, anexos: novosAnexos }))
+      toast('Anexo removido', 'ok')
+    } catch (e) { toast('Erro: ' + e.message, 'err') }
+  }
 
   const save = async () => {
     if (!form.nome.trim() || !form.dist) { toast('Nome e distância obrigatórios', 'warn'); return }
     setSaving(true)
     try {
-      const payload = { nome: form.nome.trim(), tipo: form.tipo, dist: parseFloat(form.dist), data_reg: form.data_reg, local_solta: form.local_solta, lat_solta: form.lat_solta ? parseFloat(form.lat_solta) : null, lon_solta: form.lon_solta ? parseFloat(form.lon_solta) : null, hora_solta: form.hora_solta, n_pombos: form.n_pombos ? parseInt(form.n_pombos) : null, n_socios: form.n_socios ? parseInt(form.n_socios) : null, custo: form.custo ? parseFloat(form.custo) : null }
+      const payload = { nome: form.nome.trim(), tipo: form.tipo, dist: parseFloat(form.dist), data_reg: form.data_reg, local_solta: form.local_solta, lat_solta: form.lat_solta ? parseFloat(form.lat_solta) : null, lon_solta: form.lon_solta ? parseFloat(form.lon_solta) : null, hora_solta: form.hora_solta, n_pombos: form.n_pombos ? parseInt(form.n_pombos) : null, n_socios: form.n_socios ? parseInt(form.n_socios) : null, custo: form.custo ? parseFloat(form.custo) : null, posicao_geral: form.posicao_geral ? parseInt(form.posicao_geral) : null }
       selected ? await db.updateProva(selected.id, payload) : await db.createProva(payload)
       toast(selected ? 'Actualizada!' : 'Prova criada!', 'ok'); close(); load()
     } catch (e) { toast('Erro: ' + e.message, 'err') }
@@ -162,6 +188,7 @@ export default function Provas({ nav, params }) {
           <Field label="Latitude Solta"><input className="input" placeholder="38.68" value={form.lat_solta} onChange={e => sf('lat_solta', e.target.value)} /></Field>
           <Field label="Longitude Solta"><input className="input" placeholder="-8.46" value={form.lon_solta} onChange={e => sf('lon_solta', e.target.value)} /></Field>
           <Field label="Nº Pombos (geral)"><input className="input" type="number" value={form.n_pombos} onChange={e => sf('n_pombos', e.target.value)} /></Field>
+          <Field label="A Minha Posição (classificação oficial)"><input className="input" type="number" placeholder="Ex: 5" value={form.posicao_geral} onChange={e => sf('posicao_geral', e.target.value)} /></Field>
           <Field label="Nº Sócios"><input className="input" type="number" value={form.n_socios} onChange={e => sf('n_socios', e.target.value)} /></Field>
           <Field label="Custo (€)"><input className="input" type="number" step="0.01" value={form.custo} onChange={e => sf('custo', e.target.value)} /></Field>
         </div>
@@ -215,6 +242,29 @@ export default function Provas({ nav, params }) {
               ) : <div style={{ fontSize: 12, color: '#7A8699' }}>Sem dados meteorológicos disponíveis</div>}
             </div>
           )}
+
+          <div className="card card-p" style={{ marginBottom: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <div style={{ fontWeight: 600, color: '#fff' }}>📎 Anexos ({(selected.anexos || []).length})</div>
+              <label className="btn btn-secondary btn-sm" style={{ cursor: 'pointer' }}>
+                {uploadingAnexo ? <Spinner /> : '＋ Carregar'}
+                <input type="file" accept="image/*,application/pdf" style={{ display: 'none' }} disabled={uploadingAnexo}
+                  onChange={e => { uploadAnexo(e.target.files[0]); e.target.value = '' }} />
+              </label>
+            </div>
+            {(selected.anexos || []).length === 0
+              ? <div style={{ fontSize: 12, color: '#7A8699' }}>Sem anexos. Carregue uma foto do encestamento ou o boletim de resultados em PDF.</div>
+              : <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {selected.anexos.map((a, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', background: '#101F40', borderRadius: 8 }}>
+                      <span style={{ fontSize: 16 }}>{a.tipo?.includes('pdf') ? '📄' : '🖼️'}</span>
+                      <a href={a.url} target="_blank" rel="noopener noreferrer" style={{ flex: 1, fontSize: 12, color: '#4C8DFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textDecoration: 'none' }}>{a.nome}</a>
+                      <button className="btn btn-icon btn-sm" onClick={() => removerAnexo(a)}>🗑️</button>
+                    </div>
+                  ))}
+                </div>
+            }
+          </div>
 
           <div className="label" style={{ marginBottom: 8 }}>Resultados</div>
           {loadingRes ? <div style={{ display: 'flex', justifyContent: 'center', padding: 30 }}><Spinner /></div>
