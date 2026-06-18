@@ -100,6 +100,20 @@ function AppLayout() {
 
   const nav = (p, params = {}) => { setPage(p); setNavParams(params); setSidebarOpen(false) }
 
+  // Auto-esconder sidebar ao fazer scroll no conteúdo (mobile)
+  useEffect(() => {
+    const main = document.querySelector('.page')
+    if (!main) return
+    let lastY = 0
+    const onScroll = () => {
+      const y = main.scrollTop
+      if (y > lastY + 10 && sidebarOpen) setSidebarOpen(false)
+      lastY = y
+    }
+    main.addEventListener('scroll', onScroll, { passive: true })
+    return () => main.removeEventListener('scroll', onScroll)
+  }, [sidebarOpen])
+
   const initials = user?.user_metadata?.nome?.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
     || user?.email?.[0]?.toUpperCase() || 'U'
 
@@ -185,7 +199,7 @@ function AppLayout() {
 
       <div className="main">
         <header className="topbar">
-          <button className="btn btn-icon" onClick={() => setSidebarOpen(true)} style={{ display: 'none' }} id="menu-btn">☰</button>
+          <button className="btn btn-icon" onClick={() => setSidebarOpen(s => !s)} style={{ display: 'none' }} id="menu-btn">☰</button>
           <div className="tb-crumb">
             <span className="tb-crumb-section">{currentSection}</span>
             <span className="tb-crumb-sep">/</span>
@@ -203,7 +217,16 @@ function AppLayout() {
             </div>
           </div>
         </header>
-        <style>{`@media (max-width: 768px) { #menu-btn { display: flex !important; } }`}</style>
+        <style>{`
+          @media (max-width: 768px) {
+            #menu-btn { display: flex !important; }
+            .tb-search { display: none !important; }
+            .tb-crumb-section { display: none; }
+            .tb-crumb-sep { display: none; }
+            .tb-crumb-current { font-size: 16px !important; font-weight: 700 !important; }
+            .tb-date { display: none; }
+          }
+        `}</style>
         <main className="page">
           {renderPage()}
         </main>
