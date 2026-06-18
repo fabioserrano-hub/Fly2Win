@@ -24,6 +24,8 @@ import Comunidade   from './pages/Comunidade'
 import Ligas        from './pages/Ligas'
 import Precos       from './pages/Precos'
 import Patrocinadores from './pages/Patrocinadores'
+import Partilha     from './pages/Partilha'
+import Dicas        from './pages/Dicas'
 import Admin        from './pages/Admin'
 import Perfil       from './pages/Perfil'
 import Documentos   from './pages/Documentos'
@@ -58,6 +60,8 @@ const NAV = [
     { id: 'comunidade',  icon: '🌐', label: 'Comunidade' },
     { id: 'ligas',       icon: '🏆', label: 'Ligas' },
     { id: 'patrocinadores', icon: '🛍️', label: 'Parceiros' },
+    { id: 'partilha',       icon: '📤', label: 'Partilhar' },
+    { id: 'dicas',          icon: '💡', label: 'Dicas' },
   ]},
   { section: 'Sistema', items: [
     { id: 'precos',      icon: '💳', label: 'Planos' },
@@ -143,6 +147,8 @@ function AppLayout() {
       case 'comunidade':   return <Comunidade nav={nav} />
       case 'ligas':        return <Ligas nav={nav} />
       case 'patrocinadores': return <Patrocinadores nav={nav} />
+      case 'partilha':        return <Partilha nav={nav} />
+      case 'dicas':           return <Dicas nav={nav} />
       case 'documentos':   return <Documentos nav={nav} />
       default:             return <Dashboard nav={nav} />
     }
