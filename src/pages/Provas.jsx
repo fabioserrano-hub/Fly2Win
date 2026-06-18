@@ -181,11 +181,16 @@ export default function Provas({ nav, params }) {
     if (!selected?.lat_solta || !selected?.lon_solta) { toast('Sem coordenadas GPS de solta nesta prova', 'warn'); return }
     setLoadingMeteo(true)
     try {
+      const hoje = new Date().toISOString().slice(0, 10)
+      const endpoint = (d) => d < hoje
+        ? `https://archive-api.open-meteo.com/v1/archive?latitude=${selected.lat_solta}&longitude=${selected.lon_solta}&hourly=temperature_2m,windspeed_10m,winddirection_10m,precipitation,cloudcover&start_date=${d}&end_date=${d}`
+        : `https://api.open-meteo.com/v1/forecast?latitude=${selected.lat_solta}&longitude=${selected.lon_solta}&hourly=temperature_2m,windspeed_10m,winddirection_10m,precipitation,cloudcover&start_date=${d}&end_date=${d}`
+      const fmt = (d) => d.toISOString().slice(0, 10)
       const dataProva = new Date(selected.data_reg)
       const inicio = new Date(dataProva); inicio.setDate(inicio.getDate() - 1)
       const fim = new Date(dataProva); fim.setDate(fim.getDate() + 1)
-      const fmt = (d) => d.toISOString().slice(0, 10)
-      const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${selected.lat_solta}&longitude=${selected.lon_solta}&hourly=temperature_2m,windspeed_10m,winddirection_10m,precipitation,cloudcover&start_date=${fmt(inicio)}&end_date=${fmt(fim)}`)
+      const diaProva = fmt(dataProva)
+      const res = await fetch(endpoint(diaProva))
       const data = await res.json()
       setMeteo(data)
     } catch (e) { toast('Erro ao obter meteorologia', 'err') }
