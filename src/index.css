@@ -167,3 +167,22 @@ tr:hover td { background: rgba(16,31,64,.5); }
 .spinner-lg { width: 40px; height: 40px; }
 
 .gap-2 { gap: 8px; } .gap-3 { gap: 12px; } .flex { display: flex; } .items-center { align-items: center; } .justify-between { justify-content: space-between; } .flex-1 { flex: 1; } .mb-4 { margin-bottom: 16px; } .mb-6 { margin-bottom: 24px; } .text-green { color: #2DD4A7; } .text-red { color: #f87171; } .text-yellow { color: #D4AF37; } .text-blue { color: #4C8DFF; } .text-gray { color: #7A8699; } .font-mono { font-family: 'Space Mono', monospace; } .font-display { font-family: 'Fraunces', serif; font-weight: 700; } .w-full { width: 100%; } .text-center { text-align: center; }
+
+/* ============================================================
+   ESTILOS DE IMPRESSÃO — ChampionsLoft
+   Esconde navegação, formata conteúdo para papel
+   ============================================================ */
+@media print {
+  .sidebar, .topbar, .btn, .mobile-overlay,
+  .section-header > button, .btn-primary, .btn-secondary, .btn-danger, .btn-icon,
+  [class*="btn"], input, select, textarea { display: none !important; }
+  body { background: #fff !important; color: #000 !important; font-size: 12pt; }
+  .page { padding: 0 !important; }
+  .card { border: 1px solid #ddd !important; background: #fff !important; page-break-inside: avoid; }
+  .kpi { border: 1px solid #eee !important; background: #fff !important; }
+  .kpi-val, .section-title { color: #000 !important; -webkit-text-fill-color: #000 !important; }
+  .kpi-label, .section-sub { color: #555 !important; }
+  * { color: #000 !important; background: transparent !important; -webkit-text-fill-color: unset !important; }
+  a { text-decoration: none; color: #000 !important; }
+  @page { margin: 1.5cm; }
+}
