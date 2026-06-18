@@ -197,6 +197,7 @@ function AppLayout() {
             <span className="tb-search-kbd">⌘K</span>
           </div>
           <div className="tb-right">
+            <button className="btn btn-icon" onClick={() => window.print()} title="Imprimir página" style={{ fontSize: 16 }}>🖨️</button>
             <div className="tb-date">
               {new Date().toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'short' })}
             </div>
