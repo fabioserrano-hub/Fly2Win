@@ -203,6 +203,39 @@ export default function Provas({ nav, params }) {
     .map(p => ({ ...p, classificacao: classificarPombo(p) }))
     .sort((a, b) => b.classificacao.prioridade - a.classificacao.prioridade)
 
+  const hoje = new Date().toISOString().slice(0, 10)
+  const [filtroProvas, setFiltroProvas] = useState('todas')
+  const [filtroTipo, setFiltroTipo] = useState('todos')
+
+  const provasFiltradas = provasOrdenadas.filter(p => {
+    const passada = p.data_reg <= hoje
+    if (filtroProvas === 'passadas' && !passada) return false
+    if (filtroProvas === 'futuras' && passada) return false
+    if (filtroTipo !== 'todos' && p.tipo !== filtroTipo) return false
+    return true
+  })
+
+  // Calcula distância em linha reta entre dois pontos GPS (fórmula Haversine)
+  const calcDistanciaAoPombal = (lat, lon) => {
+    if (!perfil?.pombal_lat || !perfil?.pombal_lon || !lat || !lon) return null
+    const R = 6371
+    const dLat = (perfil.pombal_lat - lat) * Math.PI / 180
+    const dLon = (perfil.pombal_lon - lon) * Math.PI / 180
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat*Math.PI/180)*Math.cos(perfil.pombal_lat*Math.PI/180)*Math.sin(dLon/2)**2
+    return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)))
+  }
+
+  // Ao alterar GPS da solta no formulário, calcula e sugere distância automaticamente
+  const onLatLonChange = (campo, valor) => {
+    sf(campo, valor)
+    const lat = campo === 'lat_solta' ? parseFloat(valor) : parseFloat(form.lat_solta)
+    const lon = campo === 'lon_solta' ? parseFloat(valor) : parseFloat(form.lon_solta)
+    if (lat && lon && perfil?.pombal_lat && perfil?.pombal_lon) {
+      const dist = calcDistanciaAoPombal(lat, lon)
+      if (dist) sf('dist', String(dist))
+    }
+  }
+
   return (
     <div>
       <div className="section-header">
@@ -212,21 +245,39 @@ export default function Provas({ nav, params }) {
 
       {loading ? <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}><Spinner lg /></div>
         : provas.length === 0 ? <EmptyState icon="🏆" title="Sem provas" desc="Registe a primeira prova da época" action={<button className="btn btn-primary" onClick={openNew}>＋ Nova Prova</button>} />
-        : <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {provasOrdenadas.map(p => (
-              <div key={p.id} className="card card-p" style={{ cursor: 'pointer' }} onClick={() => openDetail(p)}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 10, background: '#101F40', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>🏆</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>{p.nome}</div>
-                    <div style={{ fontSize: 12, color: '#7A8699' }}>{p.tipo} · {p.dist}km · {p.local_solta || '—'} · {new Date(p.data_reg).toLocaleDateString('pt-PT')}</div>
+        : <>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+              {[['todas','Todas'],['passadas','Passadas'],['futuras','Futuras']].map(([v,l]) => (
+                <button key={v} onClick={() => setFiltroProvas(v)} style={{ padding:'6px 14px', borderRadius:20, fontSize:12, fontWeight:500, cursor:'pointer', border:'none', fontFamily:'inherit', background:filtroProvas===v?'#1E5FD9':'#101F40', color:filtroProvas===v?'#fff':'#94a3b8' }}>{l}</button>
+              ))}
+              <select value={filtroTipo} onChange={e => setFiltroTipo(e.target.value)} className="input" style={{ maxWidth:160, fontSize:12, padding:'4px 10px', borderRadius:20 }}>
+                <option value="todos">Todos os tipos</option>
+                {TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <span style={{ fontSize:11, color:'#7A8699', alignSelf:'center' }}>{provasFiltradas.length} prova(s)</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {provasFiltradas.map(p => {
+                const passada = p.data_reg <= hoje
+                return (
+                  <div key={p.id} className="card card-p" style={{ cursor: 'pointer', opacity: passada ? 1 : 0.85 }} onClick={() => openDetail(p)}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 10, background: passada ? '#101F40' : 'rgba(76,141,255,.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>{passada ? '🏆' : '📅'}</div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>{p.nome}</div>
+                        <div style={{ fontSize: 12, color: '#7A8699' }}>{p.tipo} · {p.dist}km · {p.local_solta || '—'} · {new Date(p.data_reg).toLocaleDateString('pt-PT')}</div>
+                      </div>
+                      <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4 }}>
+                        <Badge v={passada ? 'blue' : 'green'}>{passada ? p.tipo : 'Próxima'}</Badge>
+                        {!passada && p.data_reg && <div style={{ fontSize:10, color:'#D4AF37' }}>Em {Math.ceil((new Date(p.data_reg)-new Date())/(1000*60*60*24))} dias</div>}
+                      </div>
+                      <button className="btn btn-icon btn-sm" onClick={e => { e.stopPropagation(); setConfirm(p) }}>🗑️</button>
+                    </div>
                   </div>
-                  <Badge v="blue">{p.tipo}</Badge>
-                  <button className="btn btn-icon btn-sm" onClick={e => { e.stopPropagation(); setConfirm(p) }}>🗑️</button>
-                </div>
-              </div>
-            ))}
-          </div>
+                )
+              })}
+            </div>
+          </>
       }
 
       <Modal open={modal === 'form'} onClose={close} title={selected ? '✏️ Editar Prova' : '🏆 Nova Prova'} wide
@@ -238,8 +289,8 @@ export default function Provas({ nav, params }) {
           <Field label="Data"><input className="input" type="date" value={form.data_reg} onChange={e => sf('data_reg', e.target.value)} /></Field>
           <Field label="Hora de Solta"><input className="input" type="time" value={form.hora_solta} onChange={e => sf('hora_solta', e.target.value)} /></Field>
           <div className="col-2"><Field label="Local de Solta"><input className="input" placeholder="Ex: Vendas Novas" value={form.local_solta} onChange={e => sf('local_solta', e.target.value)} /></Field></div>
-          <Field label="Latitude Solta"><input className="input" placeholder="38.68" value={form.lat_solta} onChange={e => sf('lat_solta', e.target.value)} /></Field>
-          <Field label="Longitude Solta"><input className="input" placeholder="-8.46" value={form.lon_solta} onChange={e => sf('lon_solta', e.target.value)} /></Field>
+          <Field label="Latitude Solta"><input className="input" placeholder="38.68" value={form.lat_solta} onChange={e => onLatLonChange('lat_solta', e.target.value)} /></Field>
+          <Field label="Longitude Solta"><input className="input" placeholder="-8.46" value={form.lon_solta} onChange={e => onLatLonChange('lon_solta', e.target.value)} /></Field>
           <Field label="Nº Pombos (geral)"><input className="input" type="number" value={form.n_pombos} onChange={e => sf('n_pombos', e.target.value)} /></Field>
           <Field label="A Minha Posição (classificação oficial)"><input className="input" type="number" placeholder="Ex: 5" value={form.posicao_geral} onChange={e => sf('posicao_geral', e.target.value)} /></Field>
           <Field label="Nº Sócios"><input className="input" type="number" value={form.n_socios} onChange={e => sf('n_socios', e.target.value)} /></Field>
