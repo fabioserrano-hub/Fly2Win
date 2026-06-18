@@ -186,3 +186,30 @@ tr:hover td { background: rgba(16,31,64,.5); }
   a { text-decoration: none; color: #000 !important; }
   @page { margin: 1.5cm; }
 }
+
+/* ============================================================
+   MELHORIAS MOBILE — ChampionsLoft
+   ============================================================ */
+@media (max-width: 768px) {
+  .sidebar { width: 280px !important; box-shadow: 4px 0 24px rgba(0,0,0,.5) !important; }
+  .sidebar.open { transform: translateX(0) !important; }
+  .mobile-overlay { backdrop-filter: blur(2px); }
+  .page { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr !important; }
+  .form-grid { grid-template-columns: 1fr !important; }
+  .col-2 { grid-column: span 1 !important; }
+  .kpi { padding: 12px !important; }
+  .kpi-val { font-size: 22px !important; }
+  .card-p { padding: 12px !important; }
+  .section-header { flex-direction: column; gap: 10px; align-items: flex-start !important; }
+  .section-header > button { align-self: flex-start; }
+  .btn { font-size: 13px; padding: 8px 14px; }
+  .modal-inner { margin: 8px !important; max-height: calc(100vh - 16px) !important; }
+}
+
+/* Tablet landscape — sidebar estreita */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar { width: 200px; }
+  .logo-text { font-size: 14px; }
+  .nav-item { font-size: 12px; padding: 8px 12px; }
+}
