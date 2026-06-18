@@ -221,6 +221,42 @@ export const db = {
     if (error) throw error
   },
 
+  async getVacinas() {
+    const { data, error } = await supabase.from('vacinas').select('*').order('data_aplicacao', { ascending: false })
+    if (error) { if (error.code === '42P01') return []; throw error }
+    return data || []
+  },
+  async createVacina(v) {
+    const uid = await this.uid()
+    const { data, error } = await supabase.from('vacinas').insert({ ...v, user_id: uid }).select().single()
+    if (error) throw error
+    return data
+  },
+  async deleteVacina(id) {
+    const { error } = await supabase.from('vacinas').delete().eq('id', id)
+    if (error) throw error
+  },
+  async getPlanosVacinacao() {
+    const { data, error } = await supabase.from('planos_vacinacao').select('*').order('nome')
+    if (error) { if (error.code === '42P01') return []; throw error }
+    return data || []
+  },
+  async createPlanoVacinacao(p) {
+    const uid = await this.uid()
+    const { data, error } = await supabase.from('planos_vacinacao').insert({ ...p, user_id: uid }).select().single()
+    if (error) throw error
+    return data
+  },
+  async updatePlanoVacinacao(id, c) {
+    const { data, error } = await supabase.from('planos_vacinacao').update(c).eq('id', id).select().single()
+    if (error) throw error
+    return data
+  },
+  async deletePlanoVacinacao(id) {
+    const { error } = await supabase.from('planos_vacinacao').delete().eq('id', id)
+    if (error) throw error
+  },
+
   async getStock() {
     const { data, error } = await supabase.from('stock').select('*').order('nome')
     if (error) throw error
