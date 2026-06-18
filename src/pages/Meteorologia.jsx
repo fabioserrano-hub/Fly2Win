@@ -123,7 +123,11 @@ export default function Meteorologia({ nav }) {
       const horaSolta = (prova.hora_solta || '08:00').slice(0,2)
 
       const resultados = await Promise.all(pts.map(async (pt) => {
-        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pt.lat}&longitude=${pt.lon}&hourly=temperature_2m,windspeed_10m,winddirection_10m,precipitation&start_date=${dataStr}&end_date=${dataStr}&timezone=auto`)
+        const hoje = new Date().toISOString().slice(0,10)
+        const endpoint = dataStr < hoje
+          ? `https://archive-api.open-meteo.com/v1/archive?latitude=${pt.lat}&longitude=${pt.lon}&hourly=temperature_2m,windspeed_10m,winddirection_10m,precipitation&start_date=${dataStr}&end_date=${dataStr}`
+          : `https://api.open-meteo.com/v1/forecast?latitude=${pt.lat}&longitude=${pt.lon}&hourly=temperature_2m,windspeed_10m,winddirection_10m,precipitation&start_date=${dataStr}&end_date=${dataStr}&timezone=auto`
+        const res = await fetch(endpoint)
         const data = await res.json()
         const idx = data.hourly?.time?.findIndex(t => t.slice(11,13) === horaSolta) ?? 0
         const vento = data.hourly?.windspeed_10m?.[idx] ?? null
