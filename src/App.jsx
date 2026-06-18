@@ -23,6 +23,7 @@ import Meteorologia from './pages/Meteorologia'
 import Comunidade   from './pages/Comunidade'
 import Ligas        from './pages/Ligas'
 import Precos       from './pages/Precos'
+import Patrocinadores from './pages/Patrocinadores'
 import Admin        from './pages/Admin'
 import Perfil       from './pages/Perfil'
 import Documentos   from './pages/Documentos'
@@ -56,6 +57,7 @@ const NAV = [
   { section: 'Social', items: [
     { id: 'comunidade',  icon: '🌐', label: 'Comunidade' },
     { id: 'ligas',       icon: '🏆', label: 'Ligas' },
+    { id: 'patrocinadores', icon: '🛍️', label: 'Parceiros' },
   ]},
   { section: 'Sistema', items: [
     { id: 'precos',      icon: '💳', label: 'Planos' },
@@ -126,6 +128,7 @@ function AppLayout() {
       case 'admin':        return <Admin nav={nav} />
       case 'comunidade':   return <Comunidade nav={nav} />
       case 'ligas':        return <Ligas nav={nav} />
+      case 'patrocinadores': return <Patrocinadores nav={nav} />
       case 'documentos':   return <Documentos nav={nav} />
       default:             return <Dashboard nav={nav} />
     }
