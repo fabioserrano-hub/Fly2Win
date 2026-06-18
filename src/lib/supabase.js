@@ -187,6 +187,19 @@ export const db = {
     return data.publicUrl
   },
 
+  async uploadAnexoProva(userId, raceId, file) {
+    const ext = file.name.split('.').pop()
+    const path = `provas/${userId}/${raceId}/${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('documentos-provas').upload(path, file)
+    if (error) throw error
+    const { data } = supabase.storage.from('documentos-provas').getPublicUrl(path)
+    return { url: data.publicUrl, nome: file.name, tipo: file.type, path }
+  },
+  async deleteAnexoProva(path) {
+    const { error } = await supabase.storage.from('documentos-provas').remove([path])
+    if (error) throw error
+  },
+
   async getAcasalamentos() {
     const { data, error } = await supabase.from('breeding').select('*').order('created_at', { ascending: false })
     if (error) throw error
@@ -298,6 +311,12 @@ export const db = {
     if (error) { if (error.code === '42P01') return []; throw error }
     return data || []
   },
+  async upsertRankingComunidade(nome, pontos) {
+    const uid = await this.uid()
+    const { data, error } = await supabase.from('community_ranking').upsert({ user_id: uid, nome, pontos, updated_at: new Date().toISOString() }, { onConflict: 'user_id' }).select().single()
+    if (error) { if (error.code === '42P01') return null; throw error }
+    return data
+  },
 
   async isAdmin(email) {
     const { data, error } = await supabase.from('admin_users').select('*').eq('email', email).maybeSingle()
@@ -375,6 +394,54 @@ export const db = {
   },
   async deleteTreatmentProduct(id) {
     const { error } = await supabase.from('treatment_products').delete().eq('id', id)
+    if (error) throw error
+  },
+
+  async getMinhasLigas() {
+    const uid = await this.uid()
+    const { data, error } = await supabase.from('league_members').select('*, leagues(*)').eq('user_id', uid)
+    if (error) { if (error.code === '42P01') return []; throw error }
+    return (data || []).map(m => ({ ...m.leagues, meu_role: m.role })).filter(Boolean)
+  },
+  async createLeague(l) {
+    const uid = await this.uid()
+    const invite_code = Math.random().toString(36).slice(2, 8).toUpperCase()
+    const { data, error } = await supabase.from('leagues').insert({ ...l, creator_id: uid, invite_code }).select().single()
+    if (error) throw error
+    await supabase.from('league_members').insert({ league_id: data.id, user_id: uid, nome: l.nome_membro || 'Eu', role: 'admin' })
+    return data
+  },
+  async entrarLigaPorCodigo(invite_code, nome) {
+    const uid = await this.uid()
+    const { data: liga, error: e1 } = await supabase.from('leagues').select('*').eq('invite_code', invite_code.toUpperCase()).maybeSingle()
+    if (e1) throw e1
+    if (!liga) throw new Error('Código de liga inválido')
+    const { error: e2 } = await supabase.from('league_members').insert({ league_id: liga.id, user_id: uid, nome, role: 'member' })
+    if (e2) { if (e2.code === '23505') throw new Error('Já é membro desta liga'); throw e2 }
+    return liga
+  },
+  async getMembrosLiga(leagueId) {
+    const { data, error } = await supabase.from('league_members').select('*').eq('league_id', leagueId)
+    if (error) throw error
+    return data || []
+  },
+  async getResultadosLiga(leagueId) {
+    const { data, error } = await supabase.from('league_results').select('*, races(nome, data_reg, tipo)').eq('league_id', leagueId)
+    if (error) { if (error.code === '42P01') return []; throw error }
+    return data || []
+  },
+  async registarResultadoLiga(r) {
+    const uid = await this.uid()
+    const { data, error } = await supabase.from('league_results').upsert({ ...r, user_id: uid }, { onConflict: 'league_id,user_id,race_id' }).select().single()
+    if (error) throw error
+    return data
+  },
+  async deleteLeague(id) {
+    const { error } = await supabase.from('leagues').delete().eq('id', id)
+    if (error) throw error
+  },
+  async sairDeLiga(leagueId, userId) {
+    const { error } = await supabase.from('league_members').delete().eq('league_id', leagueId).eq('user_id', userId)
     if (error) throw error
   },
 }
