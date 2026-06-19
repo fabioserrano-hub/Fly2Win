@@ -2,16 +2,82 @@ import { useState, useEffect, useCallback } from 'react'
 import { db } from '../lib/supabase'
 import { useToast, Spinner, Badge } from '../components/ui'
 import { classificarPombo } from './Pombos'
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
 
-const CORES_GRAFICO = ['#4C8DFF', '#2DD4A7', '#D4AF37', '#f87171', '#a78bfa', '#fb923c', '#34d399', '#e879f9']
+const CORES = ['#4C8DFF','#2DD4A7','#D4AF37','#f87171','#a78bfa','#fb923c','#34d399','#e879f9']
 
-const TooltipCustom = ({ active, payload, label, formato }) => {
-  if (!active || !payload?.length) return null
+function BarH({ dados, formato = v => v, cor = '#2DD4A7' }) {
+  if (!dados.length) return <div style={{ fontSize:12, color:'#7A8699', textAlign:'center', padding:'12px 0' }}>Sem dados</div>
+  const max = Math.max(...dados.map(d => Math.abs(d.valor)), 1)
   return (
-    <div style={{ background: '#0B1830', border: '1px solid #1B2D52', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
-      <div style={{ color: '#94a3b8', marginBottom: 4 }}>{label}</div>
-      {payload.map((p, i) => <div key={i} style={{ color: p.color || '#2DD4A7' }}>{p.name || ''}: <strong>{formato ? formato(p.value) : p.value}</strong></div>)}
+    <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+      {dados.map((d,i) => (
+        <div key={i} style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <div style={{ width:90, fontSize:11, color:'#cbd5e1', textAlign:'right', flexShrink:0, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{d.label}</div>
+          <div style={{ flex:1, background:'#101F40', borderRadius:4, height:20, overflow:'hidden' }}>
+            <div style={{ width:`${(Math.abs(d.valor)/max)*100}%`, height:'100%', background: d.valor<0?'#f87171':cor, borderRadius:4, minWidth:2, transition:'width .5s' }} />
+          </div>
+          <div style={{ width:50, fontSize:11, color:d.valor<0?'#f87171':cor, fontWeight:700, textAlign:'right', flexShrink:0 }}>{formato(d.valor)}</div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function BarV({ dados, formato = v => v, cor = '#2DD4A7' }) {
+  if (!dados.length) return <div style={{ fontSize:12, color:'#7A8699', textAlign:'center', padding:'12px 0' }}>Sem dados</div>
+  const max = Math.max(...dados.map(d => Math.abs(d.valor)), 1)
+  return (
+    <div style={{ display:'flex', alignItems:'flex-end', gap:4, height:120, padding:'0 4px' }}>
+      {dados.map((d,i) => {
+        const h = Math.max((Math.abs(d.valor)/max)*96, d.valor===0?0:4)
+        const c = d.valor < 0 ? '#f87171' : (typeof cor === 'function' ? cor(d, i) : cor)
+        return (
+          <div key={i} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
+            {d.valor!==0 && <div style={{ fontSize:8, color:'#94a3b8' }}>{formato(d.valor)}</div>}
+            <div style={{ width:'100%', flex:1, display:'flex', alignItems:'flex-end' }}>
+              <div style={{ width:'100%', height:h, borderRadius:'3px 3px 0 0', background:c }} />
+            </div>
+            <div style={{ fontSize:9, color:'#7A8699' }}>{d.label}</div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function LineG({ dados, cor = '#D4AF37', formato = v => v }) {
+  if (dados.length < 2) return <div style={{ fontSize:12, color:'#7A8699', textAlign:'center', padding:'12px 0' }}>Sem dados suficientes</div>
+  const vals = dados.map(d => d.valor)
+  const min = Math.min(...vals)
+  const max = Math.max(...vals)
+  const range = max - min || 1
+  const W = 300, H = 100
+  const pts = dados.map((d, i) => {
+    const x = (i / (dados.length - 1)) * (W - 20) + 10
+    const y = H - ((d.valor - min) / range) * (H - 20) - 10
+    return `${x},${y}`
+  })
+  const path = 'M ' + pts.join(' L ')
+  const fill = 'M ' + pts[0] + ' L ' + pts.join(' L ') + ` L ${pts[pts.length-1].split(',')[0]},${H} L 10,${H} Z`
+  return (
+    <div>
+      <svg viewBox={`0 0 ${W} ${H}`} style={{ width:'100%', height:100 }}>
+        <defs>
+          <linearGradient id="lg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={cor} stopOpacity=".25" />
+            <stop offset="100%" stopColor={cor} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d={fill} fill="url(#lg)" />
+        <path d={path} fill="none" stroke={cor} strokeWidth="2" strokeLinejoin="round" />
+        {dados.map((d,i) => {
+          const [x,y] = pts[i].split(',').map(Number)
+          return <circle key={i} cx={x} cy={y} r={3} fill={cor} />
+        })}
+      </svg>
+      <div style={{ display:'flex', justifyContent:'space-between', fontSize:9, color:'#7A8699', marginTop:2 }}>
+        {dados.map((d,i) => <span key={i}>{d.label}</span>)}
+      </div>
     </div>
   )
 }
@@ -101,63 +167,34 @@ export default function Relatorios({ nav }) {
               </div>
 
               <div className="card card-p mb-6">
-                <div style={{ fontWeight: 600, color: '#fff', marginBottom: 16 }}>🥇 Vitórias por Mês ({ano})</div>
-                <ResponsiveContainer width="100%" height={160}>
-                  <BarChart data={vitoriasPorMes} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                    <XAxis dataKey="label" tick={{ fill: '#7A8699', fontSize: 11 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: '#7A8699', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                    <Tooltip content={<TooltipCustom />} />
-                    <Bar dataKey="valor" name="Vitórias" fill="#D4AF37" radius={[4,4,0,0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div style={{ fontWeight:600, color:'#fff', marginBottom:16 }}>🥇 Vitórias por Mês ({ano})</div>
+                <BarV dados={vitoriasPorMes} cor="#D4AF37" />
               </div>
 
               <div className="card card-p mb-6">
-                <div style={{ fontWeight: 600, color: '#fff', marginBottom: 12 }}>📊 Top 8 Pombos por Percentil</div>
-                <ResponsiveContainer width="100%" height={topPombos.length * 36 + 20}>
-                  <BarChart data={topPombos.map(p => ({ nome: p.nome, percentil: p.percentil || 0 }))} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
-                    <XAxis type="number" domain={[0, 100]} tick={{ fill: '#7A8699', fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis type="category" dataKey="nome" tick={{ fill: '#cbd5e1', fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
-                    <Tooltip content={<TooltipCustom formato={v => v + '%'} />} />
-                    <Bar dataKey="percentil" name="Percentil" fill="#2DD4A7" radius={[0,4,4,0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div style={{ fontWeight:600, color:'#fff', marginBottom:16 }}>📊 Top 8 Pombos por Percentil</div>
+                <BarH dados={topPombos.map(p => ({ label: p.nome, valor: p.percentil || 0 }))} formato={v => v+'%'} cor="#2DD4A7" />
               </div>
 
               <div className="card card-p mb-6">
-                <div style={{ fontWeight: 600, color: '#fff', marginBottom: 4 }}>🔎 Estado do Efectivo</div>
-                <div style={{ fontSize: 11, color: '#7A8699', marginBottom: 12 }}>Classificação automática calculada a partir de percentil, idade e estado de saúde.</div>
-                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-                  <ResponsiveContainer width={160} height={160}>
-                    <PieChart>
-                      <Pie data={Object.entries(distribuicaoClassificacao).map(([tag, { n, cor }]) => ({ name: tag, value: n, fill: cor }))} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={2} dataKey="value">
-                        {Object.entries(distribuicaoClassificacao).map(([tag, { cor }], i) => <Cell key={i} fill={cor} />)}
-                      </Pie>
-                      <Tooltip content={<TooltipCustom />} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {Object.entries(distribuicaoClassificacao).sort((a, b) => b[1].n - a[1].n).map(([tag, { n, cor }]) => (
-                      <div key={tag} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: cor, flexShrink: 0 }} />
-                        <span style={{ flex: 1, fontSize: 12, color: '#cbd5e1' }}>{tag}</span>
-                        <span style={{ fontSize: 12, color: '#94a3b8' }}>{n} ({Math.round((n / Math.max(efectivo.length, 1)) * 100)}%)</span>
+                <div style={{ fontWeight:600, color:'#fff', marginBottom:4 }}>🔎 Estado do Efectivo</div>
+                <div style={{ fontSize:11, color:'#7A8699', marginBottom:12 }}>Classificação automática calculada a partir de percentil, idade e estado de saúde.</div>
+                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                  {Object.entries(distribuicaoClassificacao).sort((a,b) => b[1].n - a[1].n).map(([tag,{n,cor}]) => (
+                    <div key={tag}>
+                      <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:3 }}>
+                        <span style={{ color:'#cbd5e1', display:'flex', alignItems:'center', gap:6 }}><span style={{ width:6, height:6, borderRadius:'50%', background:cor }} />{tag}</span>
+                        <span style={{ color:'#94a3b8' }}>{n} ({Math.round((n/Math.max(efectivo.length,1))*100)}%)</span>
                       </div>
-                    ))}
-                  </div>
+                      <div className="progress"><div className="progress-bar" style={{ width:`${(n/Math.max(efectivo.length,1))*100}%`, background:cor }} /></div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
               <div className="card card-p">
-                <div style={{ fontWeight: 600, color: '#fff', marginBottom: 12 }}>🎯 Efectivo por Especialidade</div>
-                <ResponsiveContainer width="100%" height={140}>
-                  <BarChart data={Object.entries(porEspecialidade).map(([esp, n]) => ({ esp: esp.replace('_', ' '), n }))} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                    <XAxis dataKey="esp" tick={{ fill: '#7A8699', fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: '#7A8699', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
-                    <Tooltip content={<TooltipCustom />} />
-                    <Bar dataKey="n" name="Pombos" fill="#4C8DFF" radius={[4,4,0,0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div style={{ fontWeight:600, color:'#fff', marginBottom:16 }}>🎯 Efectivo por Especialidade</div>
+                <BarV dados={Object.entries(porEspecialidade).map(([esp,n]) => ({ label: esp.replace('_',' '), valor: n }))} cor={(d,i) => CORES[i % CORES.length]} />
               </div>
             </div>
           )}
@@ -167,49 +204,20 @@ export default function Relatorios({ nav }) {
               <div className="grid-3 mb-6">
                 <div className="kpi"><div className="kpi-val text-green">{recTotal.toFixed(0)}€</div><div className="kpi-label">Receitas {ano}</div></div>
                 <div className="kpi"><div className="kpi-val text-red">{depTotal.toFixed(0)}€</div><div className="kpi-label">Despesas {ano}</div></div>
-                <div className="kpi"><div className="kpi-val" style={{ color: recTotal - depTotal >= 0 ? '#2DD4A7' : '#f87171' }}>{(recTotal - depTotal).toFixed(0)}€</div><div className="kpi-label">Saldo {ano}</div></div>
+                <div className="kpi"><div className="kpi-val" style={{ color: recTotal-depTotal>=0?'#2DD4A7':'#f87171' }}>{(recTotal-depTotal).toFixed(0)}€</div><div className="kpi-label">Saldo {ano}</div></div>
               </div>
               <div className="card card-p mb-6">
-                <div style={{ fontWeight: 600, color: '#fff', marginBottom: 16 }}>💰 Receitas vs Despesas por Mês ({ano})</div>
-                <ResponsiveContainer width="100%" height={180}>
-                  <BarChart data={Array.from({ length: 12 }, (_, i) => {
-                    const doMes = financas.filter(f => new Date(f.data_reg).getMonth() === i && new Date(f.data_reg).getFullYear() === ano)
-                    return {
-                      label: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][i],
-                      receitas: doMes.filter(f => f.tipo === 'receita').reduce((s, f) => s + (f.val || 0), 0),
-                      despesas: doMes.filter(f => f.tipo === 'despesa').reduce((s, f) => s + (f.val || 0), 0),
-                    }
-                  })} margin={{ top: 4, right: 4, left: -10, bottom: 0 }}>
-                    <XAxis dataKey="label" tick={{ fill: '#7A8699', fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: '#7A8699', fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<TooltipCustom formato={v => v.toFixed(0) + '€'} />} />
-                    <Legend wrapperStyle={{ fontSize: 11, color: '#94a3b8' }} />
-                    <Bar dataKey="receitas" name="Receitas" fill="#2DD4A7" radius={[4,4,0,0]} />
-                    <Bar dataKey="despesas" name="Despesas" fill="#f87171" radius={[4,4,0,0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div style={{ fontWeight:600, color:'#fff', marginBottom:16 }}>💰 Saldo Mensal ({ano})</div>
+                <BarV dados={finPorMes} formato={v => v.toFixed(0)+'€'} cor={(d) => d.valor >= 0 ? '#2DD4A7' : '#f87171'} />
               </div>
               <div className="card card-p mb-6">
-                <div style={{ fontWeight: 600, color: '#fff', marginBottom: 16 }}>📈 Saldo Acumulado ({ano})</div>
-                <ResponsiveContainer width="100%" height={140}>
-                  <LineChart data={(() => {
-                    let acum = 0
-                    return Array.from({ length: 12 }, (_, i) => {
-                      const doMes = financas.filter(f => new Date(f.data_reg).getMonth() === i && new Date(f.data_reg).getFullYear() === ano)
-                      const rec = doMes.filter(f => f.tipo === 'receita').reduce((s, f) => s + (f.val || 0), 0)
-                      const dep = doMes.filter(f => f.tipo === 'despesa').reduce((s, f) => s + (f.val || 0), 0)
-                      acum += rec - dep
-                      return { label: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][i], saldo: Math.round(acum) }
-                    })
-                  })()} margin={{ top: 4, right: 4, left: -10, bottom: 0 }}>
-                    <XAxis dataKey="label" tick={{ fill: '#7A8699', fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: '#7A8699', fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<TooltipCustom formato={v => v + '€'} />} />
-                    <Line type="monotone" dataKey="saldo" name="Saldo acumulado" stroke="#D4AF37" strokeWidth={2} dot={{ fill: '#D4AF37', r: 3 }} />
-                  </LineChart>
-                </ResponsiveContainer>
+                <div style={{ fontWeight:600, color:'#fff', marginBottom:12 }}>📈 Saldo Acumulado ({ano})</div>
+                <LineG dados={(() => {
+                  let acum = 0
+                  return finPorMes.map(m => { acum += m.valor; return { label: m.label, valor: Math.round(acum) } })
+                })()} cor="#D4AF37" formato={v => v+'€'} />
               </div>
-              <div style={{ textAlign: 'center' }}>
+              <div style={{ textAlign:'center' }}>
                 <button className="btn btn-secondary btn-sm" onClick={() => nav?.('financas')}>Ver detalhe em Finanças →</button>
               </div>
             </div>
