@@ -225,7 +225,7 @@ export default function Provas({ nav, params }) {
     return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)))
   }
 
-  // Ao alterar GPS da solta no formulário, calcula e sugere distância automaticamente
+  // Ao alterar GPS manualmente, calcula distância ao pombal
   const onLatLonChange = (campo, valor) => {
     sf(campo, valor)
     const lat = campo === 'lat_solta' ? parseFloat(valor) : parseFloat(form.lat_solta)
@@ -234,6 +234,31 @@ export default function Provas({ nav, params }) {
       const dist = calcDistanciaAoPombal(lat, lon)
       if (dist) sf('dist', String(dist))
     }
+  }
+
+  const [pesquisaLocal, setPesquisaLocal] = useState('')
+  const [resultadosPesquisa, setResultadosPesquisa] = useState([])
+  const [pesquisandoLocal, setPesquisandoLocal] = useState(false)
+
+  const pesquisarLocalSolta = async (q) => {
+    setPesquisaLocal(q)
+    if (q.length < 2) { setResultadosPesquisa([]); return }
+    setPesquisandoLocal(true)
+    try {
+      const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=8&language=pt&countryCode=PT,ES`)
+      const data = await res.json()
+      setResultadosPesquisa(data.results || [])
+    } catch(e) { setResultadosPesquisa([]) }
+    finally { setPesquisandoLocal(false) }
+  }
+
+  const selecionarLocal = (loc) => {
+    const dist = calcDistanciaAoPombal(loc.latitude, loc.longitude)
+    sf('local_solta', loc.name + (loc.admin1 ? `, ${loc.admin1}` : '') + ` (${loc.country_code})`)
+    sf('lat_solta', String(loc.latitude))
+    sf('lon_solta', String(loc.longitude))
+    if (dist) sf('dist', String(dist))
+    setPesquisaLocal(''); setResultadosPesquisa([])
   }
 
   return (
@@ -288,9 +313,29 @@ export default function Provas({ nav, params }) {
           <Field label="Distância (km) *"><input className="input" type="number" placeholder="320" value={form.dist} onChange={e => sf('dist', e.target.value)} /></Field>
           <Field label="Data"><input className="input" type="date" value={form.data_reg} onChange={e => sf('data_reg', e.target.value)} /></Field>
           <Field label="Hora de Solta"><input className="input" type="time" value={form.hora_solta} onChange={e => sf('hora_solta', e.target.value)} /></Field>
-          <div className="col-2"><Field label="Local de Solta"><input className="input" placeholder="Ex: Vendas Novas" value={form.local_solta} onChange={e => sf('local_solta', e.target.value)} /></Field></div>
-          <Field label="Latitude Solta"><input className="input" placeholder="38.68" value={form.lat_solta} onChange={e => onLatLonChange('lat_solta', e.target.value)} /></Field>
-          <Field label="Longitude Solta"><input className="input" placeholder="-8.46" value={form.lon_solta} onChange={e => onLatLonChange('lon_solta', e.target.value)} /></Field>
+          <div className="col-2">
+            <Field label="Local de Solta — pesquise em PT/ES">
+              <div style={{ position: 'relative' }}>
+                <input className="input" placeholder="Ex: Vendas Novas, Badajoz..." value={pesquisaLocal || form.local_solta} onChange={e => pesquisarLocalSolta(e.target.value)} onFocus={() => form.local_solta && setPesquisaLocal('')} />
+                {pesquisandoLocal && <div style={{ position:'absolute', right:10, top:10, fontSize:12, color:'#7A8699' }}>🔍</div>}
+                {resultadosPesquisa.length > 0 && (
+                  <div style={{ position:'absolute', top:'100%', left:0, right:0, background:'#0B1830', border:'1px solid #1B2D52', borderRadius:8, zIndex:100, maxHeight:220, overflowY:'auto', marginTop:4 }}>
+                    {resultadosPesquisa.map((loc, i) => (
+                      <div key={i} onMouseDown={() => selecionarLocal(loc)} style={{ padding:'10px 14px', cursor:'pointer', borderBottom:'1px solid #101F40', fontSize:13 }}
+                        onMouseEnter={e => e.currentTarget.style.background='#101F40'}
+                        onMouseLeave={e => e.currentTarget.style.background='transparent'}>
+                        <div style={{ color:'#fff', fontWeight:500 }}>{loc.name}{loc.admin2 ? `, ${loc.admin2}` : ''}</div>
+                        <div style={{ fontSize:11, color:'#7A8699' }}>{loc.admin1} · {loc.country_code} · {loc.latitude.toFixed(3)}, {loc.longitude.toFixed(3)}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {form.local_solta && <div style={{ fontSize:11, color:'#2DD4A7', marginTop:4 }}>✅ {form.local_solta} · {form.lat_solta}, {form.lon_solta}{form.dist ? ` · ${form.dist}km ao pombal` : ''}</div>}
+            </Field>
+          </div>
+          <Field label="Latitude (auto)"><input className="input" placeholder="38.68" value={form.lat_solta} onChange={e => onLatLonChange('lat_solta', e.target.value)} /></Field>
+          <Field label="Longitude (auto)"><input className="input" placeholder="-8.46" value={form.lon_solta} onChange={e => onLatLonChange('lon_solta', e.target.value)} /></Field>
           <Field label="Nº Pombos (geral)"><input className="input" type="number" value={form.n_pombos} onChange={e => sf('n_pombos', e.target.value)} /></Field>
           <Field label="A Minha Posição (classificação oficial)"><input className="input" type="number" placeholder="Ex: 5" value={form.posicao_geral} onChange={e => sf('posicao_geral', e.target.value)} /></Field>
           <Field label="Nº Sócios"><input className="input" type="number" value={form.n_socios} onChange={e => sf('n_socios', e.target.value)} /></Field>
