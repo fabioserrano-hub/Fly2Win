@@ -122,6 +122,13 @@ function AppLayout() {
   const initials = user?.user_metadata?.nome?.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
     || user?.email?.[0]?.toUpperCase() || 'U'
 
+  const [tema, setTema] = useState(() => localStorage.getItem('cl_tema') || 'dark')
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', tema)
+    localStorage.setItem('cl_tema', tema)
+  }, [tema])
+
   const currentItem = NAV.flatMap(s => s.items).find(i => i.id === page)
   const currentSection = NAV.find(s => s.items.some(i => i.id === page))?.section || ''
 
@@ -218,6 +225,9 @@ function AppLayout() {
             <span className="tb-search-kbd">⌘K</span>
           </div>
           <div className="tb-right">
+            <button className="btn btn-icon" onClick={() => setTema(t => t === 'dark' ? 'light' : 'dark')} title={tema === 'dark' ? 'Modo Claro' : 'Modo Escuro'} style={{ fontSize: 16 }}>
+              {tema === 'dark' ? '☀️' : '🌙'}
+            </button>
             <button className="btn btn-icon" onClick={() => window.print()} title="Imprimir página" style={{ fontSize: 16 }}>🖨️</button>
             <div className="tb-date" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <button onClick={() => nav('perfil')} title="O meu perfil" style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', borderRadius: 8, transition: 'background .2s' }}
