@@ -564,7 +564,7 @@ export const db = {
     let q = supabase.from('forum_topicos').select('*').order('fixado', { ascending: false }).order('created_at', { ascending: false }).limit(50)
     if (categoria && categoria !== 'Todos') q = q.eq('categoria', categoria)
     const { data, error } = await q
-    if (error) { if (error.code === '42P01') return []; throw error }
+    if (error) throw error  // throw sempre — deixar o caller decidir
     return data || []
   },
   async createForumTopico(t) {
