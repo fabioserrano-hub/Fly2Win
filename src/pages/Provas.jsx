@@ -30,6 +30,9 @@ function calcRumoVoo(latSolta, lonSolta, latPombal, lonPombal) {
 
 // Classifica o vento relativo ao rumo de voo: cauda (favorável), proa (contra), ou lateral
 function classificarVento(rumoVoo, direcaoVento) {
+  // direcaoVento é a direção DE ONDE o vento vem (convenção meteorológica padrão).
+  // Se o vento vem da mesma direção do rumo de voo, está a "empurrar pelas costas" -> vento de cauda.
+  // Se vem da direção oposta ao rumo de voo, está a soprar de frente -> vento de proa.
   let diff = Math.abs(rumoVoo - direcaoVento)
   if (diff > 180) diff = 360 - diff
   if (diff <= 45) return { tipo: 'Vento de Cauda', icon: '⬆️', cor: '#2DD4A7', desc: 'Vento a favor — condições propícias a boas médias' }
@@ -127,6 +130,7 @@ export default function Provas({ nav, params }) {
     setSelected(p); setModal('detail'); setLoadingRes(true)
     try {
       setResultados(await db.getResultados(p.id))
+      // Histórico de desempenho em provas semelhantes (mesma distância ±50km ou mesmo local de solta)
       const semelhantes = provas.filter(o => o.id !== p.id && (
         (p.local_solta && o.local_solta === p.local_solta) ||
         (p.dist && o.dist && Math.abs(o.dist - p.dist) <= 50)
@@ -193,14 +197,10 @@ export default function Provas({ nav, params }) {
     finally { setLoadingMeteo(false) }
   }
 
-  // Função: Abrir a meteorologia com a rota pré-selecionada
   const abrirMeteoRota = () => {
-    if (!selected || !perfil?.pombal_lat) {
-      toast('Defina as coordenadas do pombal no Perfil', 'warn');
-      return;
-    }
-    close();
-    nav('meteorologia', { provaId: selected.id });
+    if (!selected || !perfil?.pombal_lat) { toast('Defina as coordenadas do pombal no Perfil', 'warn'); return }
+    close()
+    nav('meteorologia', { provaId: selected.id })
   }
 
   const provasOrdenadas = [...provas].sort((a, b) => new Date(b.data_reg) - new Date(a.data_reg))
@@ -221,6 +221,7 @@ export default function Provas({ nav, params }) {
     return true
   })
 
+  // Calcula distância em linha reta entre dois pontos GPS (fórmula Haversine)
   const calcDistanciaAoPombal = (lat, lon) => {
     if (!perfil?.pombal_lat || !perfil?.pombal_lon || !lat || !lon) return null
     const R = 6371
@@ -230,6 +231,7 @@ export default function Provas({ nav, params }) {
     return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)))
   }
 
+  // Ao alterar GPS manualmente, calcula distância ao pombal
   const onLatLonChange = (campo, valor) => {
     sf(campo, valor)
     const lat = campo === 'lat_solta' ? parseFloat(valor) : parseFloat(form.lat_solta)
@@ -256,6 +258,7 @@ export default function Provas({ nav, params }) {
       try {
         const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=8&language=pt`)
         const data = await res.json()
+        // Filtrar PT e ES mas se nao houver resultados mostrar todos
         const todos = data.results || []
         const filtrados = todos.filter(l => ['PT','ES'].includes(l.country_code))
         setResultadosPesquisa(filtrados.length > 0 ? filtrados : todos.slice(0, 5))
@@ -393,7 +396,7 @@ export default function Provas({ nav, params }) {
             <div style={{ display: 'flex', gap: 8, width: '100%', flexWrap: 'wrap' }}>
               <button className="btn btn-secondary btn-sm" onClick={() => openEncestamento(selected)}>📦 Encestamento ({resultados.length})</button>
               <button className="btn btn-secondary btn-sm" onClick={buscarMeteo} disabled={loadingMeteo}>{loadingMeteo ? <Spinner /> : '🌦️'} MeteoProva</button>
-              <button className="btn btn-primary btn-sm" onClick={abrirMeteoRota} disabled={!perfil?.pombal_lat}>🌦️ Ver Rota de Voo</button>
+              {perfil?.pombal_lat && <button className="btn btn-primary btn-sm" onClick={abrirMeteoRota}>🗺️ Rota de Voo</button>}
               <div style={{ flex: 1 }} />
               <button className="btn btn-secondary" onClick={close}>Fechar</button>
               <button className="btn btn-primary" onClick={() => openEdit(selected)}>✏️ Editar</button>
@@ -421,32 +424,28 @@ export default function Provas({ nav, params }) {
           {selected.local_solta && (
             <div style={{ marginBottom: 16 }}>
               <div className="label" style={{ marginBottom: 6 }}>📍 Local de Solta</div>
-              {selected.lat_solta && selected.lon_solta ? (
-                <div 
-                  id="map-container" 
-                  style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #1B2D52', height: 280, position: 'relative', background: '#101F40' }}
-                >
-                  {/* MAPA LEAFLET COM ROTA DESENHADA E ENCAIXADA - Versão Corrigida */}
-                  <iframe 
-                    width="100%" 
-                    height="100%" 
-                    frameBorder="0" 
-                    style={{ display: 'block', background: '#101F40' }} 
-                    src={
-                      `https://www.openstreetmap.org/export/embed.html?bbox=${Math.min(selected.lon_solta, perfil?.pombal_lon || 0)-1.5},${Math.min(selected.lat_solta, perfil?.pombal_lat || 0)-1.5},${Math.max(selected.lon_solta, perfil?.pombal_lon || 0)+1.5},${Math.max(selected.lat_solta, perfil?.pombal_lat || 0)+1.5}&layer=mapnik&marker=${selected.lat_solta},${selected.lon_solta}&marker=${perfil?.pombal_lat || 0},${perfil?.pombal_lon || 0}`
-                    } 
-                  />
-                  
-                  {/* LEGENDA COM A ROTA REALÇADA VISUALMENTE */}
-                  <div style={{ position: 'absolute', bottom: 10, left: 10, background: 'rgba(10, 15, 20, 0.85)', padding: '6px 12px', borderRadius: 6, fontSize: 11, color: '#94a3b8', pointerEvents: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ display: 'inline-block', width: 12, height: 12, background: '#f87171', borderRadius: '50%' }}></span> Solta 
-                    <span style={{ color: '#475569' }}>➜</span>
-                    <span style={{ display: 'inline-block', width: 12, height: 12, background: '#2DD4A7', borderRadius: '50%' }}></span> Pombal
-                    <span style={{ marginLeft: 4, color: '#D4AF37' }}>({Math.round(selected.dist)}km)</span>
+              {selected.lat_solta && selected.lon_solta ? (() => {
+                const latS = parseFloat(selected.lat_solta), lonS = parseFloat(selected.lon_solta)
+                const latP = perfil?.pombal_lat, lonP = perfil?.pombal_lon
+                const html = `<!DOCTYPE html><html><head><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script><style>body{margin:0}#map{height:100vh}<\/style><\/head><body><div id="map"><\/div><script>
+var map=L.map('map',{attributionControl:false});
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+L.circleMarker([${latS},${lonS}],{radius:8,color:'#f87171',fillColor:'#f87171',fillOpacity:1}).addTo(map).bindPopup('Solta');
+${latP && lonP ? `L.circleMarker([${latP},${lonP}],{radius:8,color:'#2DD4A7',fillColor:'#2DD4A7',fillOpacity:1}).addTo(map).bindPopup('Pombal');L.polyline([[${latS},${lonS}],[${latP},${lonP}]],{color:'#D4AF37',weight:2.5,dashArray:'6,4'}).addTo(map);map.fitBounds([[${Math.min(latS,latP)-.3},${Math.min(lonS,lonP)-.3}],[${Math.max(latS,latP)+.3},${Math.max(lonS,lonP)+.3}]]);` : `map.setView([${latS},${lonS}],9);`}
+<\/script><\/body><\/html>`
+                return (
+                  <div>
+                    <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #1B2D52', height: 260 }}>
+                      <iframe srcDoc={html} width="100%" height="100%" frameBorder="0" style={{ display: 'block' }} />
+                    </div>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginTop: 6, fontSize: 11, color: '#94a3b8', flexWrap: 'wrap' }}>
+                      <span>🔴 Solta</span><span style={{ color: '#D4AF37' }}>– – –</span><span style={{ color: '#2DD4A7' }}>🟢 Pombal</span>
+                      {selected.dist && <span style={{ color: '#D4AF37' }}>{selected.dist}km em linha recta</span>}
+                      {perfil?.pombal_lat && <button className="btn btn-primary btn-sm" style={{ marginLeft: 'auto' }} onClick={abrirMeteoRota}>🌦️ Ver Rota de Voo</button>}
+                    </div>
                   </div>
-
-                </div>
-              ) : <div style={{ fontSize: 13, color: '#94a3b8' }}>{selected.local_solta} (sem coordenadas GPS)</div>}
+                )
+              })() : <div style={{ fontSize: 13, color: '#94a3b8' }}>{selected.local_solta} (sem coordenadas GPS — edite a prova para adicionar)</div>}
             </div>
           )}
 
