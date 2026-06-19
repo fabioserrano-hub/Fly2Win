@@ -424,31 +424,22 @@ export default function Provas({ nav, params }) {
             <div style={{ marginBottom: 16 }}>
               <div className="label" style={{ marginBottom: 6 }}>📍 Local de Solta</div>
               {selected.lat_solta && selected.lon_solta ? (
-                <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #1B2D52', height: 200, position: 'relative' }}>
-                  {/* Mapas com Rota */}
-                  <iframe width="100%" height="100%" frameBorder="0" style={{ display: 'block' }} 
-                    src={`https://maps.google.com/maps?q=${selected.lat_solta},${selected.lon_solta}&z=10&output=embed`} />
-                  
-                  {/* Camada SVG para desenhar a rota entre solta e pombal */}
-                  {perfil?.pombal_lat && perfil?.pombal_lon && (
-                    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', opacity: 0.8 }}>
-                      <svg width="100%" height="100%" style={{ position: 'absolute' }}>
-                        <line 
-                          x1="50%" y1="50%" 
-                          x2="50%" y2="10%" // O iframe do google maps está centrado no ponto de solta, a rota aponta para norte (pombal)
-                          stroke="#f87171" strokeWidth="3" strokeDasharray="6,4" 
-                        />
-                        <circle cx="50%" cy="50%" r="5" fill="#1E5FD9" />
-                        <circle cx="50%" cy="10%" r="5" fill="#2DD4A7" />
-                      </svg>
-                      <div style={{ position: 'absolute', top: '8%', left: '52%', fontSize: 10, color: '#2DD4A7', background: '#0a0f14', padding: '2px 6px', borderRadius: 4, border: '1px solid #2DD4A7', pointerEvents: 'auto' }}>
-                        🏠 Pombal
-                      </div>
-                      <div style={{ position: 'absolute', bottom: '8%', right: '15%', fontSize: 10, color: '#1E5FD9', background: '#0a0f14', padding: '2px 6px', borderRadius: 4, border: '1px solid #1E5FD9', pointerEvents: 'auto' }}>
-                        📍 Solta
-                      </div>
-                    </div>
-                  )}
+                <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #1B2D52', height: 250, position: 'relative' }}>
+                  {/* NOVO MAPA COM ROTA COMPLETA - ENCAIXA A ORIGEM E DESTINO NO ECRÃ */}
+                  <iframe 
+                    width="100%" 
+                    height="100%" 
+                    frameBorder="0" 
+                    style={{ display: 'block' }} 
+                    src={
+                      `https://www.google.com/maps/embed/v1/directions?key=AIzaSyA7itCbZ01b0R5yPL5fNlBckGgW1h9_pQY&origin=${selected.lat_solta},${selected.lon_solta}&destination=${perfil?.pombal_lat},${perfil?.pombal_lon}&mode=driving`
+                    } 
+                  />
+                  {/* LEGENDA DA ROTA SOBREPOSTA AO MAPA */}
+                  <div style={{ position: 'absolute', bottom: 10, left: 10, background: '#0a0f14e6', padding: '4px 8px', borderRadius: 4, fontSize: 11, color: '#94a3b8', pointerEvents: 'none' }}>
+                    🟦 Solta ➡️ 🟩 Pombal 
+                    <span style={{ marginLeft: 6, color: '#f87171' }}>({Math.round(selected.dist)}km)</span>
+                  </div>
                 </div>
               ) : <div style={{ fontSize: 13, color: '#94a3b8' }}>{selected.local_solta} (sem coordenadas GPS)</div>}
             </div>
