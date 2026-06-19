@@ -2,22 +2,16 @@ import { useState, useEffect, useCallback } from 'react'
 import { db } from '../lib/supabase'
 import { useToast, Spinner, Badge } from '../components/ui'
 import { classificarPombo } from './Pombos'
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
 
-function BarChart({ dados, corPositivo = '#2DD4A7', corNegativo = '#f87171', formato = (v) => v }) {
-  if (!dados.length) return <div style={{ fontSize: 12, color: '#7A8699', textAlign: 'center', padding: '16px 0' }}>Sem dados</div>
-  const max = Math.max(...dados.map(d => Math.abs(d.valor)), 1)
+const CORES_GRAFICO = ['#4C8DFF', '#2DD4A7', '#D4AF37', '#f87171', '#a78bfa', '#fb923c', '#34d399', '#e879f9']
+
+const TooltipCustom = ({ active, payload, label, formato }) => {
+  if (!active || !payload?.length) return null
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 140, padding: '0 4px' }}>
-      {dados.map((d, i) => {
-        const h = Math.max((Math.abs(d.valor) / max) * 110, 2)
-        return (
-          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            <div style={{ fontSize: 9, color: '#94a3b8' }}>{formato(d.valor)}</div>
-            <div style={{ width: '100%', height: h, borderRadius: '4px 4px 0 0', background: d.valor >= 0 ? corPositivo : corNegativo }} />
-            <div style={{ fontSize: 9, color: '#7A8699' }}>{d.label}</div>
-          </div>
-        )
-      })}
+    <div style={{ background: '#0B1830', border: '1px solid #1B2D52', borderRadius: 8, padding: '8px 12px', fontSize: 12 }}>
+      <div style={{ color: '#94a3b8', marginBottom: 4 }}>{label}</div>
+      {payload.map((p, i) => <div key={i} style={{ color: p.color || '#2DD4A7' }}>{p.name || ''}: <strong>{formato ? formato(p.value) : p.value}</strong></div>)}
     </div>
   )
 }
@@ -107,50 +101,63 @@ export default function Relatorios({ nav }) {
               </div>
 
               <div className="card card-p mb-6">
-                <div style={{ fontWeight: 600, color: '#fff', marginBottom: 12 }}>🥇 Vitórias por Mês ({ano})</div>
-                <BarChart dados={vitoriasPorMes} corPositivo="#facc15" />
+                <div style={{ fontWeight: 600, color: '#fff', marginBottom: 16 }}>🥇 Vitórias por Mês ({ano})</div>
+                <ResponsiveContainer width="100%" height={160}>
+                  <BarChart data={vitoriasPorMes} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                    <XAxis dataKey="label" tick={{ fill: '#7A8699', fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: '#7A8699', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <Tooltip content={<TooltipCustom />} />
+                    <Bar dataKey="valor" name="Vitórias" fill="#D4AF37" radius={[4,4,0,0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
 
               <div className="card card-p mb-6">
                 <div style={{ fontWeight: 600, color: '#fff', marginBottom: 12 }}>📊 Top 8 Pombos por Percentil</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {topPombos.map((p, i) => (
-                    <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ width: 18, fontSize: 11, color: '#7A8699' }}>{i + 1}</span>
-                      <span style={{ flex: '0 0 100px', fontSize: 12, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.nome}</span>
-                      <div className="progress" style={{ flex: 1 }}><div className="progress-bar" style={{ width: `${p.percentil || 0}%`, background: '#2DD4A7' }} /></div>
-                      <span style={{ fontSize: 11, color: '#2DD4A7', fontWeight: 700, width: 36, textAlign: 'right' }}>{p.percentil || 0}%</span>
-                    </div>
-                  ))}
-                </div>
+                <ResponsiveContainer width="100%" height={topPombos.length * 36 + 20}>
+                  <BarChart data={topPombos.map(p => ({ nome: p.nome, percentil: p.percentil || 0 }))} layout="vertical" margin={{ top: 0, right: 40, left: 0, bottom: 0 }}>
+                    <XAxis type="number" domain={[0, 100]} tick={{ fill: '#7A8699', fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis type="category" dataKey="nome" tick={{ fill: '#cbd5e1', fontSize: 11 }} axisLine={false} tickLine={false} width={90} />
+                    <Tooltip content={<TooltipCustom formato={v => v + '%'} />} />
+                    <Bar dataKey="percentil" name="Percentil" fill="#2DD4A7" radius={[0,4,4,0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
 
               <div className="card card-p mb-6">
                 <div style={{ fontWeight: 600, color: '#fff', marginBottom: 4 }}>🔎 Estado do Efectivo</div>
-                <div style={{ fontSize: 11, color: '#7A8699', marginBottom: 12 }}>Classificação automática calculada a partir de percentil, idade e estado de saúde de cada pombo.</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {Object.entries(distribuicaoClassificacao).sort((a, b) => b[1].n - a[1].n).map(([tag, { n, cor }]) => (
-                    <div key={tag}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 3 }}>
-                        <span style={{ color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 6, height: 6, borderRadius: '50%', background: cor }} />{tag}</span>
-                        <span style={{ color: '#94a3b8' }}>{n} ({Math.round((n / efectivo.length) * 100)}%)</span>
+                <div style={{ fontSize: 11, color: '#7A8699', marginBottom: 12 }}>Classificação automática calculada a partir de percentil, idade e estado de saúde.</div>
+                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <ResponsiveContainer width={160} height={160}>
+                    <PieChart>
+                      <Pie data={Object.entries(distribuicaoClassificacao).map(([tag, { n, cor }]) => ({ name: tag, value: n, fill: cor }))} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={2} dataKey="value">
+                        {Object.entries(distribuicaoClassificacao).map(([tag, { cor }], i) => <Cell key={i} fill={cor} />)}
+                      </Pie>
+                      <Tooltip content={<TooltipCustom />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {Object.entries(distribuicaoClassificacao).sort((a, b) => b[1].n - a[1].n).map(([tag, { n, cor }]) => (
+                      <div key={tag} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: cor, flexShrink: 0 }} />
+                        <span style={{ flex: 1, fontSize: 12, color: '#cbd5e1' }}>{tag}</span>
+                        <span style={{ fontSize: 12, color: '#94a3b8' }}>{n} ({Math.round((n / Math.max(efectivo.length, 1)) * 100)}%)</span>
                       </div>
-                      <div className="progress"><div className="progress-bar" style={{ width: `${(n / efectivo.length) * 100}%`, background: cor }} /></div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
 
               <div className="card card-p">
                 <div style={{ fontWeight: 600, color: '#fff', marginBottom: 12 }}>🎯 Efectivo por Especialidade</div>
-                <div className="grid-4">
-                  {Object.entries(porEspecialidade).map(([esp, n]) => (
-                    <div key={esp} style={{ textAlign: 'center', background: '#101F40', borderRadius: 8, padding: 12 }}>
-                      <div style={{ fontFamily: "'Fraunces',serif", fontSize: 24, fontWeight: 700, color: '#4C8DFF' }}>{n}</div>
-                      <div style={{ fontSize: 10, color: '#7A8699', textTransform: 'capitalize' }}>{esp.replace('_', ' ')}</div>
-                    </div>
-                  ))}
-                </div>
+                <ResponsiveContainer width="100%" height={140}>
+                  <BarChart data={Object.entries(porEspecialidade).map(([esp, n]) => ({ esp: esp.replace('_', ' '), n }))} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                    <XAxis dataKey="esp" tick={{ fill: '#7A8699', fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: '#7A8699', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <Tooltip content={<TooltipCustom />} />
+                    <Bar dataKey="n" name="Pombos" fill="#4C8DFF" radius={[4,4,0,0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
           )}
@@ -160,13 +167,49 @@ export default function Relatorios({ nav }) {
               <div className="grid-3 mb-6">
                 <div className="kpi"><div className="kpi-val text-green">{recTotal.toFixed(0)}€</div><div className="kpi-label">Receitas {ano}</div></div>
                 <div className="kpi"><div className="kpi-val text-red">{depTotal.toFixed(0)}€</div><div className="kpi-label">Despesas {ano}</div></div>
-                <div className="kpi"><div className="kpi-val text-yellow">{custoEfetivo}€</div><div className="kpi-label">Custo/Pombo</div></div>
+                <div className="kpi"><div className="kpi-val" style={{ color: recTotal - depTotal >= 0 ? '#2DD4A7' : '#f87171' }}>{(recTotal - depTotal).toFixed(0)}€</div><div className="kpi-label">Saldo {ano}</div></div>
               </div>
-              <div className="card card-p">
-                <div style={{ fontWeight: 600, color: '#fff', marginBottom: 12 }}>💰 Saldo Mensal ({ano})</div>
-                <BarChart dados={finPorMes} formato={v => v.toFixed(0) + '€'} />
+              <div className="card card-p mb-6">
+                <div style={{ fontWeight: 600, color: '#fff', marginBottom: 16 }}>💰 Receitas vs Despesas por Mês ({ano})</div>
+                <ResponsiveContainer width="100%" height={180}>
+                  <BarChart data={Array.from({ length: 12 }, (_, i) => {
+                    const doMes = financas.filter(f => new Date(f.data_reg).getMonth() === i && new Date(f.data_reg).getFullYear() === ano)
+                    return {
+                      label: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][i],
+                      receitas: doMes.filter(f => f.tipo === 'receita').reduce((s, f) => s + (f.val || 0), 0),
+                      despesas: doMes.filter(f => f.tipo === 'despesa').reduce((s, f) => s + (f.val || 0), 0),
+                    }
+                  })} margin={{ top: 4, right: 4, left: -10, bottom: 0 }}>
+                    <XAxis dataKey="label" tick={{ fill: '#7A8699', fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: '#7A8699', fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<TooltipCustom formato={v => v.toFixed(0) + '€'} />} />
+                    <Legend wrapperStyle={{ fontSize: 11, color: '#94a3b8' }} />
+                    <Bar dataKey="receitas" name="Receitas" fill="#2DD4A7" radius={[4,4,0,0]} />
+                    <Bar dataKey="despesas" name="Despesas" fill="#f87171" radius={[4,4,0,0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
-              <div style={{ marginTop: 16, textAlign: 'center' }}>
+              <div className="card card-p mb-6">
+                <div style={{ fontWeight: 600, color: '#fff', marginBottom: 16 }}>📈 Saldo Acumulado ({ano})</div>
+                <ResponsiveContainer width="100%" height={140}>
+                  <LineChart data={(() => {
+                    let acum = 0
+                    return Array.from({ length: 12 }, (_, i) => {
+                      const doMes = financas.filter(f => new Date(f.data_reg).getMonth() === i && new Date(f.data_reg).getFullYear() === ano)
+                      const rec = doMes.filter(f => f.tipo === 'receita').reduce((s, f) => s + (f.val || 0), 0)
+                      const dep = doMes.filter(f => f.tipo === 'despesa').reduce((s, f) => s + (f.val || 0), 0)
+                      acum += rec - dep
+                      return { label: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][i], saldo: Math.round(acum) }
+                    })
+                  })()} margin={{ top: 4, right: 4, left: -10, bottom: 0 }}>
+                    <XAxis dataKey="label" tick={{ fill: '#7A8699', fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: '#7A8699', fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip content={<TooltipCustom formato={v => v + '€'} />} />
+                    <Line type="monotone" dataKey="saldo" name="Saldo acumulado" stroke="#D4AF37" strokeWidth={2} dot={{ fill: '#D4AF37', r: 3 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              <div style={{ textAlign: 'center' }}>
                 <button className="btn btn-secondary btn-sm" onClick={() => nav?.('financas')}>Ver detalhe em Finanças →</button>
               </div>
             </div>
