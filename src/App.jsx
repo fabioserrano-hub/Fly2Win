@@ -152,7 +152,7 @@ function AppLayout() {
       case 'checklist':    return <Checklist nav={nav} />
       case 'relatorios':   return <Relatorios nav={nav} />
       case 'epoca':        return <Epoca nav={nav} />
-      case 'meteorologia': return <Meteorologia nav={nav} />
+      case 'meteorologia': return <Meteorologia nav={nav} params={navParams} />
       case 'precos':       return <Precos nav={nav} />
       case 'admin':        return <Admin nav={nav} />
       case 'comunidade':   return <Comunidade nav={nav} />
