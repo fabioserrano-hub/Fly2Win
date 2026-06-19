@@ -23,6 +23,131 @@ function TempoAtras({ ts }) {
   return <span>{Math.round(d/86400)}d</span>
 }
 
+const FORUM_CATS = ['Todos','Geral','Alimentação','Saúde','Reprodução','Provas e Treinos','Genética','Equipamento','Legislação']
+
+function ForumTab({ nome }) {
+  const toast = useToast()
+  const { user } = useAuth()
+  const [topicos, setTopicos] = useState([])
+  const [cat, setCat] = useState('Todos')
+  const [topicoAberto, setTopicoAberto] = useState(null)
+  const [respostas, setRespostas] = useState([])
+  const [modalNovo, setModalNovo] = useState(false)
+  const [form, setForm] = useState({ titulo:'', categoria:'Geral', conteudo:'' })
+  const [novaResp, setNovaResp] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const load = useCallback(async () => {
+    const t = await db.getForumTopicos(cat).catch(() => [])
+    setTopicos(t)
+  }, [cat])
+
+  useEffect(() => { load() }, [load])
+
+  const abrirTopico = async (t) => {
+    setTopicoAberto(t)
+    db.incrementForumViews(t.id)
+    const r = await db.getForumRespostas(t.id).catch(() => [])
+    setRespostas(r)
+  }
+
+  const criarTopico = async () => {
+    if (!form.titulo.trim() || !form.conteudo.trim()) { toast('Preencha título e conteúdo','warn'); return }
+    setSaving(true)
+    try {
+      await db.createForumTopico({ ...form, autor_nome: nome })
+      toast('Tópico criado!','ok'); setModalNovo(false); setForm({ titulo:'', categoria:'Geral', conteudo:'' }); load()
+    } catch(e) { toast('Erro: '+e.message,'err') }
+    finally { setSaving(false) }
+  }
+
+  const enviarResposta = async () => {
+    if (!novaResp.trim()) return
+    setSaving(true)
+    try {
+      const r = await db.createForumResposta({ topico_id: topicoAberto.id, autor_nome: nome, conteudo: novaResp.trim() })
+      setRespostas(rs => [...rs, r]); setNovaResp('')
+      setTopicoAberto(t => ({ ...t, respostas_count: (t.respostas_count||0)+1 }))
+    } catch(e) { toast('Erro: '+e.message,'err') }
+    finally { setSaving(false) }
+  }
+
+  if (topicoAberto) return (
+    <div>
+      <button className="btn btn-secondary btn-sm" onClick={() => { setTopicoAberto(null); load() }} style={{ marginBottom:12 }}>← Voltar</button>
+      <div className="card card-p" style={{ marginBottom:12 }}>
+        <div style={{ fontSize:11, color:'#4C8DFF', marginBottom:4 }}>{topicoAberto.categoria}</div>
+        <div style={{ fontSize:15, fontWeight:700, color:'#fff', marginBottom:6 }}>{topicoAberto.titulo}</div>
+        <div style={{ fontSize:12, color:'#94a3b8', marginBottom:8 }}>{topicoAberto.autor_nome} · {new Date(topicoAberto.created_at).toLocaleDateString('pt-PT')}</div>
+        <div style={{ fontSize:13, color:'#cbd5e1', lineHeight:1.6 }}>{topicoAberto.conteudo}</div>
+      </div>
+      <div style={{ fontSize:12, fontWeight:600, color:'#7A8699', marginBottom:8 }}>{respostas.length} resposta(s)</div>
+      <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:16 }}>
+        {respostas.map(r => (
+          <div key={r.id} className="card card-p">
+            <div style={{ fontSize:11, color:'#4C8DFF', marginBottom:4 }}>{r.autor_nome} · {new Date(r.created_at).toLocaleDateString('pt-PT')}</div>
+            <div style={{ fontSize:13, color:'#cbd5e1', lineHeight:1.6 }}>{r.conteudo}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display:'flex', gap:8 }}>
+        <textarea className="input" rows={3} style={{ resize:'none', flex:1 }} placeholder="Escreva uma resposta..." value={novaResp} onChange={e => setNovaResp(e.target.value)} />
+        <button className="btn btn-primary" onClick={enviarResposta} disabled={saving} style={{ alignSelf:'flex-end' }}>{saving?<Spinner />:'Enviar'}</button>
+      </div>
+    </div>
+  )
+
+  return (
+    <div>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+        <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+          {FORUM_CATS.slice(0,5).map(c => (
+            <button key={c} onClick={() => setCat(c)} style={{ padding:'5px 12px', borderRadius:20, fontSize:11, fontWeight:500, cursor:'pointer', border:'none', fontFamily:'inherit', background:cat===c?'#1E5FD9':'#101F40', color:cat===c?'#fff':'#94a3b8' }}>{c}</button>
+          ))}
+        </div>
+        <button className="btn btn-primary btn-sm" onClick={() => setModalNovo(true)}>＋ Novo Tópico</button>
+      </div>
+      <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:12 }}>
+        {FORUM_CATS.slice(5).map(c => (
+          <button key={c} onClick={() => setCat(c)} style={{ padding:'5px 12px', borderRadius:20, fontSize:11, fontWeight:500, cursor:'pointer', border:'none', fontFamily:'inherit', background:cat===c?'#1E5FD9':'#101F40', color:cat===c?'#fff':'#94a3b8' }}>{c}</button>
+        ))}
+      </div>
+      {topicos.length===0
+        ? <EmptyState icon="💬" title="Sem tópicos" desc="Seja o primeiro a criar um tópico nesta categoria" action={<button className="btn btn-primary" onClick={() => setModalNovo(true)}>＋ Novo Tópico</button>} />
+        : <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+            {topicos.map(t => (
+              <div key={t.id} className="card card-p" style={{ cursor:'pointer' }} onClick={() => abrirTopico(t)}>
+                <div style={{ display:'flex', gap:10, alignItems:'flex-start' }}>
+                  {t.fixado && <span style={{ fontSize:14 }}>📌</span>}
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:13, fontWeight:600, color:'#fff', marginBottom:2 }}>{t.titulo}</div>
+                    <div style={{ fontSize:11, color:'#7A8699' }}>{t.autor_nome} · {t.categoria} · {new Date(t.created_at).toLocaleDateString('pt-PT')}</div>
+                  </div>
+                  <div style={{ textAlign:'right', flexShrink:0 }}>
+                    <div style={{ fontSize:12, color:'#4C8DFF' }}>💬 {t.respostas_count||0}</div>
+                    <div style={{ fontSize:10, color:'#475569' }}>👁 {t.views||0}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+      }
+      <Modal open={modalNovo} onClose={() => setModalNovo(false)} title="💬 Novo Tópico"
+        footer={<><button className="btn btn-secondary" onClick={() => setModalNovo(false)}>Cancelar</button><button className="btn btn-primary" onClick={criarTopico} disabled={saving}>{saving?<Spinner />:null}Publicar</button></>}>
+        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+          <Field label="Título *"><input className="input" placeholder="Descreva o assunto..." value={form.titulo} onChange={e => setForm(f=>({...f,titulo:e.target.value}))} /></Field>
+          <Field label="Categoria">
+            <select className="input" value={form.categoria} onChange={e => setForm(f=>({...f,categoria:e.target.value}))}>
+              {FORUM_CATS.slice(1).map(c => <option key={c}>{c}</option>)}
+            </select>
+          </Field>
+          <Field label="Conteúdo *"><textarea className="input" rows={6} style={{ resize:'none' }} placeholder="Partilhe a sua questão, experiência ou dica..." value={form.conteudo} onChange={e => setForm(f=>({...f,conteudo:e.target.value}))} /></Field>
+        </div>
+      </Modal>
+    </div>
+  )
+}
+
 export default function Comunidade({ nav }) {
   const toast = useToast()
   const { user } = useAuth()
@@ -216,7 +341,7 @@ export default function Comunidade({ nav }) {
       </div>
 
       <div style={{ display:'flex', gap:4, background:'#101F40', borderRadius:8, padding:4, marginBottom:16, overflowX:'auto' }}>
-        {[['feed','📰 Feed'],['explorar','🔍 Explorar'],['notifs',`🔔 Notif.${nNaoLidas?` (${nNaoLidas})`:''}`],['ranking','🏆 Ranking']].map(([t,l]) => (
+        {[['feed','📰 Feed'],['explorar','🔍 Explorar'],['notifs',`🔔 Notif.${nNaoLidas?` (${nNaoLidas})`:''}`],['ranking','🏆 Ranking'],['forum','💬 Fórum']].map(([t,l]) => (
           <button key={t} onClick={() => setTab(t)} style={{ flex:1, padding:'8px 10px', borderRadius:6, fontSize:12, fontWeight:500, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap', background:tab===t?'#1E5FD9':'none', color:tab===t?'#fff':'#94a3b8' }}>{l}</button>
         ))}
       </div>
@@ -308,6 +433,8 @@ export default function Comunidade({ nav }) {
               }
             </div>
           )}
+
+          {tab==='forum' && <ForumTab nome={nome} />}
         </>
       )}
 
