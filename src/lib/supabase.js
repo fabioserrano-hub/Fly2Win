@@ -559,4 +559,37 @@ export const db = {
     const { error } = await supabase.from('league_members').delete().eq('league_id', leagueId).eq('user_id', userId)
     if (error) throw error
   },
+
+  async getForumTopicos(categoria) {
+    let q = supabase.from('forum_topicos').select('*').order('fixado', { ascending: false }).order('created_at', { ascending: false }).limit(50)
+    if (categoria && categoria !== 'Todos') q = q.eq('categoria', categoria)
+    const { data, error } = await q
+    if (error) { if (error.code === '42P01') return []; throw error }
+    return data || []
+  },
+  async createForumTopico(t) {
+    const uid = await this.uid()
+    const { data, error } = await supabase.from('forum_topicos').insert({ ...t, user_id: uid }).select().single()
+    if (error) throw error
+    return data
+  },
+  async deleteForumTopico(id) {
+    const { error } = await supabase.from('forum_topicos').delete().eq('id', id)
+    if (error) throw error
+  },
+  async incrementForumViews(id) {
+    await supabase.rpc('increment_forum_views', { topico_id: id }).catch(() => {})
+  },
+  async getForumRespostas(topicoId) {
+    const { data, error } = await supabase.from('forum_respostas').select('*').eq('topico_id', topicoId).order('created_at')
+    if (error) return []
+    return data || []
+  },
+  async createForumResposta(r) {
+    const uid = await this.uid()
+    const { data, error } = await supabase.from('forum_respostas').insert({ ...r, user_id: uid }).select().single()
+    if (error) throw error
+    await supabase.from('forum_topicos').update({ respostas_count: supabase.rpc('increment', { x: 1 }) }).eq('id', r.topico_id).catch(() => {})
+    return data
+  },
 }
