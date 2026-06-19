@@ -426,18 +426,18 @@ export default function Provas({ nav, params }) {
                   id="map-container" 
                   style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #1B2D52', height: 280, position: 'relative', background: '#101F40' }}
                 >
-                  {/* MAPA LEAFLET COM ROTA DESENHADA E ENCAIXADA */}
+                  {/* MAPA LEAFLET COM ROTA DESENHADA E ENCAIXADA - Versão Corrigida */}
                   <iframe 
                     width="100%" 
                     height="100%" 
                     frameBorder="0" 
                     style={{ display: 'block', background: '#101F40' }} 
                     src={
-                      `https://www.openstreetmap.org/export/embed.html?bbox=${Math.min(selected.lon_solta, perfil?.pombal_lon || 0)-1.5},${Math.min(selected.lat_solta, perfil?.pombal_lat || 0)-1.5},${Math.max(selected.lon_solta, perfil?.pombal_lon || 0)+1.5},${Math.max(selected.lat_solta, perfil?.pombal_lat || 0)+1.5}&layer=mapnik&marker=${selected.lat_solta},${selected.lon_solta}`
+                      `https://www.openstreetmap.org/export/embed.html?bbox=${Math.min(selected.lon_solta, perfil?.pombal_lon || 0)-1.5},${Math.min(selected.lat_solta, perfil?.pombal_lat || 0)-1.5},${Math.max(selected.lon_solta, perfil?.pombal_lon || 0)+1.5},${Math.max(selected.lat_solta, perfil?.pombal_lat || 0)+1.5}&layer=mapnik&marker=${selected.lat_solta},${selected.lon_solta}&marker=${perfil?.pombal_lat || 0},${perfil?.pombal_lon || 0}`
                     } 
                   />
                   
-                  {/* LEGENDA E INDICAÇÃO DO TRAJETO */}
+                  {/* LEGENDA COM A ROTA REALÇADA VISUALMENTE */}
                   <div style={{ position: 'absolute', bottom: 10, left: 10, background: 'rgba(10, 15, 20, 0.85)', padding: '6px 12px', borderRadius: 6, fontSize: 11, color: '#94a3b8', pointerEvents: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ display: 'inline-block', width: 12, height: 12, background: '#f87171', borderRadius: '50%' }}></span> Solta 
                     <span style={{ color: '#475569' }}>➜</span>
