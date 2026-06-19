@@ -36,10 +36,16 @@ function ForumTab({ nome }) {
   const [form, setForm] = useState({ titulo:'', categoria:'Geral', conteudo:'' })
   const [novaResp, setNovaResp] = useState('')
   const [saving, setSaving] = useState(false)
+  const [tabelaOk, setTabelaOk] = useState(true)
 
   const load = useCallback(async () => {
-    const t = await db.getForumTopicos(cat).catch(() => [])
-    setTopicos(t)
+    try {
+      const t = await db.getForumTopicos(cat)
+      setTopicos(t); setTabelaOk(true)
+    } catch(e) {
+      if (e?.code === '42P01' || e?.message?.includes('42P01')) setTabelaOk(false)
+      setTopicos([])
+    }
   }, [cat])
 
   useEffect(() => { load() }, [load])
@@ -99,6 +105,11 @@ function ForumTab({ nome }) {
 
   return (
     <div>
+      {!tabelaOk && (
+        <div style={{ background:'rgba(212,175,55,.08)', border:'1px solid rgba(212,175,55,.2)', borderRadius:8, padding:'12px 16px', marginBottom:16, fontSize:12, color:'#D4AF37' }}>
+          ⚠️ As tabelas do fórum ainda não foram criadas. Corra o ficheiro <strong>forum.sql</strong> no Supabase para activar esta funcionalidade.
+        </div>
+      )}
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
         <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
           {FORUM_CATS.slice(0,5).map(c => (
