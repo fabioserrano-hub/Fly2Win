@@ -1,8 +1,51 @@
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500&family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
 
+/* ============================================================
+   TEMAS — Escuro (default) e Claro
+   ============================================================ */
+:root, [data-theme="dark"] {
+  --bg:          #050D1A;
+  --bg2:         #0B1830;
+  --bg3:         #101F40;
+  --border:      #1B2D52;
+  --border2:     #2a4070;
+  --text:        #ffffff;
+  --text2:       #cbd5e1;
+  --text3:       #94a3b8;
+  --text4:       #7A8699;
+  --accent:      #D4AF37;
+  --blue:        #4C8DFF;
+  --green:       #2DD4A7;
+  --red:         #f87171;
+  --sidebar-bg:  #050D1A;
+  --card-bg:     #0B1830;
+  --input-bg:    #101F40;
+  --topbar-bg:   #050D1A;
+}
+
+[data-theme="light"] {
+  --bg:          #F0F4F8;
+  --bg2:         #ffffff;
+  --bg3:         #E8EEF5;
+  --border:      #CBD5E1;
+  --border2:     #94A3B8;
+  --text:        #0F172A;
+  --text2:       #1E293B;
+  --text3:       #475569;
+  --text4:       #64748B;
+  --accent:      #B8960C;
+  --blue:        #2563EB;
+  --green:       #059669;
+  --red:         #DC2626;
+  --sidebar-bg:  #1E293B;
+  --card-bg:     #ffffff;
+  --input-bg:    #F8FAFC;
+  --topbar-bg:   #ffffff;
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-body {
+body { color-scheme: light dark;
   font-family: 'Inter', system-ui, sans-serif;
   background: #060B14;
   color: #F5F1E8;
@@ -15,9 +58,9 @@ body {
 ::-webkit-scrollbar-thumb { background: #1B2D52; border-radius: 99px; }
 
 .app { display: flex; height: 100vh; overflow: hidden; }
-.sidebar { width: 240px; flex-shrink: 0; background: #0B1830; border-right: 1px solid #1B2D52; display: flex; flex-direction: column; transition: transform .3s; }
+.sidebar { width: 240px; flex-shrink: 0; background: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: transform .3s; }
 .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
-.topbar { height: 56px; flex-shrink: 0; background: #0B1830; border-bottom: 1px solid #1B2D52; display: flex; align-items: center; gap: 20px; padding: 0 20px; }
+.topbar { height: 56px; flex-shrink: 0; background: var(--topbar-bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 20px; padding: 0 20px; }
 .tb-crumb { display: flex; align-items: center; gap: 8px; font-size: 12.5px; flex-shrink: 0; }
 .tb-crumb-section { color: #7A8699; }
 .tb-crumb-sep { color: #2a4070; }
@@ -74,8 +117,8 @@ body {
 .btn-sm { padding: 4px 10px; font-size: 12px; border-radius: 4px; }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
 
-.card { background: #0B1830; border: 1px solid #1B2D52; border-radius: 10px; transition: border-color .3s, box-shadow .3s; }
-.card:hover { border-color: #233a66; }
+.card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; transition: border-color .3s, box-shadow .3s; }
+.card:hover { border-color: var(--border2); }
 .card-p { padding: 20px; }
 
 .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
@@ -91,7 +134,7 @@ body {
 
 .field { display: flex; flex-direction: column; gap: 6px; }
 .label { font-size: 11px; font-weight: 500; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; }
-.input { width: 100%; background: #101F40; border: 1px solid #1B2D52; border-radius: 6px; padding: 9px 12px; font-size: 13px; color: #fff; font-family: inherit; outline: none; transition: border-color .15s; }
+.input { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 6px; padding: 9px 12px; font-size: 13px; color: var(--text); font-family: inherit; outline: none; transition: border-color .15s; }
 .input:focus { border-color: #4C8DFF; }
 .input::placeholder { color: #4A5A7A; }
 .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
