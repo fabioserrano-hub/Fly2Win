@@ -1,178 +1,343 @@
 import { useState, useEffect, useCallback } from 'react'
 import { db } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { useToast, Spinner, EmptyState, Badge, Modal, Field } from '../components/ui'
+import { useToast, Spinner, Modal, EmptyState, Badge } from '../components/ui'
 
-const DESAFIOS = [
-  { id: 'd1', titulo: '5 Provas na Época', desc: 'Participe em 5 provas este ano', meta: 5, tipo: 'provas' },
-  { id: 'd2', titulo: 'Primeira Vitória', desc: 'Conquiste o 1º lugar numa prova', meta: 1, tipo: 'vitorias' },
-  { id: 'd3', titulo: 'Criador Dedicado', desc: 'Registe 3 acasalamentos na época', meta: 3, tipo: 'acasalamentos' },
-  { id: 'd4', titulo: 'Efectivo Saudável', desc: 'Registe 10 acompanhamentos de saúde', meta: 10, tipo: 'saude' },
-  { id: 'd5', titulo: 'Treino Constante', desc: 'Registe 10 treinos este ano', meta: 10, tipo: 'treinos' },
-  { id: 'd6', titulo: 'Colecionador', desc: 'Tenha 20 ou mais pombos no efectivo', meta: 20, tipo: 'efectivo' },
-  { id: 'd7', titulo: 'Campeão Regional', desc: 'Conquiste 3 vitórias na época', meta: 3, tipo: 'vitorias' },
-  { id: 'd8', titulo: 'Organizado', desc: 'Conclua 15 tarefas no checklist', meta: 15, tipo: 'tarefas' },
+const TIPOS_POST = ['Geral', 'Resultado', 'Treino', 'Conquista']
+const tipoIcon = { Geral: '📢', Resultado: '🏆', Treino: '🎯', Conquista: '🥇' }
+
+const BADGES_DEF = [
+  { id: 'campeao', icon: '🥇', nome: 'Campeão', cond: (d) => d.vitorias >= 1 },
+  { id: 'podio', icon: '🏅', nome: 'Pódio', cond: (d) => d.top3 >= 3 },
+  { id: 'veterano', icon: '🎖️', nome: 'Veterano', cond: (d) => d.provas >= 20 },
+  { id: 'criador', icon: '🥚', nome: 'Grande Criador', cond: (d) => d.borrachinhos >= 10 },
+  { id: 'ativo', icon: '⚡', nome: 'Activo', cond: (d) => d.provas >= 5 },
+  { id: 'genealogista', icon: '🌳', nome: 'Genealogista', cond: (d) => d.pombosComPedigree >= 5 },
 ]
+
+function TempoAtras({ ts }) {
+  const d = (Date.now() - new Date(ts)) / 1000
+  if (d < 60) return <span>{Math.round(d)}s</span>
+  if (d < 3600) return <span>{Math.round(d/60)}m</span>
+  if (d < 86400) return <span>{Math.round(d/3600)}h</span>
+  return <span>{Math.round(d/86400)}d</span>
+}
 
 export default function Comunidade({ nav }) {
   const toast = useToast()
   const { user } = useAuth()
   const [tab, setTab] = useState('feed')
-  const [loading, setLoading] = useState(true)
   const [posts, setPosts] = useState([])
   const [ranking, setRanking] = useState([])
+  const [notifs, setNotifs] = useState([])
+  const [explorar, setExplorar] = useState([])
   const [pombos, setPombos] = useState([])
   const [provas, setProvas] = useState([])
   const [acasalamentos, setAcasalamentos] = useState([])
-  const [saude, setSaude] = useState([])
-  const [treinos, setTreinos] = useState([])
-  const [tarefas, setTarefas] = useState([])
-  const [modalPost, setModalPost] = useState(false)
-  const [textoPost, setTextoPost] = useState('')
-  const [saving, setSaving] = useState(false)
+  const [myLikes, setMyLikes] = useState(new Set())
+  const [following, setFollowing] = useState(new Set())
+  const [perfil, setPerfil] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [offset, setOffset] = useState(0)
+  const [hasMore, setHasMore] = useState(true)
 
-  const anoAtual = new Date().getFullYear()
-  const nome = user?.user_metadata?.nome?.split(' ')[0] || 'Columbófilo'
+  const [modalPost, setModalPost] = useState(false)
+  const [formPost, setFormPost] = useState({ tipo: 'Geral', conteudo: '' })
+  const [savingPost, setSavingPost] = useState(false)
+
+  const [modalComments, setModalComments] = useState(null)
+  const [comments, setComments] = useState([])
+  const [novoComment, setNovoComment] = useState('')
+  const [savingComment, setSavingComment] = useState(false)
+
+  const nome = perfil?.nome || user?.user_metadata?.nome || user?.email?.split('@')[0] || 'Eu'
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const [p, r, pb, pv, ac, sa, tr, tf] = await Promise.all([
-        db.getFeedPosts(), db.getRankingComunidade(), db.getPombos(), db.getProvas(), db.getAcasalamentos(), db.getSaude(), db.getTreinos(), db.getTarefas(),
+      const [ps, pf, pv, ac, lk, fw, nt, rk, ex] = await Promise.all([
+        db.getFeedPosts(20, 0).catch(() => db.getFeedPostsLegacy().catch(() => [])),
+        db.getPerfil().catch(() => null),
+        db.getProvas().catch(() => []),
+        db.getAcasalamentos().catch(() => []),
+        db.getMyLikes().catch(() => new Set()),
+        db.getFollowing().catch(() => new Set()),
+        db.getNotificacoes().catch(() => []),
+        db.getRankingComunidade().catch(() => []),
+        db.getExplorar().catch(() => []),
       ])
-      setPosts(p); setRanking(r); setPombos(pb); setProvas(pv); setAcasalamentos(ac); setSaude(sa); setTreinos(tr); setTarefas(tf)
-    } catch (e) { toast('Erro: ' + e.message, 'err') }
+      const pb = await db.getPombos().catch(() => [])
+      setPosts(ps); setPerfil(pf); setProvas(pv); setAcasalamentos(ac)
+      setMyLikes(lk); setFollowing(fw); setNotifs(nt); setRanking(rk)
+      setExplorar(ex); setPombos(pb)
+      setOffset(20); setHasMore(ps.length === 20)
+    } catch(e) { toast('Erro: '+e.message, 'err') }
     finally { setLoading(false) }
   }, [])
 
   useEffect(() => { load() }, [load])
 
-  const efectivo = pombos.filter(p => !p.estado_ext || p.estado_ext === 'proprio')
-  const provasAno = provas.filter(p => new Date(p.data_reg).getFullYear() === anoAtual)
-  const vitoriasAno = provasAno.filter(p => p.lugar === 1).length
-  const acasAno = acasalamentos.filter(a => new Date(a.data_acasalamento).getFullYear() === anoAtual)
-  const treinosAno = treinos.filter(t => new Date(t.data_reg).getFullYear() === anoAtual)
-  const tarefasConcluidas = tarefas.filter(t => t.estado === 'concluida')
+  // Sincronizar ranking com badges/pontos actuais
+  useEffect(() => {
+    if (loading || !pombos.length) return
+    const efectivo = pombos.filter(p => !p.estado_ext || p.estado_ext === 'proprio')
+    const provasAno = provas.filter(p => new Date(p.data_reg).getFullYear() === new Date().getFullYear())
+    const d = {
+      vitorias: provasAno.filter(p => p.lugar === 1).length,
+      top3: provasAno.filter(p => p.lugar <= 3).length,
+      provas: provasAno.length,
+      borrachinhos: acasalamentos.reduce((s, a) => s + (a.n_nascidos || a.ninhadas || 0), 0),
+      pombosComPedigree: efectivo.filter(p => p.pai && p.mae).length,
+    }
+    const badges = BADGES_DEF.filter(b => b.cond(d))
+    const pontos = badges.length * 50
+    if (pontos > 0) {
+      db.upsertRankingComunidade(nome, pontos).catch(() => {})
+    }
+  }, [loading, pombos.length])
 
-  const progressoDesafio = (d) => {
-    const valores = { provas: provasAno.length, vitorias: vitoriasAno, acasalamentos: acasAno.length, saude: saude.length, treinos: treinosAno.length, efectivo: efectivo.length, tarefas: tarefasConcluidas.length }
-    return Math.min(valores[d.tipo] || 0, d.meta)
+  const carregarMais = async () => {
+    if (loadingMore || !hasMore) return
+    setLoadingMore(true)
+    try {
+      const mais = await db.getAllPosts(20, offset)
+      setPosts(p => [...p, ...mais])
+      setOffset(o => o + 20)
+      setHasMore(mais.length === 20)
+    } catch(e) {}
+    finally { setLoadingMore(false) }
   }
-  const desafiosCompletos = DESAFIOS.filter(d => progressoDesafio(d) >= d.meta)
-
-  const BADGES = [
-    { id: 'b1', nome: 'Primeira Vitória', icon: '🥇', cond: vitoriasAno >= 1 },
-    { id: 'b2', nome: 'Tripla Coroa', icon: '👑', cond: vitoriasAno >= 3 },
-    { id: 'b3', nome: 'Criador', icon: '🥚', cond: acasAno.length >= 1 },
-    { id: 'b4', nome: 'Mestre Criador', icon: '🧬', cond: acasAno.length >= 5 },
-    { id: 'b5', nome: 'Veterinário Amador', icon: '🏥', cond: saude.length >= 10 },
-    { id: 'b6', nome: 'Treinador Dedicado', icon: '🎯', cond: treinosAno.length >= 10 },
-    { id: 'b7', nome: 'Grande Efectivo', icon: '🏠', cond: efectivo.length >= 30 },
-    { id: 'b8', nome: 'Organizado', icon: '✅', cond: tarefasConcluidas.length >= 15 },
-  ]
-  const badgesConquistados = BADGES.filter(b => b.cond)
 
   const publicar = async () => {
-    if (!textoPost.trim()) return
-    setSaving(true)
+    if (!formPost.conteudo.trim()) { toast('Escreve algo primeiro', 'warn'); return }
+    setSavingPost(true)
     try {
-      await db.createFeedPost({ texto: textoPost.trim(), autor_nome: nome })
-      toast('Publicado!', 'ok'); setModalPost(false); setTextoPost(''); load()
-    } catch (e) { toast('Erro: ' + e.message + ' (verifique se a tabela community_posts existe)', 'err') }
-    finally { setSaving(false) }
+      await db.createPost({
+        autor_nome: nome,
+        autor_avatar: perfil?.foto_perfil_url || '',
+        autor_username: user?.email?.split('@')[0] || 'user',
+        tipo: formPost.tipo,
+        conteudo: formPost.conteudo.slice(0, 500),
+        likes_count: 0,
+        comments_count: 0,
+      })
+      toast('Publicado!', 'ok')
+      setModalPost(false); setFormPost({ tipo: 'Geral', conteudo: '' })
+      load()
+    } catch(e) { toast('Erro: '+e.message, 'err') }
+    finally { setSavingPost(false) }
+  }
+
+  const like = async (post) => {
+    try {
+      const liked = await db.toggleLike(post.id)
+      setMyLikes(s => {
+        const n = new Set(s)
+        liked ? n.add(post.id) : n.delete(post.id)
+        return n
+      })
+      setPosts(ps => ps.map(p => p.id === post.id
+        ? { ...p, likes_count: (p.likes_count||0) + (liked ? 1 : -1) }
+        : p))
+    } catch(e) {}
+  }
+
+  const abrirComments = async (post) => {
+    setModalComments(post)
+    const cs = await db.getComments(post.id).catch(() => [])
+    setComments(cs)
+  }
+
+  const enviarComment = async () => {
+    if (!novoComment.trim() || !modalComments) return
+    setSavingComment(true)
+    try {
+      const c = await db.createComment(modalComments.id, novoComment.trim(), nome)
+      setComments(cs => [...cs, c])
+      setNovoComment('')
+      setPosts(ps => ps.map(p => p.id === modalComments.id ? { ...p, comments_count: (p.comments_count||0)+1 } : p))
+    } catch(e) { toast('Erro: '+e.message, 'err') }
+    finally { setSavingComment(false) }
+  }
+
+  const seguir = async (uid) => {
+    try {
+      const ok = await db.toggleFollow(uid)
+      setFollowing(s => { const n = new Set(s); ok ? n.add(uid) : n.delete(uid); return n })
+    } catch(e) {}
+  }
+
+  const marcarLidas = async () => {
+    await db.marcarTodasNotifLidas().catch(() => {})
+    setNotifs(ns => ns.map(n => ({ ...n, lida: true })))
+  }
+
+  const nNaoLidas = notifs.filter(n => !n.lida).length
+
+  const PostCard = ({ post }) => {
+    const souEu = post.user_id === user?.id
+    const liked = myLikes.has(post.id)
+    return (
+      <div className="card card-p">
+        <div style={{ display:'flex', gap:10, marginBottom:10 }}>
+          <div style={{ width:38, height:38, borderRadius:'50%', background:'linear-gradient(135deg,#1E5FD9,#4C8DFF)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:700, color:'#fff', flexShrink:0, overflow:'hidden' }}>
+            {post.autor_avatar ? <img src={post.autor_avatar} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : post.autor_nome?.[0]?.toUpperCase() || '?'}
+          </div>
+          <div style={{ flex:1 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <div style={{ fontSize:13, fontWeight:600, color:'#fff' }}>{post.autor_nome || 'Columbófilo'}</div>
+              <div style={{ display:'flex', gap:6, alignItems:'center' }}>
+                <span style={{ fontSize:10, color:'#7A8699' }}><TempoAtras ts={post.created_at} /></span>
+                <span style={{ fontSize:11, background:'rgba(76,141,255,.1)', color:'#4C8DFF', padding:'1px 8px', borderRadius:10 }}>{tipoIcon[post.tipo]} {post.tipo}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style={{ fontSize:13, color:'#cbd5e1', lineHeight:1.6, marginBottom:12 }}>{post.conteudo}</div>
+        <div style={{ display:'flex', gap:16, alignItems:'center' }}>
+          <button onClick={() => like(post)} style={{ display:'flex', alignItems:'center', gap:4, background:'none', border:'none', cursor:'pointer', fontSize:13, color:liked?'#f87171':'#7A8699', padding:0 }}>
+            {liked?'❤️':'🤍'} {post.likes_count||0}
+          </button>
+          <button onClick={() => abrirComments(post)} style={{ display:'flex', alignItems:'center', gap:4, background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#7A8699', padding:0 }}>
+            💬 {post.comments_count||0}
+          </button>
+          {souEu && <button onClick={async () => { await db.deletePost(post.id).catch(()=>{}); setPosts(ps=>ps.filter(p=>p.id!==post.id)) }} style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#475569', padding:0 }}>🗑️</button>}
+        </div>
+      </div>
+    )
   }
 
   return (
     <div>
       <div className="section-header">
-        <div><div className="section-title">Comunidade</div><div className="section-sub">{badgesConquistados.length} badges · {desafiosCompletos.length}/{DESAFIOS.length} desafios</div></div>
-        {tab === 'feed' && <button className="btn btn-primary" onClick={() => setModalPost(true)}>＋ Publicar</button>}
+        <div><div className="section-title">Comunidade</div><div className="section-sub">{posts.length} publicações</div></div>
+        <button className="btn btn-primary" onClick={() => setModalPost(true)}>✏️ Publicar</button>
       </div>
 
-      <div style={{ display: 'flex', gap: 4, background: '#101F40', borderRadius: 10, padding: 4, marginBottom: 16, overflowX: 'auto' }}>
-        {[['feed', '📰 Feed'], ['ranking', '🏆 Ranking'], ['desafios', '🎯 Desafios'], ['badges', '🏅 Badges']].map(([t, l]) => (
-          <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: '8px 12px', borderRadius: 6, fontSize: 12, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: 'inherit', whiteSpace: 'nowrap', background: tab === t ? '#1E5FD9' : 'none', color: tab === t ? '#fff' : '#94a3b8' }}>{l}</button>
+      <div style={{ display:'flex', gap:4, background:'#101F40', borderRadius:8, padding:4, marginBottom:16, overflowX:'auto' }}>
+        {[['feed','📰 Feed'],['explorar','🔍 Explorar'],['notifs',`🔔 Notif.${nNaoLidas?` (${nNaoLidas})`:''}`],['ranking','🏆 Ranking']].map(([t,l]) => (
+          <button key={t} onClick={() => setTab(t)} style={{ flex:1, padding:'8px 10px', borderRadius:6, fontSize:12, fontWeight:500, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap', background:tab===t?'#1E5FD9':'none', color:tab===t?'#fff':'#94a3b8' }}>{l}</button>
         ))}
       </div>
 
-      {loading ? <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}><Spinner lg /></div> : (
+      {loading ? <div style={{ display:'flex', justifyContent:'center', padding:60 }}><Spinner lg /></div> : (
         <>
-          {tab === 'feed' && (
-            posts.length === 0
-              ? <EmptyState icon="📰" title="Feed vazio" desc="Seja o primeiro a publicar na comunidade" action={<button className="btn btn-primary" onClick={() => setModalPost(true)}>＋ Publicar</button>} />
-              : <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {posts.map(p => (
-                    <div key={p.id} className="card card-p">
-                      <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
-                        <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(45,212,167,.1)', border: '1px solid rgba(45,212,167,.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#2DD4A7' }}>{(p.autor_nome || '?')[0]}</div>
-                        <div>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{p.autor_nome}</div>
-                          <div style={{ fontSize: 11, color: '#7A8699' }}>{new Date(p.created_at).toLocaleDateString('pt-PT')}</div>
-                        </div>
-                      </div>
-                      <div style={{ fontSize: 13, color: '#cbd5e1' }}>{p.texto}</div>
+          {tab==='feed' && (
+            <div>
+              {posts.length===0 ? <EmptyState icon="📰" title="Feed vazio" desc="Segue outros columbófilos ou publica o primeiro post" action={<button className="btn btn-primary" onClick={() => setModalPost(true)}>✏️ Publicar</button>} />
+                : <>
+                    <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                      {posts.map(p => <PostCard key={p.id} post={p} />)}
                     </div>
-                  ))}
-                </div>
-          )}
-
-          {tab === 'ranking' && (
-            ranking.length === 0
-              ? <EmptyState icon="🏆" title="Ranking vazio" desc="O ranking da comunidade aparece aqui quando houver dados disponíveis" />
-              : <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {ranking.map((r, i) => (
-                    <div key={r.id || i} className="card card-p">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontFamily: "'Fraunces',serif", fontSize: 20, fontWeight: 700, width: 26, color: i === 0 ? '#D4AF37' : i === 1 ? '#cbd5e1' : i === 2 ? '#b45309' : '#475569' }}>{i + 1}</span>
-                        <div style={{ flex: 1, fontSize: 13, color: '#fff' }}>{r.nome}</div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: '#2DD4A7' }}>{r.pontos} pts</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-          )}
-
-          {tab === 'desafios' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {DESAFIOS.map(d => {
-                const prog = progressoDesafio(d)
-                const completo = prog >= d.meta
-                return (
-                  <div key={d.id} className="card card-p" style={{ borderColor: completo ? 'rgba(45,212,167,.3)' : undefined }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                      <div style={{ fontSize: 20 }}>{completo ? '✅' : '🎯'}</div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: '#fff' }}>{d.titulo}</div>
-                        <div style={{ fontSize: 11, color: '#7A8699' }}>{d.desc}</div>
-                      </div>
-                      <Badge v={completo ? 'green' : 'gray'}>{prog}/{d.meta}</Badge>
-                    </div>
-                    <div className="progress"><div className="progress-bar" style={{ width: `${(prog / d.meta) * 100}%`, background: completo ? '#2DD4A7' : '#4C8DFF' }} /></div>
-                  </div>
-                )
-              })}
+                    {hasMore && <button className="btn btn-secondary" style={{ width:'100%', marginTop:12 }} onClick={carregarMais} disabled={loadingMore}>{loadingMore ? <Spinner /> : 'Carregar mais'}</button>}
+                  </>
+              }
             </div>
           )}
 
-          {tab === 'badges' && (
-            <div className="grid-4">
-              {BADGES.map(b => (
-                <div key={b.id} className="card card-p" style={{ textAlign: 'center', opacity: b.cond ? 1 : 0.4 }}>
-                  <div style={{ fontSize: 32, marginBottom: 8, filter: b.cond ? 'none' : 'grayscale(1)' }}>{b.icon}</div>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: b.cond ? '#fff' : '#64748b' }}>{b.nome}</div>
-                  {!b.cond && <div style={{ fontSize: 9, color: '#475569', marginTop: 2 }}>Bloqueado</div>}
-                </div>
-              ))}
+          {tab==='explorar' && (
+            <div>
+              <div style={{ fontSize:12, color:'#94a3b8', marginBottom:12 }}>Columbófilos com perfil público. Segue para ver os seus posts no teu feed.</div>
+              {explorar.length===0 ? <EmptyState icon="🔍" title="Sem perfis públicos" desc="Ainda não há columbófilos com perfil público disponível" />
+                : <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                    {explorar.map(p => (
+                      <div key={p.id} className="card card-p">
+                        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                          <div style={{ width:44, height:44, borderRadius:'50%', background:'linear-gradient(135deg,#1E5FD9,#4C8DFF)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, fontWeight:700, color:'#fff', flexShrink:0, overflow:'hidden' }}>
+                            {p.foto_perfil_url ? <img src={p.foto_perfil_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : p.nome?.[0]?.toUpperCase() || '?'}
+                          </div>
+                          <div style={{ flex:1 }}>
+                            <div style={{ fontSize:13, fontWeight:600, color:'#fff' }}>{p.nome}</div>
+                            <div style={{ fontSize:11, color:'#7A8699' }}>{p.org || p.fed || 'Columbófilo'}</div>
+                          </div>
+                          {p.user_id !== user?.id && (
+                            <button className={`btn btn-sm ${following.has(p.user_id)?'btn-secondary':'btn-primary'}`} onClick={() => seguir(p.user_id)}>
+                              {following.has(p.user_id) ? 'A seguir' : '+ Seguir'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+              }
+            </div>
+          )}
+
+          {tab==='notifs' && (
+            <div>
+              {notifs.length>0 && <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:8 }}><button className="btn btn-secondary btn-sm" onClick={marcarLidas}>Marcar todas como lidas</button></div>}
+              {notifs.length===0 ? <EmptyState icon="🔔" title="Sem notificações" desc="As notificações de likes, comentários e seguidores aparecem aqui" />
+                : <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                    {notifs.map(n => (
+                      <div key={n.id} onClick={() => db.marcarNotifLida(n.id).then(() => setNotifs(ns => ns.map(x => x.id===n.id?{...x,lida:true}:x)))}
+                        className="card card-p" style={{ cursor:'pointer', opacity:n.lida?.8:1, borderColor:n.lida?undefined:'rgba(76,141,255,.3)', background:n.lida?undefined:'rgba(76,141,255,.04)' }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                          <span style={{ fontSize:20 }}>{n.tipo==='like'?'❤️':n.tipo==='comment'?'💬':n.tipo==='follow'?'👤':'🔔'}</span>
+                          <div style={{ flex:1 }}>
+                            <div style={{ fontSize:13, color:'#fff' }}>{n.conteudo}</div>
+                            <div style={{ fontSize:11, color:'#7A8699' }}><TempoAtras ts={n.created_at} /></div>
+                          </div>
+                          {!n.lida && <div style={{ width:8, height:8, borderRadius:'50%', background:'#4C8DFF' }} />}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+              }
+            </div>
+          )}
+
+          {tab==='ranking' && (
+            <div>
+              <div style={{ fontSize:12, color:'#94a3b8', marginBottom:12 }}>Pontuação: 50pts por badge, 30pts por desafio completado. Actualizado automaticamente.</div>
+              {ranking.length===0 ? <EmptyState icon="🏆" title="Ranking vazio" desc="Publica resultados e conquista badges para entrar no ranking" />
+                : <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                    {ranking.map((r,i) => {
+                      const souEu = r.nome===nome
+                      return (
+                        <div key={r.id||i} className="card card-p" style={souEu?{borderColor:'rgba(76,141,255,.4)',background:'rgba(76,141,255,.06)'}:undefined}>
+                          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                            <span style={{ fontFamily:"'Fraunces',serif", fontSize:20, fontWeight:700, width:26, color:i===0?'#D4AF37':i===1?'#cbd5e1':i===2?'#b45309':'#475569' }}>{i+1}</span>
+                            <div style={{ flex:1, fontSize:13, color:'#fff' }}>{r.nome}{souEu?' (você)':''}</div>
+                            <div style={{ fontSize:14, fontWeight:700, color:'#2DD4A7' }}>{r.pontos} pts</div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+              }
             </div>
           )}
         </>
       )}
 
-      <Modal open={modalPost} onClose={() => setModalPost(false)} title="📰 Nova Publicação"
-        footer={<><button className="btn btn-secondary" onClick={() => setModalPost(false)}>Cancelar</button><button className="btn btn-primary" onClick={publicar} disabled={saving}>{saving ? <Spinner /> : null}Publicar</button></>}>
-        <Field label="O que se passa no seu pombal?">
-          <textarea className="input" rows={4} style={{ resize: 'none' }} placeholder="Partilhe uma conquista, dúvida ou novidade..." value={textoPost} onChange={e => setTextoPost(e.target.value)} />
-        </Field>
+      {/* Modal publicar */}
+      <Modal open={modalPost} onClose={() => setModalPost(false)} title="✏️ Nova Publicação"
+        footer={<><button className="btn btn-secondary" onClick={() => setModalPost(false)}>Cancelar</button><button className="btn btn-primary" onClick={publicar} disabled={savingPost}>{savingPost?<Spinner />:null}Publicar</button></>}>
+        <div style={{ display:'flex', gap:8, marginBottom:12, flexWrap:'wrap' }}>
+          {TIPOS_POST.map(t => (
+            <button key={t} onClick={() => setFormPost(f=>({...f,tipo:t}))} style={{ padding:'6px 14px', borderRadius:20, fontSize:12, fontWeight:500, cursor:'pointer', border:'none', fontFamily:'inherit', background:formPost.tipo===t?'#1E5FD9':'#101F40', color:formPost.tipo===t?'#fff':'#94a3b8' }}>{tipoIcon[t]} {t}</button>
+          ))}
+        </div>
+        <textarea className="input" rows={5} style={{ resize:'none', width:'100%' }} placeholder={`O que queres partilhar? (${500-formPost.conteudo.length} caracteres restantes)`} value={formPost.conteudo} onChange={e => setFormPost(f=>({...f,conteudo:e.target.value.slice(0,500)}))} />
+      </Modal>
+
+      {/* Modal comentários */}
+      <Modal open={!!modalComments} onClose={() => { setModalComments(null); setComments([]) }} title="💬 Comentários"
+        footer={<><input className="input" placeholder="Escreve um comentário..." value={novoComment} onChange={e => setNovoComment(e.target.value)} onKeyDown={e => e.key==='Enter' && enviarComment()} style={{ flex:1 }} /><button className="btn btn-primary btn-sm" onClick={enviarComment} disabled={savingComment}>{savingComment?<Spinner />:'Enviar'}</button></>}>
+        {comments.length===0 ? <div style={{ textAlign:'center', color:'#7A8699', padding:'20px 0' }}>Sem comentários ainda. Sê o primeiro!</div>
+          : <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              {comments.map(c => (
+                <div key={c.id} style={{ display:'flex', gap:8 }}>
+                  <div style={{ width:32, height:32, borderRadius:'50%', background:'linear-gradient(135deg,#1E5FD9,#4C8DFF)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, color:'#fff', flexShrink:0 }}>{c.autor_nome?.[0]?.toUpperCase()||'?'}</div>
+                  <div style={{ flex:1, background:'#101F40', borderRadius:8, padding:'8px 12px' }}>
+                    <div style={{ fontSize:12, fontWeight:600, color:'#4C8DFF', marginBottom:3 }}>{c.autor_nome}</div>
+                    <div style={{ fontSize:13, color:'#cbd5e1' }}>{c.conteudo}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+        }
       </Modal>
     </div>
   )
