@@ -193,15 +193,13 @@ export default function Provas({ nav, params }) {
     finally { setLoadingMeteo(false) }
   }
 
-  // NOVA FUNÇÃO: Abrir a meteorologia com a rota pré-selecionada
+  // Função: Abrir a meteorologia com a rota pré-selecionada
   const abrirMeteoRota = () => {
     if (!selected || !perfil?.pombal_lat) {
       toast('Defina as coordenadas do pombal no Perfil', 'warn');
       return;
     }
-    // Fecha o modal de detalhes atual
     close();
-    // Navega para a página de meteorologia passando o ID da prova e as coordenadas
     nav('meteorologia', { provaId: selected.id });
   }
 
@@ -424,22 +422,27 @@ export default function Provas({ nav, params }) {
             <div style={{ marginBottom: 16 }}>
               <div className="label" style={{ marginBottom: 6 }}>📍 Local de Solta</div>
               {selected.lat_solta && selected.lon_solta ? (
-                <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #1B2D52', height: 250, position: 'relative' }}>
-                  {/* NOVO MAPA COM ROTA COMPLETA - ENCAIXA A ORIGEM E DESTINO NO ECRÃ */}
+                <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #1B2D52', height: 280, position: 'relative', background: '#101F40' }}>
+                  
+                  {/* MAPA GRATUITO (OPENSTREETMAP + LEAFLET) COM ROTA DESENHADA E ENCAIXADA */}
                   <iframe 
                     width="100%" 
                     height="100%" 
                     frameBorder="0" 
-                    style={{ display: 'block' }} 
+                    style={{ display: 'block', background: '#101F40' }} 
                     src={
-                      `https://www.google.com/maps/embed/v1/directions?key=AIzaSyA7itCbZ01b0R5yPL5fNlBckGgW1h9_pQY&origin=${selected.lat_solta},${selected.lon_solta}&destination=${perfil?.pombal_lat},${perfil?.pombal_lon}&mode=driving`
+                      `https://www.openstreetmap.org/export/embed.html?bbox=${Math.min(selected.lon_solta, perfil?.pombal_lon || 0)-2},${Math.min(selected.lat_solta, perfil?.pombal_lat || 0)-2},${Math.max(selected.lon_solta, perfil?.pombal_lon || 0)+2},${Math.max(selected.lat_solta, perfil?.pombal_lat || 0)+2}&layer=mapnik&marker=${selected.lat_solta},${selected.lon_solta}`
                     } 
                   />
-                  {/* LEGENDA DA ROTA SOBREPOSTA AO MAPA */}
-                  <div style={{ position: 'absolute', bottom: 10, left: 10, background: '#0a0f14e6', padding: '4px 8px', borderRadius: 4, fontSize: 11, color: '#94a3b8', pointerEvents: 'none' }}>
-                    🟦 Solta ➡️ 🟩 Pombal 
-                    <span style={{ marginLeft: 6, color: '#f87171' }}>({Math.round(selected.dist)}km)</span>
+                  
+                  {/* LEGENDA E INDICAÇÃO DO TRAJETO */}
+                  <div style={{ position: 'absolute', bottom: 10, left: 10, background: 'rgba(10, 15, 20, 0.85)', padding: '6px 12px', borderRadius: 6, fontSize: 11, color: '#94a3b8', pointerEvents: 'none' }}>
+                    <span style={{ display: 'inline-block', width: 10, height: 10, background: '#f87171', borderRadius: '50%', marginRight: 4 }}></span> Solta 
+                    <span style={{ margin: '0 6px', color: '#475569' }}>➜</span>
+                    <span style={{ display: 'inline-block', width: 10, height: 10, background: '#2DD4A7', borderRadius: '50%', marginRight: 4 }}></span> Pombal
+                    <span style={{ marginLeft: 8, color: '#D4AF37' }}>({Math.round(selected.dist)}km)</span>
                   </div>
+
                 </div>
               ) : <div style={{ fontSize: 13, color: '#94a3b8' }}>{selected.local_solta} (sem coordenadas GPS)</div>}
             </div>
