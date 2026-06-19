@@ -50,7 +50,7 @@ function pontosTrajeto(latS,lonS,latP,lonP,n) {
   return pts
 }
 
-export default function Meteorologia({ nav }) {
+export default function Meteorologia({ nav, params }) {
   const toast = useToast()
   const [tab, setTab] = useState('local')
   const [perfil, setPerfil] = useState(null)
@@ -69,8 +69,6 @@ export default function Meteorologia({ nav }) {
   const [nPontos, setNPontos] = useState(3)
   const [loadingRota, setLoadingRota] = useState(false)
   const [dadosRota, setDadosRota] = useState(null)
-  // Estado para controlar qual ponto está expandido
-  const [pontoExpandido, setPontoExpandido] = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -86,6 +84,13 @@ export default function Meteorologia({ nav }) {
   }, [])
 
   useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    if (params?.provaId && provas.length) {
+      setProvaRota(params.provaId)
+      setTab('rota')
+    }
+  }, [params, provas])
 
   const buscarPrevisao = useCallback(async (lat, lon, nome) => {
     setLoadingMeteo(true)
@@ -118,77 +123,26 @@ export default function Meteorologia({ nav }) {
     if (!prova?.lat_solta || !prova?.lon_solta) { toast('A prova seleccionada não tem coordenadas GPS de solta','warn'); return }
     if (!perfil?.pombal_lat || !perfil?.pombal_lon) { toast('Defina as coordenadas GPS do pombal em Perfil','warn'); return }
     setLoadingRota(true)
-    setPontoExpandido(null) // Resetar expansão ao carregar nova rota
     try {
       const pts = pontosTrajeto(parseFloat(prova.lat_solta), parseFloat(prova.lon_solta), perfil.pombal_lat, perfil.pombal_lon, nPontos)
       const dataStr = prova.data_reg.slice(0,10)
       const rumo = calcRumo(parseFloat(prova.lat_solta), parseFloat(prova.lon_solta), perfil.pombal_lat, perfil.pombal_lon)
       const horaSolta = (prova.hora_solta || '08:00').slice(0,2)
-      
-      // --- CALCULAR DISTÂNCIAS ACUMULADAS (em linha reta) ---
-      let distAcumulada = 0
-      const kmPorPonto = []
-      for(let k=1; k < pts.length; k++) {
-        const p1 = pts[k-1];
-        const p2 = pts[k];
-        // Fórmula de Haversine simplificada para distância entre dois pontos GPS
-        const R = 6371; // Raio Terra em km
-        const dLat = (p2.lat - p1.lat) * Math.PI / 180;
-        const dLon = (p2.lon - p1.lon) * Math.PI / 180;
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                  Math.cos(p1.lat * Math.PI / 180) * Math.cos(p2.lat * Math.PI / 180) *
-                  Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        distAcumulada += R * c;
-        kmPorPonto.push(distAcumulada);
-      }
-      // Inserir Km 0 no ponto 0 (Solta) e deslocar os restantes
-      kmPorPonto.unshift(0);
 
-      const resultados = await Promise.all(pts.map(async (pt, index) => {
+      const resultados = await Promise.all(pts.map(async (pt) => {
         const hoje = new Date().toISOString().slice(0,10)
         const endpoint = dataStr < hoje
           ? `https://archive-api.open-meteo.com/v1/archive?latitude=${pt.lat}&longitude=${pt.lon}&hourly=temperature_2m,windspeed_10m,winddirection_10m,precipitation&start_date=${dataStr}&end_date=${dataStr}`
           : `https://api.open-meteo.com/v1/forecast?latitude=${pt.lat}&longitude=${pt.lon}&hourly=temperature_2m,windspeed_10m,winddirection_10m,precipitation&start_date=${dataStr}&end_date=${dataStr}&timezone=auto`
         const res = await fetch(endpoint)
         const data = await res.json()
-        
-        // ALTERAÇÃO 1: Guardar dados horários completos
-        const hourly = data.hourly || {}
-        const idx = hourly.time?.findIndex(t => t.slice(11,13) === horaSolta) ?? 0
-        
-        const vento = hourly.windspeed_10m?.[idx] ?? null
-        const dir = hourly.winddirection_10m?.[idx] ?? null
-        const temp = hourly.temperature_2m?.[idx] ?? null
-        const precip = hourly.precipitation?.[idx] ?? 0
+        const idx = data.hourly?.time?.findIndex(t => t.slice(11,13) === horaSolta) ?? 0
+        const vento = data.hourly?.windspeed_10m?.[idx] ?? null
+        const dir = data.hourly?.winddirection_10m?.[idx] ?? null
+        const temp = data.hourly?.temperature_2m?.[idx] ?? null
+        const precip = data.hourly?.precipitation?.[idx] ?? 0
         const classVento = (vento!==null && dir!==null) ? classificarVento(rumo, dir) : null
-        
-        // ALTERAÇÃO 2: Geocoding reverso
-        let localidade = null
-        if(index > 0 && index < pts.length - 1) { // Apenas pontos intermédios
-          try {
-            const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/reverse?latitude=${pt.lat}&longitude=${pt.lon}&language=pt`)
-            const geoData = await geoRes.json()
-            if(geoData.results?.[0]) {
-              const loc = geoData.results[0]
-              localidade = loc.name || loc.admin1 || null
-            }
-          } catch (e) { /* falha silenciosa no geocoding reverso */ }
-        }
-
-        // ALTERAÇÃO 3: Km acumulado + Dados horários completos
-        return { 
-          ...pt, 
-          vento, dir, temp, precip, classVento,
-          kmAcumulado: kmPorPonto[index] || 0,
-          localidade,
-          dadosHorarios: { // Guarda tudo para o gráfico/expansão
-            horas: hourly.time || [],
-            temperaturas: hourly.temperature_2m || [],
-            ventos: hourly.windspeed_10m || [],
-            chuvas: hourly.precipitation || []
-          }
-        }
+        return { ...pt, vento, dir, temp, precip, classVento }
       }))
       setDadosRota({ prova, pontos: resultados, rumo })
     } catch(e) { toast('Erro ao analisar rota: '+e.message,'err') }
@@ -269,7 +223,7 @@ export default function Meteorologia({ nav }) {
             <div className="form-grid">
               <div className="col-2">
                 <div style={{ fontSize:10, color:'#7A8699', marginBottom:4, fontWeight:600, letterSpacing:.5 }}>PROVA</div>
-                <select className="input" value={provaRota} onChange={e => { setProvaRota(e.target.value); setDadosRota(null); setPontoExpandido(null) }}>
+                <select className="input" value={provaRota} onChange={e => { setProvaRota(e.target.value); setDadosRota(null) }}>
                   <option value="">— Seleccionar prova —</option>
                   {provas.filter(p => p.lat_solta && p.lon_solta).map(p => <option key={p.id} value={p.id}>{p.nome} ({p.tipo} · {p.dist}km)</option>)}
                   {provas.filter(p => !p.lat_solta || !p.lon_solta).length > 0 && <optgroup label="Sem GPS (não disponíveis)">{provas.filter(p => !p.lat_solta || !p.lon_solta).map(p => <option key={p.id} disabled>{p.nome} — sem coordenadas GPS</option>)}</optgroup>}
@@ -310,23 +264,10 @@ export default function Meteorologia({ nav }) {
 
               <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                 {dadosRota.pontos.map((pt, i) => (
-                  <div key={i} className="card card-p" style={{ cursor: 'pointer' }} onClick={() => setPontoExpandido(pontoExpandido === i ? null : i)}>
+                  <div key={i} className="card card-p">
                     <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                       <div style={{ flex:1 }}>
-                        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                          <div style={{ fontSize:13, fontWeight:600, color:'#fff' }}>{pt.label}</div>
-                          {/* KM ACUMULADO & LOCALIDADE */}
-                          {pt.kmAcumulado > 0 && (
-                            <div style={{ fontSize:10, color:'#94a3b8', background:'#101F40', padding:'0 6px', borderRadius:4 }}>
-                              {pt.kmAcumulado.toFixed(1)} km
-                            </div>
-                          )}
-                          {pt.localidade && (
-                            <div style={{ fontSize:10, color:'#4C8DFF', background:'rgba(76, 141, 255, 0.1)', padding:'0 6px', borderRadius:4 }}>
-                              {pt.localidade}
-                            </div>
-                          )}
-                        </div>
+                        <div style={{ fontSize:13, fontWeight:600, color:'#fff', marginBottom:2 }}>{pt.label}</div>
                         <div style={{ fontSize:11, color:'#7A8699' }}>
                           {pt.temp!==null ? `${pt.temp}°C` : '—'} · 💨 {pt.vento!==null ? `${pt.vento}km/h` : '—'}
                           {pt.precip>0 ? ` · 🌧️ ${pt.precip}mm` : ''}
@@ -339,39 +280,6 @@ export default function Meteorologia({ nav }) {
                         </div>
                       )}
                     </div>
-
-                    {/* CONTEÚDO EXPANSÍVEL: Evolução ao longo do dia */}
-                    {pontoExpandido === i && pt.dadosHorarios && (
-                      <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                        <div style={{ fontSize: 10, color: '#94a3b8', marginBottom: 8 }}>Evolução horária (temperatura e vento):</div>
-                        <div style={{ display:'flex', gap:6, overflowX:'auto', paddingBottom:4 }}>
-                          {pt.dadosHorarios.horas.map((h, idx) => {
-                            // Mostrar apenas das 6h às 20h para não poluir
-                            const hour = parseInt(h.slice(11,13))
-                            if (hour < 6 || hour > 20) return null
-                            return (
-                              <div key={idx} style={{ 
-                                minWidth: 36, textAlign: 'center', padding: '4px 2px',
-                                background: idx === pt.dadosHorarios.horas.findIndex(t => t.slice(11,13) === (provaRota.hora_solta || '08:00').slice(0,2)) ? '#1E5FD9' : 'transparent',
-                                borderRadius: 4
-                              }}>
-                                <div style={{ fontSize: 8, color: '#94a3b8' }}>{h.slice(11,13)}h</div>
-                                <div style={{ fontSize: 10, fontWeight: 600, color: '#fff' }}>
-                                  {Math.round(pt.dadosHorarios.temperaturas[idx] || 0)}°
-                                </div>
-                                <div style={{ fontSize: 8, color: '#4C8DFF' }}>
-                                  {Math.round(pt.dadosHorarios.ventos[idx] || 0)}
-                                </div>
-                              </div>
-                            )
-                          })}
-                        </div>
-                        <div style={{ fontSize: 9, color: '#7A8699', marginTop: 4, display:'flex', justifyContent:'space-between' }}>
-                          <span>⬆️ Temp (°C)</span>
-                          <span>💨 Vento (km/h) ➡️</span>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
