@@ -218,16 +218,11 @@ export default function Pedigree({ nav, params }) {
 
   return (
     <div id="pedigree-root">
-      <div className="section-header">
-        <div><div className="section-title">🌳 Pedigree Premium</div><div className="section-sub">Árbol genealógico · {geracoes} gerações</div></div>
-        {arvore && (
-          <div style={{ display:'flex', gap:6 }}>
-            <button className="btn btn-secondary btn-sm" onClick={imprimirPedigree}>🖨️ Imprimir / PDF</button>
-          </div>
-        )}
+      <div className="section-header" id="pedigree-config-card">
+        <div><div className="section-title">🌳 Pedigree</div></div>
+        {arvore && <button className="btn btn-secondary btn-sm" onClick={imprimirPedigree}>🖨️ Imprimir / PDF</button>}
       </div>
 
-      {/* Configuração */}
       <div className="card card-p" id="pedigree-config-card" style={{ marginBottom: 16 }}>
         <div style={{ display:'flex', gap:12, flexWrap:'wrap', alignItems:'flex-end' }}>
           <div style={{ flex:1, minWidth:200 }}>
@@ -282,41 +277,45 @@ export default function Pedigree({ nav, params }) {
           {/* Cabeçalho premium para impressão */}
           {/* Cabeçalho premium */}
           <div style={{ marginBottom:20, borderRadius:12, overflow:'hidden', border:'2px solid #D4AF37' }}>
-            {/* Barra topo dourada */}
-            <div style={{ background:'linear-gradient(90deg,#B8960C,#D4AF37,#B8960C)', padding:'6px 20px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                <span style={{ fontSize:14, fontWeight:900, color:'#050D1A', letterSpacing:2, fontFamily:"'Fraunces',serif" }}>CHAMPIONS</span>
-                <span style={{ fontSize:14, fontWeight:400, color:'#050D1A', letterSpacing:1 }}>LOFT</span>
-              </div>
-              <div style={{ fontSize:10, color:'#050D1A', fontWeight:600 }}>PEDIGREE PREMIUM · championsloft.app</div>
+            {/* Barra topo */}
+            <div style={{ background:'linear-gradient(90deg,#B8960C,#D4AF37,#B8960C)', padding:'5px 16px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <img src="/logo.png" alt="ChampionsLoft" style={{ height:28, objectFit:'contain' }}
+                onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='block' }} />
+              <span style={{ display:'none', fontSize:13, fontWeight:900, color:'#050D1A', fontFamily:"'Fraunces',serif", letterSpacing:2 }}>CHAMPIONSLOFT</span>
+              <div style={{ fontSize:10, color:'#050D1A', fontWeight:700, letterSpacing:.5 }}>PEDIGREE PREMIUM · championsloft.app</div>
             </div>
-            {/* Corpo do cabeçalho */}
-            <div style={{ background:'linear-gradient(135deg,#050D1A,#0B1830)', padding:'16px 20px', display:'flex', gap:16, alignItems:'flex-start' }}>
-              <div style={{ display:'flex', gap:10, flexShrink:0 }}>
+            {/* Corpo */}
+            <div style={{ background:'linear-gradient(135deg,#050D1A,#0B1830)', padding:'14px 18px', display:'flex', gap:14, alignItems:'flex-start' }}>
+              <div style={{ display:'flex', gap:10, flexShrink:0, alignItems:'flex-start' }}>
                 {perfil?.foto_perfil_url && (
                   <div style={{ textAlign:'center' }}>
-                    <img src={perfil.foto_perfil_url} alt="" style={{ width:60, height:60, objectFit:'cover', borderRadius:'50%', border:'2px solid #D4AF37' }} />
+                    <img src={perfil.foto_perfil_url} alt="" style={{ width:54, height:54, objectFit:'cover', borderRadius:'50%', border:'2px solid #D4AF37' }} />
                     <div style={{ fontSize:8, color:'#7A8699', marginTop:2 }}>Columbófilo</div>
                   </div>
                 )}
-                {logoUrl && (
+                {perfil?.logo_url && (
                   <div style={{ textAlign:'center' }}>
-                    <img src={logoUrl} alt="Logo" style={{ width:60, height:60, objectFit:'cover', borderRadius:8, border:'1px solid #1B2D52' }} />
+                    <img src={perfil.logo_url} alt="" style={{ width:54, height:54, objectFit:'contain', borderRadius:8, border:'1px solid #1B2D52', background:'#fff' }} />
+                    <div style={{ fontSize:8, color:'#7A8699', marginTop:2 }}>Logo</div>
+                  </div>
+                )}
+                {!perfil?.logo_url && logoUrl && (
+                  <div style={{ textAlign:'center' }}>
+                    <img src={logoUrl} alt="" style={{ width:54, height:54, objectFit:'cover', borderRadius:8, border:'1px solid #1B2D52' }} />
                     <div style={{ fontSize:8, color:'#7A8699', marginTop:2 }}>Pombal</div>
                   </div>
                 )}
               </div>
               <div style={{ flex:1 }}>
-                <div style={{ fontFamily:"'Fraunces',serif", fontSize:24, fontWeight:900, color:'#D4AF37', lineHeight:1 }}>PEDIGREE</div>
-                <div style={{ fontSize:16, fontWeight:700, color:'#fff', marginTop:4 }}>{perfil?.nome || 'Columbófilo'}</div>
-                {perfil?.pombal_nome && <div style={{ fontSize:12, color:'#94a3b8', marginTop:2 }}>🏠 {perfil.pombal_nome}</div>}
-                {perfil?.pombal_morada && <div style={{ fontSize:11, color:'#7A8699' }}>{perfil.pombal_morada}</div>}
-                {perfil?.org && <div style={{ fontSize:11, color:'#7A8699', marginTop:2 }}>{perfil.org}{perfil.fed ? ` · ${perfil.fed}` : ''}</div>}
+                <div style={{ fontFamily:"'Fraunces',serif", fontSize:26, fontWeight:900, color:'#D4AF37', lineHeight:1 }}>PEDIGREE</div>
+                <div style={{ fontSize:15, fontWeight:700, color:'#fff', marginTop:4 }}>{perfil?.nome || 'Columbófilo'}</div>
+                {perfil?.pombal_nome && <div style={{ fontSize:12, color:'#94a3b8', marginTop:2 }}>🏠 {perfil.pombal_nome}{perfil?.pombal_morada ? ` · ${perfil.pombal_morada}` : ''}</div>}
+                {perfil?.org && <div style={{ fontSize:11, color:'#7A8699', marginTop:1 }}>{perfil.org}{perfil.fed ? ` · ${perfil.fed}` : ''}</div>}
               </div>
               <div style={{ textAlign:'right', flexShrink:0 }}>
                 <div style={{ fontSize:9, color:'#7A8699', textTransform:'uppercase', letterSpacing:1 }}>Data de emissão</div>
-                <div style={{ fontSize:13, fontWeight:600, color:'#fff' }}>{new Date().toLocaleDateString('pt-PT')}</div>
-                <div style={{ marginTop:8, fontSize:9, color:'#475569' }}>Documento oficial</div>
+                <div style={{ fontSize:13, fontWeight:700, color:'#fff' }}>{new Date().toLocaleDateString('pt-PT')}</div>
+                <div style={{ fontSize:9, color:'#475569', marginTop:6 }}>Documento oficial</div>
                 <div style={{ fontSize:9, color:'#475569' }}>ChampionsLoft © {new Date().getFullYear()}</div>
               </div>
             </div>
