@@ -129,22 +129,31 @@ export default function Pombos({ nav }) {
   const openNew = () => { setAnilhaPais('PT'); setAnilhaAno(String(anoAtual)); setAnilhaNum(''); setForm({ ...EMPTY, pombal: pombais[0]?.nome || '' }); setPhotoFile(null); setPhotoPreview(null); setSelected(null); setModal('form') }
   const openEdit = (p) => { setSelected(p); setForm({ anilha: p.anilha || '', nome: p.nome || '', sexo: p.sexo || 'M', cor: p.cor || '', peso: p.peso || '', esp: p.esp || ['velocidade'], estado: p.estado || 'ativo', estado_ext: p.estado_ext || 'proprio', pombal: p.pombal || '', pai: p.pai || '', mae: p.mae || '', obs: p.obs || '', emoji: p.emoji || '🐦', criador: p.criador || '', data_aquisicao: p.data_aquisicao || '', valor_aquisicao: p.valor_aquisicao || '', obs_aquisicao: p.obs_aquisicao || '', destino_nome: p.destino_nome || '', destino_data: p.destino_data || '', destino_valor: p.destino_valor || '', destino_obs: p.destino_obs || '' }); setPhotoPreview(p.foto_url || null); setPhotoFile(null); setModal('form') }
 
+  const [pedigreeInfo, setPedigreeInfo] = useState(null)
+
   const openDetail = async (p) => {
-    setSelected(p); setModal('detail'); setLoadingDetail(true)
+    setSelected(p); setModal('detail'); setLoadingDetail(true); setPedigreeInfo(null)
     try {
-      const [provasRes, saudeRes, treinosRes] = await Promise.all([
+      const [provasRes, saudeRes, treinosRes, pedRes] = await Promise.all([
         supabase.from('race_results').select('*, races(nome,data_reg,dist,local_solta)').eq('pigeon_id', p.id).order('created_at', { ascending: false }).limit(8),
         supabase.from('health').select('*').eq('pigeon_id', p.id).order('created_at', { ascending: false }).limit(10),
         supabase.from('treinos').select('*').contains('pombos_ids', [p.id]).order('data_reg', { ascending: false }),
+        db.getPedigree(p.id).catch(() => null),
       ])
       setHistoricoProvas(provasRes.data || [])
       setHistoricoSaude(saudeRes.data || [])
       setHistoricoTreinos(treinosRes.data || [])
+      // Pedigree: usar dados da DB dos campos pai/mae + dados manuais guardados
+      if (p.pai || p.mae || pedRes) {
+        const pai = pombos.find(x => x.anilha === p.pai || x.nome === p.pai)
+        const mae = pombos.find(x => x.anilha === p.mae || x.nome === p.mae)
+        setPedigreeInfo({ pai: pai || pedRes?.pai || null, mae: mae || pedRes?.mae || null, manual: pedRes })
+      }
     } catch (e) { setHistoricoProvas([]); setHistoricoSaude([]); setHistoricoTreinos([]) }
     finally { setLoadingDetail(false) }
   }
 
-  const close = () => { setModal(null); setSelected(null); setPhotoFile(null); setPhotoPreview(null); setHistoricoProvas([]); setHistoricoSaude([]); setHistoricoTreinos([]) }
+  const close = () => { setModal(null); setSelected(null); setPhotoFile(null); setPhotoPreview(null); setHistoricoProvas([]); setHistoricoSaude([]); setHistoricoTreinos([]); setPedigreeInfo(null) }
 
   const save = async () => {
     if (!form.nome.trim()) { toast('Nome obrigatório', 'warn'); return }
@@ -370,8 +379,30 @@ export default function Pombos({ nav }) {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-            <div><div className="label">Pai</div><div style={{ fontFamily: "'Space Mono',monospace", fontSize: 11, color: '#2DD4A7' }}>{selected.pai || '—'}</div></div>
-            <div><div className="label">Mãe</div><div style={{ fontFamily: "'Space Mono',monospace", fontSize: 11, color: '#2DD4A7' }}>{selected.mae || '—'}</div></div>
+            <div>
+              <div className="label">Pai</div>
+              {pedigreeInfo?.pai ? (
+                <div>
+                  <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 10, color: '#D4AF37' }}>{pedigreeInfo.pai.anilha}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#fff' }}>{pedigreeInfo.pai.nome}</div>
+                  {pedigreeInfo.pai.cor && <div style={{ fontSize: 10, color: '#7A8699' }}>{pedigreeInfo.pai.cor}</div>}
+                </div>
+              ) : (
+                <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 11, color: '#2DD4A7' }}>{selected.pai || '—'}</div>
+              )}
+            </div>
+            <div>
+              <div className="label">Mãe</div>
+              {pedigreeInfo?.mae ? (
+                <div>
+                  <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 10, color: '#D4AF37' }}>{pedigreeInfo.mae.anilha}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#fff' }}>{pedigreeInfo.mae.nome}</div>
+                  {pedigreeInfo.mae.cor && <div style={{ fontSize: 10, color: '#7A8699' }}>{pedigreeInfo.mae.cor}</div>}
+                </div>
+              ) : (
+                <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 11, color: '#2DD4A7' }}>{selected.mae || '—'}</div>
+              )}
+            </div>
           </div>
 
           {(selected.criador || selected.data_aquisicao || selected.valor_aquisicao) && (
