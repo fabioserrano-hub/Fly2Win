@@ -352,7 +352,7 @@ export default function Comunidade({ nav }) {
       </div>
 
       <div style={{ display:'flex', gap:4, background:'#101F40', borderRadius:8, padding:4, marginBottom:16, overflowX:'auto' }}>
-        {[['feed','📰 Feed'],['explorar','🔍 Explorar'],['notifs',`🔔 Notif.${nNaoLidas?` (${nNaoLidas})`:''}`],['ranking','🏆 Ranking'],['forum','💬 Fórum']].map(([t,l]) => (
+        {[['feed','📰 Feed'],['explorar','🔍 Explorar'],['notifs',`🔔 Notif.${nNaoLidas?` (${nNaoLidas})`:''}`],['ranking','🏆 Ranking']].map(([t,l]) => (
           <button key={t} onClick={() => setTab(t)} style={{ flex:1, padding:'8px 10px', borderRadius:6, fontSize:12, fontWeight:500, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap', background:tab===t?'#1E5FD9':'none', color:tab===t?'#fff':'#94a3b8' }}>{l}</button>
         ))}
       </div>
@@ -445,7 +445,6 @@ export default function Comunidade({ nav }) {
             </div>
           )}
 
-          {tab==='forum' && <ForumTab nome={nome} />}
         </>
       )}
 
