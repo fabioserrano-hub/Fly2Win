@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { ToastProvider } from './components/ui'
 import { AuthProvider, useAuth } from './hooks/useAuth'
-import { supabase } from './lib/supabase' 
+import { supabase } from './lib/supabase'
 
 // Pages
 import Landing      from './pages/Landing'
@@ -27,7 +27,6 @@ import Ligas        from './pages/Ligas'
 import Precos       from './pages/Precos'
 import Patrocinadores from './pages/Patrocinadores'
 import Partilha     from './pages/Partilha'
-import Forum        from './pages/Forum'
 import Dicas        from './pages/Dicas'
 import Admin        from './pages/Admin'
 import Perfil       from './pages/Perfil'
@@ -65,7 +64,6 @@ const NAV = [
     { id: 'ligas',       icon: '🏆', label: 'Ligas' },
     { id: 'patrocinadores', icon: '🛍️', label: 'Parceiros' },
     { id: 'partilha',       icon: '📤', label: 'Partilhar' },
-    { id: 'forum',          icon: '💬', label: 'Fórum' },
     { id: 'dicas',          icon: '💡', label: 'Dicas' },
   ]},
   { section: 'Sistema', items: [
@@ -161,7 +159,6 @@ function AppLayout() {
       case 'ligas':        return <Ligas nav={nav} />
       case 'patrocinadores': return <Patrocinadores nav={nav} />
       case 'partilha':        return <Partilha nav={nav} />
-      case 'forum':           return <Forum nav={nav} />
       case 'dicas':           return <Dicas nav={nav} />
       case 'documentos':   return <Documentos nav={nav} />
       default:             return <Dashboard nav={nav} />
