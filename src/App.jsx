@@ -147,7 +147,7 @@ function AppLayout() {
       case 'perfil':       return <Perfil nav={nav} />
       case 'treinos':      return <Treinos nav={nav} />
       case 'reproducao':   return <Reproducao nav={nav} params={navParams} />
-      case 'pedigree':     return <Pedigree nav={nav} />
+      case 'pedigree':     return <Pedigree nav={nav} params={navParams} />
       case 'alimentacao':  return <Alimentacao nav={nav} />
       case 'tratamentos':  return <Tratamentos nav={nav} />
       case 'calendario':   return <Calendario nav={nav} />
