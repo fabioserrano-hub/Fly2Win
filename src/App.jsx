@@ -123,6 +123,12 @@ function AppLayout() {
     return () => main.removeEventListener('scroll', onScroll)
   }, [sidebarOpen])
 
+  const [logoUrl, setLogoUrl] = useState('')
+
+  useEffect(() => {
+    db.getPerfil().then(p => { if (p?.logo_url) setLogoUrl(p.logo_url) }).catch(() => {})
+  }, [])
+
   const initials = user?.user_metadata?.nome?.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
     || user?.email?.[0]?.toUpperCase() || 'U'
 
@@ -173,10 +179,12 @@ function AppLayout() {
       <div className={`mobile-overlay${sidebarOpen ? ' show' : ''}`} onClick={() => setSidebarOpen(false)} />
 
       <aside className={`sidebar${sidebarOpen ? ' open' : ''}`} style={{ overflowY: 'auto' }}>
-        <div className="logo">
-          {/* Quando o logótipo final estiver tratado (PNG/SVG sem fundo), trocar por:
-              <img src="/logo.png" alt="ChampionsLoft" className="logo-img" /> */}
-          <div className="logo-icon">CL</div>
+        <div className="logo" style={{ cursor: 'pointer' }} onClick={() => nav('dashboard')}>
+          {logoUrl ? (
+            <img src={logoUrl} alt="Logo" style={{ width:36, height:36, objectFit:'contain', borderRadius:6 }} />
+          ) : (
+            <div className="logo-icon" style={{ background:'linear-gradient(135deg,#1E5FD9,#D4AF37)', fontSize:14, fontWeight:900, color:'#fff', width:36, height:36, borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>CL</div>
+          )}
           <div>
             <div className="logo-text">ChampionsLoft</div>
             <div className="logo-sub">Gestão Columbófila</div>
