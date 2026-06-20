@@ -13,7 +13,9 @@ export default function Perfil() {
   const [fotoPombalFile, setFotoPombalFile] = useState(null)
   const [fotoPerfilPreview, setFotoPerfilPreview] = useState(null)
   const [fotoPombalPreview, setFotoPombalPreview] = useState(null)
-  const [form, setForm] = useState({ nome: '', tel: '', fed: '', org: '', pombal_nome: '', pombal_morada: '', pombal_lat: '', pombal_lon: '', foto_perfil_url: '', foto_pombal_url: '' })
+  const [fotoLogoFile, setFotoLogoFile] = useState(null)
+  const [fotoLogoPreview, setFotoLogoPreview] = useState(null)
+  const [form, setForm] = useState({ nome: '', tel: '', fed: '', org: '', pombal_nome: '', pombal_morada: '', pombal_lat: '', pombal_lon: '', foto_perfil_url: '', foto_pombal_url: '', logo_url: '' })
   const sf = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   useEffect(() => {
@@ -21,7 +23,7 @@ export default function Perfil() {
       setLoading(true)
       try {
         const p = await db.getPerfil()
-        if (p) setForm({ nome: p.nome || '', tel: p.tel || '', fed: p.fed || '', org: p.org || '', pombal_nome: p.pombal_nome || '', pombal_morada: p.pombal_morada || '', pombal_lat: String(p.pombal_lat || ''), pombal_lon: String(p.pombal_lon || ''), foto_perfil_url: p.foto_perfil_url || '', foto_pombal_url: p.foto_pombal_url || '' })
+        if (p) setForm({ nome: p.nome || '', tel: p.tel || '', fed: p.fed || '', org: p.org || '', pombal_nome: p.pombal_nome || '', pombal_morada: p.pombal_morada || '', pombal_lat: String(p.pombal_lat || ''), pombal_lon: String(p.pombal_lon || ''), foto_perfil_url: p.foto_perfil_url || '', foto_pombal_url: p.foto_pombal_url || '', logo_url: p.logo_url || '' })
         else setForm(f => ({ ...f, nome: user?.user_metadata?.nome || '' }))
       } catch (e) {}
       finally { setLoading(false) }
@@ -53,8 +55,13 @@ export default function Perfil() {
         try { foto_pombal_url = await uploadFoto(fotoPombalFile, `perfis/${uid}/pombal`) }
         catch (e) { toast('Foto pombal não guardada: ' + e.message, 'warn') }
       }
-      await db.savePerfil({ nome: form.nome, tel: form.tel, fed: form.fed, org: form.org, pombal_nome: form.pombal_nome, pombal_morada: form.pombal_morada, pombal_lat: form.pombal_lat ? parseFloat(form.pombal_lat) : null, pombal_lon: form.pombal_lon ? parseFloat(form.pombal_lon) : null, foto_perfil_url, foto_pombal_url })
-      setForm(f => ({ ...f, foto_perfil_url, foto_pombal_url }))
+      let logo_url = form.logo_url
+      if (fotoLogoFile && uid) {
+        try { logo_url = await uploadFoto(fotoLogoFile, `perfis/${uid}/logo`) }
+        catch (e) { toast('Logo não guardado: ' + e.message, 'warn') }
+      }
+      await db.savePerfil({ nome: form.nome, tel: form.tel, fed: form.fed, org: form.org, pombal_nome: form.pombal_nome, pombal_morada: form.pombal_morada, pombal_lat: form.pombal_lat ? parseFloat(form.pombal_lat) : null, pombal_lon: form.pombal_lon ? parseFloat(form.pombal_lon) : null, foto_perfil_url, foto_pombal_url, logo_url })
+      setForm(f => ({ ...f, foto_perfil_url, foto_pombal_url, logo_url }))
       toast('Perfil guardado! ✅', 'ok')
     } catch (e) { toast('Erro: ' + e.message, 'err') }
     finally { setSaving(false) }
@@ -131,6 +138,8 @@ export default function Perfil() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <FotoUpload id="foto-perfil-up" preview={fotoPerfilPreview} url={form.foto_perfil_url} icon="👤" label="Foto do columbófilo"
               onChange={e => { const f = e.target.files[0]; if (f) { setFotoPerfilFile(f); setFotoPerfilPreview(URL.createObjectURL(f)) } }} />
+            <FotoUpload id="foto-logo-up" preview={fotoLogoPreview} url={form.logo_url} icon="🏷️" label="Logo da app / pombal (aparece na sidebar e nos pedigrees)"
+              onChange={e => { const f = e.target.files[0]; if (f) { setFotoLogoFile(f); setFotoLogoPreview(URL.createObjectURL(f)) } }} />
             <Field label="Nome Completo *"><input className="input" value={form.nome} onChange={e => sf('nome', e.target.value)} /></Field>
             <Field label="Email"><input className="input" value={user?.email} disabled style={{ opacity: .6 }} /></Field>
             <Field label="Telefone"><input className="input" placeholder="+351 9XX XXX XXX" value={form.tel} onChange={e => sf('tel', e.target.value)} /></Field>
