@@ -277,34 +277,44 @@ export default function Pedigree({ nav, params }) {
       ) : (
         <div ref={printRef}>
           {/* Cabeçalho premium para impressão */}
-          <div className="card card-p" style={{ marginBottom: 16, background: 'linear-gradient(135deg,#050D1A,#0B1830)' }}>
-            <div style={{ display:'flex', gap:16, alignItems:'flex-start' }}>
-              <div style={{ display:'flex', gap:8, flexShrink:0 }}>
+          {/* Cabeçalho premium */}
+          <div style={{ marginBottom:20, borderRadius:12, overflow:'hidden', border:'2px solid #D4AF37' }}>
+            {/* Barra topo dourada */}
+            <div style={{ background:'linear-gradient(90deg,#B8960C,#D4AF37,#B8960C)', padding:'6px 20px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <span style={{ fontSize:14, fontWeight:900, color:'#050D1A', letterSpacing:2, fontFamily:"'Fraunces',serif" }}>CHAMPIONS</span>
+                <span style={{ fontSize:14, fontWeight:400, color:'#050D1A', letterSpacing:1 }}>LOFT</span>
+              </div>
+              <div style={{ fontSize:10, color:'#050D1A', fontWeight:600 }}>PEDIGREE PREMIUM · championsloft.app</div>
+            </div>
+            {/* Corpo do cabeçalho */}
+            <div style={{ background:'linear-gradient(135deg,#050D1A,#0B1830)', padding:'16px 20px', display:'flex', gap:16, alignItems:'flex-start' }}>
+              <div style={{ display:'flex', gap:10, flexShrink:0 }}>
                 {perfil?.foto_perfil_url && (
                   <div style={{ textAlign:'center' }}>
-                    <img src={perfil.foto_perfil_url} alt="" style={{ width:56, height:56, objectFit:'cover', borderRadius:'50%', border:'2px solid #D4AF37' }} />
+                    <img src={perfil.foto_perfil_url} alt="" style={{ width:60, height:60, objectFit:'cover', borderRadius:'50%', border:'2px solid #D4AF37' }} />
                     <div style={{ fontSize:8, color:'#7A8699', marginTop:2 }}>Columbófilo</div>
                   </div>
                 )}
                 {logoUrl && (
                   <div style={{ textAlign:'center' }}>
-                    <img src={logoUrl} alt="Logo" style={{ width:56, height:56, objectFit:'cover', borderRadius:10, border:'2px solid #1B2D52' }} />
+                    <img src={logoUrl} alt="Logo" style={{ width:60, height:60, objectFit:'cover', borderRadius:8, border:'1px solid #1B2D52' }} />
                     <div style={{ fontSize:8, color:'#7A8699', marginTop:2 }}>Pombal</div>
                   </div>
                 )}
               </div>
               <div style={{ flex:1 }}>
-                <div style={{ fontFamily:"'Fraunces',serif", fontSize:22, fontWeight:900, color:'#D4AF37', marginBottom:2 }}>PEDIGREE</div>
-                <div style={{ fontSize:16, fontWeight:600, color:'#fff' }}>{perfil?.nome || 'Columbófilo'}</div>
-                {perfil?.pombal_nome && <div style={{ fontSize:12, color:'#94a3b8' }}>{perfil.pombal_nome}</div>}
+                <div style={{ fontFamily:"'Fraunces',serif", fontSize:24, fontWeight:900, color:'#D4AF37', lineHeight:1 }}>PEDIGREE</div>
+                <div style={{ fontSize:16, fontWeight:700, color:'#fff', marginTop:4 }}>{perfil?.nome || 'Columbófilo'}</div>
+                {perfil?.pombal_nome && <div style={{ fontSize:12, color:'#94a3b8', marginTop:2 }}>🏠 {perfil.pombal_nome}</div>}
                 {perfil?.pombal_morada && <div style={{ fontSize:11, color:'#7A8699' }}>{perfil.pombal_morada}</div>}
-                {perfil?.org && <div style={{ fontSize:11, color:'#7A8699' }}>{perfil.org} {perfil.fed ? `· ${perfil.fed}` : ''}</div>}
+                {perfil?.org && <div style={{ fontSize:11, color:'#7A8699', marginTop:2 }}>{perfil.org}{perfil.fed ? ` · ${perfil.fed}` : ''}</div>}
               </div>
-              <div style={{ textAlign:'right' }}>
-                <div style={{ fontSize:10, color:'#7A8699' }}>Data</div>
-                <div style={{ fontSize:12, color:'#fff' }}>{new Date().toLocaleDateString('pt-PT')}</div>
-                <div style={{ fontSize:10, color:'#7A8699', marginTop:8 }}>ChampionsLoft</div>
-                <div style={{ fontSize:9, color:'#475569' }}>championsloft.app</div>
+              <div style={{ textAlign:'right', flexShrink:0 }}>
+                <div style={{ fontSize:9, color:'#7A8699', textTransform:'uppercase', letterSpacing:1 }}>Data de emissão</div>
+                <div style={{ fontSize:13, fontWeight:600, color:'#fff' }}>{new Date().toLocaleDateString('pt-PT')}</div>
+                <div style={{ marginTop:8, fontSize:9, color:'#475569' }}>Documento oficial</div>
+                <div style={{ fontSize:9, color:'#475569' }}>ChampionsLoft © {new Date().getFullYear()}</div>
               </div>
             </div>
           </div>
