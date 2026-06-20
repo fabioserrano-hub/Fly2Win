@@ -50,7 +50,7 @@ function preencherDeDB(arvore, pombos) {
 
 const CHAVE_STORAGE = 'cl_pedigree_'
 
-export default function Pedigree({ nav }) {
+export default function Pedigree({ nav, params }) {
   const toast = useToast()
   const printRef = useRef(null)
   const [pombos, setPombos] = useState([])
@@ -76,6 +76,10 @@ export default function Pedigree({ nav }) {
   }, [])
 
   useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    if (params?.pomboId && pombos.length) selecionarPombo(params.pomboId)
+  }, [params?.pomboId, pombos.length])
 
   const selecionarPombo = async (id) => {
     setPomboSel(id)
@@ -205,7 +209,7 @@ export default function Pedigree({ nav }) {
               </select>
             </Field>
           </div>
-          <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+          <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'flex-end' }}>
             <Field label="Gerações">
               <select className="input" style={{ width:100 }} value={geracoes} onChange={e => setGeracoes(parseInt(e.target.value))}>
                 <option value={2}>2</option>
@@ -224,6 +228,7 @@ export default function Pedigree({ nav }) {
                 </label>
               </div>
             </div>
+            {arvore && <button className="btn btn-primary btn-sm" onClick={async () => { try { await db.savePedigree(pomboSel, arvore); toast('Pedigree guardado!','ok') } catch(e) { toast('Erro: '+e.message,'err') } }}>💾 Guardar</button>}
           </div>
         </div>
       </div>
