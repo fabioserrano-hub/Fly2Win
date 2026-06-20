@@ -143,11 +143,14 @@ export default function Pombos({ nav }) {
       setHistoricoProvas(provasRes.data || [])
       setHistoricoSaude(saudeRes.data || [])
       setHistoricoTreinos(treinosRes.data || [])
-      // Pedigree: usar dados da DB dos campos pai/mae + dados manuais guardados
-      if (p.pai || p.mae || pedRes) {
-        const pai = pombos.find(x => x.anilha === p.pai || x.nome === p.pai)
-        const mae = pombos.find(x => x.anilha === p.mae || x.nome === p.mae)
-        setPedigreeInfo({ pai: pai || pedRes?.pai || null, mae: mae || pedRes?.mae || null, manual: pedRes })
+      // Pedigree: priorizar dados guardados em Supabase
+      if (pedRes?.pai?.nome || pedRes?.mae?.nome) {
+        setPedigreeInfo({ pai: pedRes.pai || null, mae: pedRes.mae || null })
+      } else if (p.pai || p.mae) {
+        // Fallback: campos pai/mae da tabela pigeons
+        const pai = pombos.find(x => x.anilha === p.pai) || pombos.find(x => x.nome === p.pai)
+        const mae = pombos.find(x => x.anilha === p.mae) || pombos.find(x => x.nome === p.mae)
+        if (pai || mae) setPedigreeInfo({ pai: pai ? { anilha: pai.anilha, nome: pai.nome, cor: pai.cor } : null, mae: mae ? { anilha: mae.anilha, nome: mae.nome, cor: mae.cor } : null })
       }
     } catch (e) { setHistoricoProvas([]); setHistoricoSaude([]); setHistoricoTreinos([]) }
     finally { setLoadingDetail(false) }
