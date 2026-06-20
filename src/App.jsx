@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { ToastProvider } from './components/ui'
 import { AuthProvider, useAuth } from './hooks/useAuth'
-import { supabase } from './lib/supabase'
+import { supabase, db } from './lib/supabase'
 
 // Pages
 import Landing      from './pages/Landing'
