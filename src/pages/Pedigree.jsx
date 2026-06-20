@@ -84,7 +84,7 @@ export default function Pedigree({ nav, params }) {
     try {
       const [p, pf] = await Promise.all([db.getPombos(), db.getPerfil()])
       setPombos(p); setPerfil(pf)
-      setLogoUrl(pf?.foto_pombal_url || '')
+      setLogoUrl(pf?.logo_url || pf?.foto_pombal_url || '')
     } catch(e) { toast('Erro: '+e.message,'err') }
     finally { setLoading(false) }
   }, [])
@@ -159,15 +159,18 @@ export default function Pedigree({ nav, params }) {
     style.id = 'pedigree-print-style'
     style.textContent = `
       @media print {
+        @page { size: A4 landscape; margin: 10mm; }
         body > *:not(#pedigree-root) { display: none !important; }
-        #pedigree-root { display: block !important; }
-        .pedigree-card { page-break-inside: avoid; }
-        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        #pedigree-root { display: block !important; font-family: 'Inter', sans-serif; }
+        .sidebar, .topbar, .section-header > button, .btn { display: none !important; }
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-scheme: dark !important; }
+        .pedigree-card { page-break-inside: avoid; break-inside: avoid; }
+        #pedigree-config-card { display: none !important; }
       }
     `
     document.head.appendChild(style)
     window.print()
-    setTimeout(() => document.head.removeChild(style), 1000)
+    setTimeout(() => document.head.removeChild(style), 2000)
   }
 
   const PomboNode = ({ nodeKey, label, destaque, mini }) => {
@@ -225,7 +228,7 @@ export default function Pedigree({ nav, params }) {
       </div>
 
       {/* Configuração */}
-      <div className="card card-p" style={{ marginBottom: 16 }}>
+      <div className="card card-p" id="pedigree-config-card" style={{ marginBottom: 16 }}>
         <div style={{ display:'flex', gap:12, flexWrap:'wrap', alignItems:'flex-end' }}>
           <div style={{ flex:1, minWidth:200 }}>
             <div style={{ display:'flex', gap:6, marginBottom:6, flexWrap:'wrap' }}>
