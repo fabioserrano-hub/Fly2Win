@@ -127,7 +127,19 @@ export default function Pombos({ nav }) {
   })
 
   const openNew = () => { setAnilhaPais('PT'); setAnilhaAno(String(anoAtual)); setAnilhaNum(''); setForm({ ...EMPTY, pombal: pombais[0]?.nome || '' }); setPhotoFile(null); setPhotoPreview(null); setSelected(null); setModal('form') }
-  const openEdit = (p) => { setSelected(p); setForm({ anilha: p.anilha || '', nome: p.nome || '', sexo: p.sexo || 'M', cor: p.cor || '', peso: p.peso || '', esp: p.esp || ['velocidade'], estado: p.estado || 'ativo', estado_ext: p.estado_ext || 'proprio', pombal: p.pombal || '', pai: p.pai || '', mae: p.mae || '', obs: p.obs || '', emoji: p.emoji || '🐦', criador: p.criador || '', data_aquisicao: p.data_aquisicao || '', valor_aquisicao: p.valor_aquisicao || '', obs_aquisicao: p.obs_aquisicao || '', destino_nome: p.destino_nome || '', destino_data: p.destino_data || '', destino_valor: p.destino_valor || '', destino_obs: p.destino_obs || '' }); setPhotoPreview(p.foto_url || null); setPhotoFile(null); setModal('form') }
+  const openEdit = async (p) => {
+    setSelected(p)
+    // Tentar carregar pais do pedigree guardado
+    let paiAnilha = p.pai || ''
+    let maeAnilha = p.mae || ''
+    try {
+      const ped = await db.getPedigree(p.id)
+      if (ped?.pai?.anilha) paiAnilha = ped.pai.anilha
+      if (ped?.mae?.anilha) maeAnilha = ped.mae.anilha
+    } catch(e) {}
+    setForm({ anilha: p.anilha || '', nome: p.nome || '', sexo: p.sexo || 'M', cor: p.cor || '', peso: p.peso || '', esp: p.esp || ['velocidade'], estado: p.estado || 'ativo', estado_ext: p.estado_ext || 'proprio', pombal: p.pombal || '', pai: paiAnilha, mae: maeAnilha, obs: p.obs || '', emoji: p.emoji || '🐦', criador: p.criador || '', data_aquisicao: p.data_aquisicao || '', valor_aquisicao: p.valor_aquisicao || '', obs_aquisicao: p.obs_aquisicao || '', destino_nome: p.destino_nome || '', destino_data: p.destino_data || '', destino_valor: p.destino_valor || '', destino_obs: p.destino_obs || '' })
+    setPhotoPreview(p.foto_url || null); setPhotoFile(null); setModal('form')
+  }
 
   const [pedigreeInfo, setPedigreeInfo] = useState(null)
 
