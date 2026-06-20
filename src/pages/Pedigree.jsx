@@ -331,6 +331,22 @@ export default function Pedigree({ nav }) {
       <Modal open={!!modalNode} onClose={() => setModalNode(null)} title="✏️ Editar Ancestral" wide
         footer={<><button className="btn btn-secondary" onClick={() => setModalNode(null)}>Cancelar</button><button className="btn btn-primary" onClick={guardarNode}>Guardar</button></>}>
         <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+
+          {/* Carregar da BD */}
+          <div style={{ background:'rgba(76,141,255,.06)', border:'1px solid rgba(76,141,255,.15)', borderRadius:8, padding:'10px 12px' }}>
+            <div style={{ fontSize:11, color:'#7A8699', marginBottom:6, fontWeight:600 }}>📋 CARREGAR DO EFECTIVO</div>
+            <select className="input" value=""
+              onChange={e => {
+                const p = pombos.find(x => x.id === e.target.value)
+                if (p) setFormNode(f => ({ ...f, anilha: p.anilha||'', nome: p.nome||'', cor: p.cor||'', foto_url: p.foto_url||'', conquistas: f.conquistas || `${p.provas||0} provas · percentil ${p.percentil||0}%` }))
+              }}>
+              <option value="">— Seleccionar pombo do pombal —</option>
+              {pombos.map(p => <option key={p.id} value={p.id}>{p.nome} ({p.anilha}){p.cor ? ` · ${p.cor}` : ''}</option>)}
+            </select>
+          </div>
+
+          <div style={{ fontSize:10, color:'#475569', textAlign:'center' }}>— ou preencha manualmente —</div>
+
           <div className="form-grid">
             <Field label="Anilha"><input className="input" placeholder="PT-2020-00001" value={formNode.anilha} onChange={e => setFormNode(f=>({...f,anilha:e.target.value}))} /></Field>
             <Field label="Nome / Alcunha"><input className="input" placeholder="Ex: Zeus, Micaela..." value={formNode.nome} onChange={e => setFormNode(f=>({...f,nome:e.target.value}))} /></Field>
@@ -343,12 +359,12 @@ export default function Pedigree({ nav }) {
             </Field>
           </div>
           <Field label="🏆 Conquistas e Resultados">
-            <textarea className="input" rows={3} style={{ resize:'none' }} placeholder="Ex: 1.º Velocidade Distrital 2023, Ás Pombo Regional 2022, 3 vitórias em Nacional..." value={formNode.conquistas} onChange={e => setFormNode(f=>({...f,conquistas:e.target.value}))} />
+            <textarea className="input" rows={3} style={{ resize:'none' }} placeholder="Ex: 1.º Velocidade Distrital 2023, Ás Pombo Regional 2022..." value={formNode.conquistas} onChange={e => setFormNode(f=>({...f,conquistas:e.target.value}))} />
           </Field>
           <Field label="📝 Descrição / Observações">
-            <textarea className="input" rows={3} style={{ resize:'none' }} placeholder="Informação adicional sobre este pombo, criador de origem, características especiais..." value={formNode.desc} onChange={e => setFormNode(f=>({...f,desc:e.target.value}))} />
+            <textarea className="input" rows={2} style={{ resize:'none' }} placeholder="Criador de origem, características especiais..." value={formNode.desc} onChange={e => setFormNode(f=>({...f,desc:e.target.value}))} />
           </Field>
-          <Field label="🖼️ URL da Foto (opcional)">
+          <Field label="🖼️ URL da Foto">
             <input className="input" placeholder="https://..." value={formNode.foto_url} onChange={e => setFormNode(f=>({...f,foto_url:e.target.value}))} />
           </Field>
         </div>
