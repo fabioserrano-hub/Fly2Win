@@ -199,7 +199,7 @@ export default function Pedigree({ nav, params }) {
             {mostrarFotos && node.foto_url && !mini && (
               <img src={node.foto_url} alt="" style={{ width: '100%', height: destaque ? 60 : 45, objectFit: 'cover', borderRadius: 4, marginBottom: 4 }} />
             )}
-            <div style={{ fontFamily:"'Space Mono',monospace", fontSize: mini ? 8 : 9, color:'#D4AF37', marginBottom: 1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{node.anilha||'—'}</div>
+            <div style={{ fontFamily:"'Space Mono',monospace", fontSize: mini ? 8 : 9, color:'#D4AF37', marginBottom: 1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{node.anilha||'—'}{node.externo ? ' 🌍' : ''}</div>
             <div style={{ fontSize: mini ? 10 : 11, fontWeight:600, color:'#fff', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{node.nome||'—'}</div>
             {node.linhagem && !mini && <div style={{ fontSize: 9, color:'#4C8DFF', marginTop: 1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{node.linhagem}</div>}
             {node.cor && !mini && <div style={{ fontSize: 9, color:'#7A8699', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{node.cor}</div>}
@@ -403,31 +403,61 @@ export default function Pedigree({ nav, params }) {
           {/* Carregar da BD */}
           <div style={{ background:'rgba(76,141,255,.06)', border:'1px solid rgba(76,141,255,.15)', borderRadius:8, padding:'10px 12px' }}>
             <div style={{ fontSize:11, color:'#7A8699', marginBottom:6, fontWeight:600 }}>📋 CARREGAR DO EFECTIVO</div>
+            <div style={{ display:'flex', gap:6, marginBottom:6 }}>
+              <select className="input" style={{ flex:1, fontSize:11 }} value={filtroPombal}
+                onChange={e => setFiltroPombal(e.target.value)}>
+                <option value="">Todos os pombais</option>
+                {pombalsList.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+              <select className="input" style={{ width:100, fontSize:11 }} value={filtroSexo}
+                onChange={e => setFiltroSexo(e.target.value)}>
+                <option value="">♂♀ Todos</option>
+                <option value="M">♂ Machos</option>
+                <option value="F">♀ Fêmeas</option>
+              </select>
+            </div>
             <select className="input" value=""
               onChange={e => {
                 const p = pombos.find(x => x.id === e.target.value)
-                if (p) setFormNode(f => ({ ...f, anilha: p.anilha||'', nome: p.nome||'', cor: p.cor||'', foto_url: p.foto_url||'', conquistas: f.conquistas || `${p.provas||0} provas · percentil ${p.percentil||0}%` }))
+                if (p) setFormNode(f => ({ ...f, anilha: p.anilha||'', nome: p.nome||'', cor: p.cor||'', sexo: p.sexo||'', foto_url: f.foto_url || p.foto_url||'', conquistas: f.conquistas || `${p.provas||0} provas · percentil ${p.percentil||0}%`, externo: false }))
               }}>
-              <option value="">— Seleccionar pombo do pombal —</option>
-              {pombos.map(p => <option key={p.id} value={p.id}>{p.nome} ({p.anilha}){p.cor ? ` · ${p.cor}` : ''}</option>)}
+              <option value="">— Seleccionar pombo —</option>
+              {pombosFiltrados.map(p => <option key={p.id} value={p.id}>{p.sexo==='M'?'♂':p.sexo==='F'?'♀':'○'} {p.nome} ({p.anilha}){p.pombal?` · ${p.pombal}`:''}</option>)}
             </select>
           </div>
 
-          <div style={{ fontSize:10, color:'#475569', textAlign:'center' }}>— ou preencha manualmente —</div>
+          {/* Opcao externo */}
+          <label style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer', padding:'8px 12px', background:formNode.externo?'rgba(212,175,55,.08)':'#101F40', border:`1px solid ${formNode.externo?'rgba(212,175,55,.3)':'#1B2D52'}`, borderRadius:8 }}>
+            <input type="checkbox" checked={!!formNode.externo} onChange={e => setFormNode(f=>({...f,externo:e.target.checked}))} style={{ accentColor:'#D4AF37', width:16, height:16 }} />
+            <div>
+              <div style={{ fontSize:12, fontWeight:600, color: formNode.externo?'#D4AF37':'#cbd5e1' }}>🌍 Ancestral externo ao pombal</div>
+              <div style={{ fontSize:10, color:'#7A8699' }}>Pombo de outro criador, sem perfil na app — preencha os dados manualmente</div>
+            </div>
+          </label>
+
+          <div style={{ fontSize:10, color:'#475569', textAlign:'center' }}>— ou preencha/edite manualmente —</div>
 
           <div className="form-grid">
             <Field label="Anilha"><input className="input" placeholder="PT-2020-00001" value={formNode.anilha} onChange={e => setFormNode(f=>({...f,anilha:e.target.value}))} /></Field>
             <Field label="Nome / Alcunha"><input className="input" placeholder="Ex: Zeus, Micaela..." value={formNode.nome} onChange={e => setFormNode(f=>({...f,nome:e.target.value}))} /></Field>
             <Field label="Cor"><input className="input" placeholder="Ex: Azul barrado" value={formNode.cor} onChange={e => setFormNode(f=>({...f,cor:e.target.value}))} /></Field>
+            <Field label="Sexo">
+              <select className="input" value={formNode.sexo||''} onChange={e => setFormNode(f=>({...f,sexo:e.target.value}))}>
+                <option value="">—</option>
+                <option value="M">♂ Macho</option>
+                <option value="F">♀ Fêmea</option>
+              </select>
+            </Field>
             <Field label="Linhagem Genética">
               <select className="input" value={formNode.linhagem} onChange={e => setFormNode(f=>({...f,linhagem:e.target.value}))}>
                 <option value="">— Seleccionar —</option>
                 {LINHAS_GENETICAS.map(l => <option key={l}>{l}</option>)}
               </select>
             </Field>
+            {formNode.externo && <Field label="Criador / Origem"><input className="input" placeholder="Nome do criador ou país de origem" value={formNode.criador||''} onChange={e => setFormNode(f=>({...f,criador:e.target.value}))} /></Field>}
           </div>
           <Field label="🏆 Conquistas e Resultados">
-            <textarea className="input" rows={3} style={{ resize:'none' }} placeholder="Ex: 1.º Velocidade Distrital 2023, Ás Pombo Regional 2022..." value={formNode.conquistas} onChange={e => setFormNode(f=>({...f,conquistas:e.target.value}))} />
+            <textarea className="input" rows={3} style={{ resize:'none' }} placeholder="Ex: 1.º Velocidade Distrital 2023..." value={formNode.conquistas} onChange={e => setFormNode(f=>({...f,conquistas:e.target.value}))} />
           </Field>
           <Field label="📝 Descrição / Observações">
             <textarea className="input" rows={2} style={{ resize:'none' }} placeholder="Criador de origem, características especiais..." value={formNode.desc} onChange={e => setFormNode(f=>({...f,desc:e.target.value}))} />
