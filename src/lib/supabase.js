@@ -592,4 +592,16 @@ export const db = {
     await supabase.from('forum_topicos').update({ respostas_count: supabase.rpc('increment', { x: 1 }) }).eq('id', r.topico_id).catch(() => {})
     return data
   },
+
+  async getPedigree(pigeonId) {
+    const uid = await this.uid()
+    const { data, error } = await supabase.from('pedigrees').select('arvore').eq('user_id', uid).eq('pigeon_id', pigeonId).maybeSingle()
+    if (error) { if (error.code === '42P01') return null; throw error }
+    return data?.arvore || null
+  },
+  async savePedigree(pigeonId, arvore) {
+    const uid = await this.uid()
+    const { error } = await supabase.from('pedigrees').upsert({ user_id: uid, pigeon_id: pigeonId, arvore, updated_at: new Date().toISOString() }, { onConflict: 'user_id,pigeon_id' })
+    if (error) throw error
+  },
 }
