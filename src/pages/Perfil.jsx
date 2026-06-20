@@ -138,8 +138,6 @@ export default function Perfil() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <FotoUpload id="foto-perfil-up" preview={fotoPerfilPreview} url={form.foto_perfil_url} icon="👤" label="Foto do columbófilo"
               onChange={e => { const f = e.target.files[0]; if (f) { setFotoPerfilFile(f); setFotoPerfilPreview(URL.createObjectURL(f)) } }} />
-            <FotoUpload id="foto-logo-up" preview={fotoLogoPreview} url={form.logo_url} icon="🏷️" label="Logo da app / pombal (aparece na sidebar e nos pedigrees)"
-              onChange={e => { const f = e.target.files[0]; if (f) { setFotoLogoFile(f); setFotoLogoPreview(URL.createObjectURL(f)) } }} />
             <Field label="Nome Completo *"><input className="input" value={form.nome} onChange={e => sf('nome', e.target.value)} /></Field>
             <Field label="Email"><input className="input" value={user?.email} disabled style={{ opacity: .6 }} /></Field>
             <Field label="Telefone"><input className="input" placeholder="+351 9XX XXX XXX" value={form.tel} onChange={e => sf('tel', e.target.value)} /></Field>
