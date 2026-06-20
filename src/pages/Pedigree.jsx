@@ -4,47 +4,61 @@ import { useToast, Spinner, Modal, Field, EmptyState } from '../components/ui'
 
 const LINHAS_GENETICAS = ['Janssen','Koopman','Gaby Vandenabeele','Leo Heremans','Schellens','Aarden','Wittenbuik','Van Loon','Staf Aarden','Hofkens','Bricoux','Sion','De Rauw-Sablon','Outro']
 
-const NODE_VAZIO = { anilha: '', nome: '', cor: '', linhagem: '', conquistas: '', desc: '', foto_url: '' }
+const NODE_VAZIO = { anilha: '', nome: '', cor: '', linhagem: '', conquistas: '', desc: '', foto_url: '', sexo: '' }
 
-function initArvore(pombo) {
+// Encontra pombo por anilha ou nome
+function findPombo(pombos, ref) {
+  if (!ref) return null
+  return pombos.find(p => p.anilha === ref) || pombos.find(p => p.nome === ref) || null
+}
+
+// Constrói nó a partir de um pombo da DB, sobrepondo dados manuais guardados
+function buildNode(pombo, manual = {}) {
+  if (!pombo) return { ...NODE_VAZIO, ...manual }
   return {
-    pombo: { anilha: pombo?.anilha||'', nome: pombo?.nome||'', cor: pombo?.cor||'', linhagem: '', conquistas: '', desc: '', foto_url: pombo?.foto_url||'' },
-    pai: { ...NODE_VAZIO },
-    mae: { ...NODE_VAZIO },
-    avo_pp: { ...NODE_VAZIO }, avo_pm: { ...NODE_VAZIO },
-    avo_mp: { ...NODE_VAZIO }, avo_mm: { ...NODE_VAZIO },
-    bis_ppp: { ...NODE_VAZIO }, bis_ppm: { ...NODE_VAZIO },
-    bis_pmp: { ...NODE_VAZIO }, bis_pmm: { ...NODE_VAZIO },
-    bis_mpp: { ...NODE_VAZIO }, bis_mpm: { ...NODE_VAZIO },
-    bis_mmp: { ...NODE_VAZIO }, bis_mmm: { ...NODE_VAZIO },
+    anilha: pombo.anilha || '',
+    nome: pombo.nome || '',
+    cor: pombo.cor || '',
+    sexo: pombo.sexo || '',
+    foto_url: pombo.foto_url || '',
+    conquistas: `${pombo.provas||0} provas · percentil ${pombo.percentil||0}%`,
+    linhagem: manual.linhagem || '',
+    desc: manual.desc || '',
+    // Sobrepor conquistas manuais se existirem
+    ...(manual.conquistas ? { conquistas: manual.conquistas } : {}),
+    ...(manual.foto_url ? { foto_url: manual.foto_url } : {}),
   }
 }
 
-function preencherDeDB(arvore, pombos) {
-  const findByAnilha = (v) => pombos.find(p => p.anilha === v)
-  const findByNome = (v) => pombos.find(p => p.nome === v)
-  const findPai = (pombo) => {
-    if (!pombo?.pai) return null
-    return findByAnilha(pombo.pai) || findByNome(pombo.pai) || null
-  }
-  const findMae = (pombo) => {
-    if (!pombo?.mae) return null
-    return findByAnilha(pombo.mae) || findByNome(pombo.mae) || null
-  }
-  const fill = (node, pombo) => pombo ? { ...node, anilha: pombo.anilha, nome: pombo.nome, cor: pombo.cor||'', foto_url: pombo.foto_url||'', linhagem: node.linhagem||'', conquistas: node.conquistas||`${pombo.provas||0} provas · percentil ${pombo.percentil||0}%`, desc: node.desc||'' } : node
+// Constrói árvore dinâmica recursivamente a partir da DB
+// manual = dados editados manualmente (linhagem, desc, conquistas personalizadas)
+function construirArvore(pomboId, pombos, manual = {}) {
+  const pombo = pombos.find(p => p.id === pomboId) || pombos.find(p => p.anilha === pomboId)
+  if (!pombo) return null
 
-  const pomboPrincipal = findByAnilha(arvore.pombo.anilha)
-  const pai = findPai(pomboPrincipal)
-  const mae = findMae(pomboPrincipal)
+  const pai = findPombo(pombos, pombo.pai)
+  const mae = findPombo(pombos, pombo.mae)
+  const avo_pp = pai ? findPombo(pombos, pai.pai) : null
+  const avo_pm = pai ? findPombo(pombos, pai.mae) : null
+  const avo_mp = mae ? findPombo(pombos, mae.pai) : null
+  const avo_mm = mae ? findPombo(pombos, mae.mae) : null
 
   return {
-    ...arvore,
-    pai: fill(arvore.pai, pai),
-    mae: fill(arvore.mae, mae),
-    avo_pp: fill(arvore.avo_pp, findPai(pai)),
-    avo_pm: fill(arvore.avo_pm, findMae(pai)),
-    avo_mp: fill(arvore.avo_mp, findPai(mae)),
-    avo_mm: fill(arvore.avo_mm, findMae(mae)),
+    pombo: buildNode(pombo, manual.pombo || {}),
+    pai: buildNode(pai, manual.pai || {}),
+    mae: buildNode(mae, manual.mae || {}),
+    avo_pp: buildNode(avo_pp, manual.avo_pp || {}),
+    avo_pm: buildNode(avo_pm, manual.avo_pm || {}),
+    avo_mp: buildNode(avo_mp, manual.avo_mp || {}),
+    avo_mm: buildNode(avo_mm, manual.avo_mm || {}),
+    bis_ppp: buildNode(avo_pp ? findPombo(pombos, avo_pp.pai) : null, manual.bis_ppp || {}),
+    bis_ppm: buildNode(avo_pp ? findPombo(pombos, avo_pp.mae) : null, manual.bis_ppm || {}),
+    bis_pmp: buildNode(avo_pm ? findPombo(pombos, avo_pm.pai) : null, manual.bis_pmp || {}),
+    bis_pmm: buildNode(avo_pm ? findPombo(pombos, avo_pm.mae) : null, manual.bis_pmm || {}),
+    bis_mpp: buildNode(avo_mp ? findPombo(pombos, avo_mp.pai) : null, manual.bis_mpp || {}),
+    bis_mpm: buildNode(avo_mp ? findPombo(pombos, avo_mp.mae) : null, manual.bis_mpm || {}),
+    bis_mmp: buildNode(avo_mm ? findPombo(pombos, avo_mm.pai) : null, manual.bis_mmp || {}),
+    bis_mmm: buildNode(avo_mm ? findPombo(pombos, avo_mm.mae) : null, manual.bis_mmm || {}),
   }
 }
 
@@ -81,20 +95,28 @@ export default function Pedigree({ nav, params }) {
     if (params?.pomboId && pombos.length) selecionarPombo(params.pomboId)
   }, [params?.pomboId, pombos.length])
 
+  const [filtroPombal, setFiltroPombal] = useState('')
+  const [filtroSexo, setFiltroSexo] = useState('')
+
+  const pombalsList = [...new Set(pombos.map(p => p.pombal).filter(Boolean))]
+  const pombosFiltrados = pombos.filter(p =>
+    (!filtroPombal || p.pombal === filtroPombal) &&
+    (!filtroSexo || p.sexo === filtroSexo)
+  )
+
   const selecionarPombo = async (id) => {
     setPomboSel(id)
     if (!id) { setArvore(null); return }
-    const pombo = pombos.find(p => p.id === id)
-    // Tentar Supabase primeiro, fallback localStorage
-    let base = null
-    try { base = await db.getPedigree(id) } catch(e) {}
-    if (!base) {
+    // Carregar dados manuais guardados (linhagem, desc, conquistas personalizadas)
+    let manual = {}
+    try { manual = await db.getPedigree(id) || {} } catch(e) {}
+    if (!manual || !Object.keys(manual).length) {
       const local = localStorage.getItem(CHAVE_STORAGE + id)
-      base = local ? JSON.parse(local) : null
+      if (local) manual = JSON.parse(local)
     }
-    if (!base) base = initArvore(pombo)
-    base.pombo = { ...base.pombo, anilha: pombo?.anilha||'', nome: pombo?.nome||'', cor: pombo?.cor||'', foto_url: pombo?.foto_url||'' }
-    setArvore(preencherDeDB(base, pombos))
+    // Construir árvore dinâmica a partir da DB
+    const arvore = construirArvore(id, pombos, manual)
+    setArvore(arvore)
   }
 
   const updateArvore = (key, campo, valor) => {
@@ -117,8 +139,14 @@ export default function Pedigree({ nav, params }) {
     setArvore(a => {
       const nova = { ...a, [modalNode]: { ...formNode } }
       if (pomboSel) {
-        localStorage.setItem(CHAVE_STORAGE + pomboSel, JSON.stringify(nova))
-        db.savePedigree(pomboSel, nova).catch(() => {})
+        // Guardar apenas os campos manuais (não os que vêm da DB)
+        const manual = {}
+        Object.keys(nova).forEach(k => {
+          const n = nova[k]
+          manual[k] = { linhagem: n.linhagem||'', desc: n.desc||'', conquistas: n.conquistas||'', foto_url: n.foto_url||'' }
+        })
+        localStorage.setItem(CHAVE_STORAGE + pomboSel, JSON.stringify(manual))
+        db.savePedigree(pomboSel, manual).catch(() => {})
       }
       return nova
     })
@@ -200,11 +228,22 @@ export default function Pedigree({ nav, params }) {
       <div className="card card-p" style={{ marginBottom: 16 }}>
         <div style={{ display:'flex', gap:12, flexWrap:'wrap', alignItems:'flex-end' }}>
           <div style={{ flex:1, minWidth:200 }}>
+            <div style={{ display:'flex', gap:6, marginBottom:6, flexWrap:'wrap' }}>
+              <select className="input" style={{ flex:1, fontSize:11 }} value={filtroPombal} onChange={e => setFiltroPombal(e.target.value)}>
+                <option value="">Todos os pombais</option>
+                {pombalsList.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+              <select className="input" style={{ width:100, fontSize:11 }} value={filtroSexo} onChange={e => setFiltroSexo(e.target.value)}>
+                <option value="">♂♀ Todos</option>
+                <option value="M">♂ Machos</option>
+                <option value="F">♀ Fêmeas</option>
+              </select>
+            </div>
             <Field label="Seleccionar Pombo">
               <select className="input" value={pomboSel} onChange={e => selecionarPombo(e.target.value)}>
                 <option value="">— Escolha um pombo —</option>
-                {pombos.filter(p => p.estado !== 'inativo' || p.provas > 0).map(p => (
-                  <option key={p.id} value={p.id}>{p.nome} ({p.anilha})</option>
+                {pombosFiltrados.map(p => (
+                  <option key={p.id} value={p.id}>{p.sexo === 'M' ? '♂' : p.sexo === 'F' ? '♀' : '○'} {p.nome} ({p.anilha}){p.pombal ? ` · ${p.pombal}` : ''}</option>
                 ))}
               </select>
             </Field>
@@ -325,11 +364,24 @@ export default function Pedigree({ nav, params }) {
               {geracoes >= 3 && (
                 <div>
                   <div style={{ fontSize:10, color:'#7A8699', fontWeight:700, letterSpacing:1, marginBottom:6 }}>BISAVÓS</div>
-                  <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
-                    {['bis_ppp','bis_ppm','bis_pmp','bis_pmm','bis_mpp','bis_mpm','bis_mmp','bis_mmm'].map((k,i) => (
-                      <PomboNode key={k} nodeKey={k} mini />
+                  <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+                    {[
+                      ['bis_ppp', 'PP-Pai', '#4C8DFF'],
+                      ['bis_ppm', 'PP-Mãe', '#4C8DFF'],
+                      ['bis_pmp', 'PM-Pai', '#7B9FFF'],
+                      ['bis_pmm', 'PM-Mãe', '#7B9FFF'],
+                      ['bis_mpp', 'MP-Pai', '#f87171'],
+                      ['bis_mpm', 'MP-Mãe', '#f87171'],
+                      ['bis_mmp', 'MM-Pai', '#ff9999'],
+                      ['bis_mmm', 'MM-Mãe', '#ff9999'],
+                    ].map(([k, label, cor]) => (
+                      <div key={k}>
+                        <div style={{ fontSize:8, color:cor, marginBottom:2, fontWeight:600 }}>{label}</div>
+                        <PomboNode nodeKey={k} mini />
+                      </div>
                     ))}
                   </div>
+                  <div style={{ fontSize:9, color:'#475569', marginTop:6 }}>PP=Pai do Pai · PM=Pai da Mãe · MP=Mãe do Pai · MM=Mãe da Mãe · Pai/Mãe=sexo do bisavó</div>
                 </div>
               )}
             </div>
