@@ -170,7 +170,7 @@ export default function Pombos({ nav }) {
   }
 
   const irParaSaude = (pombo) => { close(); nav?.('saude', { prefillPomboId: pombo.id }) }
-  const irParaPedigree = (pombo) => { close(); nav?.('reproducao', { tab: 'pedigree', pomboId: pombo.id }) }
+  const irParaPedigree = (pombo) => { close(); nav?.('pedigree', { pomboId: pombo.id }) }
 
   const PomboCard = ({ p }) => {
     const fc = (p.forma || 50) >= 80 ? '#2DD4A7' : (p.forma || 50) >= 60 ? '#D4AF37' : '#f87171'
@@ -296,8 +296,20 @@ export default function Pombos({ nav }) {
           <Field label="Peso (g)"><input className="input" type="number" placeholder="420" value={form.peso} onChange={e => sf('peso', e.target.value)} /></Field>
           <Field label="Pombal"><select className="input" value={form.pombal} onChange={e => sf('pombal', e.target.value)}><option value="">— Sem pombal —</option>{pombais.map(pb => <option key={pb.id}>{pb.nome}</option>)}</select></Field>
           <div className="col-2"><Field label="Especialidades"><div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>{ESPS.map(([v, l]) => <button key={v} type="button" className={`chip${form.esp.includes(v) ? ' active' : ''}`} onClick={() => toggleEsp(v)}>{l}</button>)}</div></Field></div>
-          <Field label="Anel do Pai"><input className="input font-mono" style={{ fontSize: 11 }} placeholder="PT-0000-00000" value={form.pai} onChange={e => sf('pai', e.target.value.toUpperCase())} /></Field>
-          <Field label="Anel da Mãe"><input className="input font-mono" style={{ fontSize: 11 }} placeholder="PT-0000-00000" value={form.mae} onChange={e => sf('mae', e.target.value.toUpperCase())} /></Field>
+          <Field label="Pai (anilha ou seleccionar)">
+            <select className="input" style={{ marginBottom:4 }} value="" onChange={e => { if(e.target.value) sf('pai', e.target.value) }}>
+              <option value="">— Seleccionar do efectivo —</option>
+              {pombos.filter(p => p.sexo === 'M' && p.id !== selected?.id).map(p => <option key={p.id} value={p.anilha}>{p.nome} ({p.anilha})</option>)}
+            </select>
+            <input className="input font-mono" style={{ fontSize:11 }} placeholder="PT-0000-00000" value={form.pai} onChange={e => sf('pai', e.target.value.toUpperCase())} />
+          </Field>
+          <Field label="Mãe (anilha ou seleccionar)">
+            <select className="input" style={{ marginBottom:4 }} value="" onChange={e => { if(e.target.value) sf('mae', e.target.value) }}>
+              <option value="">— Seleccionar do efectivo —</option>
+              {pombos.filter(p => p.sexo === 'F' && p.id !== selected?.id).map(p => <option key={p.id} value={p.anilha}>{p.nome} ({p.anilha})</option>)}
+            </select>
+            <input className="input font-mono" style={{ fontSize:11 }} placeholder="PT-0000-00000" value={form.mae} onChange={e => sf('mae', e.target.value.toUpperCase())} />
+          </Field>
           <div className="col-2" style={{ borderTop: '1px solid #1e3050', paddingTop: 12, marginTop: 4 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8', marginBottom: 10 }}>📦 Origem / Aquisição</div>
           </div>
