@@ -604,4 +604,20 @@ export const db = {
     const { error } = await supabase.from('pedigrees').upsert({ user_id: uid, pigeon_id: pigeonId, arvore, updated_at: new Date().toISOString() }, { onConflict: 'user_id,pigeon_id' })
     if (error) throw error
   },
+
+  async getPerfilPublico(slug) {
+    const { data, error } = await supabase.from('perfis').select('*').eq('slug', slug).single()
+    if (error) throw error
+    return data
+  },
+  async getPombosPublicos(userId) {
+    const { data, error } = await supabase.from('pigeons').select('*').eq('user_id', userId).eq('estado', 'ativo').order('percentil', { ascending: false })
+    if (error) throw error
+    return data || []
+  },
+  async getPostsPublicos(userId) {
+    const { data, error } = await supabase.from('posts').select('*').eq('user_id', userId).eq('visivel', true).order('created_at', { ascending: false }).limit(20)
+    if (error) { if (error.code === '42P01') return []; throw error }
+    return data || []
+  },
 }
