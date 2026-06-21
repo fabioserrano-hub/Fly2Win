@@ -9,13 +9,25 @@ const tipoCor = { Geral:'#4C8DFF', Resultado:'#D4AF37', Treino:'#2DD4A7', Conqui
 const REACOES = ['❤️','🏆','🐦','👏','😮']
 
 const BADGES_DEF = [
-  { id: 'campeao', icon: '🥇', nome: 'Campeão', cond: (d) => d.vitorias >= 1 },
-  { id: 'podio', icon: '🏅', nome: 'Pódio', cond: (d) => d.top3 >= 3 },
-  { id: 'veterano', icon: '🎖️', nome: 'Veterano', cond: (d) => d.provas >= 20 },
-  { id: 'criador', icon: '🥚', nome: 'Grande Criador', cond: (d) => d.borrachinhos >= 10 },
-  { id: 'ativo', icon: '⚡', nome: 'Activo', cond: (d) => d.provas >= 5 },
-  { id: 'genealogista', icon: '🌳', nome: 'Genealogista', cond: (d) => d.pombosComPedigree >= 5 },
+  { id:'campeao',    icon:'🥇', nome:'Campeão',        desc:'Ganhou 1ª prova',           cond:d=>d.vitorias>=1 },
+  { id:'podio',      icon:'🏅', nome:'Pódio',           desc:'Top 3 em 3 provas',         cond:d=>d.top3>=3 },
+  { id:'veterano',   icon:'🎖️', nome:'Veterano',        desc:'Mais de 20 provas',         cond:d=>d.provas>=20 },
+  { id:'criador',    icon:'🥚', nome:'Grande Criador',  desc:'10+ borrachinhos criados',  cond:d=>d.borrachinhos>=10 },
+  { id:'ativo',      icon:'⚡', nome:'Activo',          desc:'5+ provas na época',        cond:d=>d.provas>=5 },
+  { id:'genealogista',icon:'🌳',nome:'Genealogista',    desc:'5+ pombos com pedigree',    cond:d=>d.pombosComPedigree>=5 },
+  { id:'centenario', icon:'💯', nome:'Centenário',      desc:'100+ provas acumuladas',    cond:d=>d.provas>=100 },
+  { id:'especialista',icon:'🎯',nome:'Especialista',    desc:'3+ provas na mesma categ.', cond:d=>d.provas>=3 },
 ]
+
+const DESAFIOS_SEMANAIS = [
+  { id:'publica',     icon:'📢', nome:'Publicador',     desc:'Publica 3 posts esta semana',           meta:3,  tipo:'posts' },
+  { id:'socializa',   icon:'❤️', nome:'Sociável',       desc:'Dá 5 likes esta semana',               meta:5,  tipo:'likes' },
+  { id:'comenta',     icon:'💬', nome:'Comentador',     desc:'Faz 3 comentários esta semana',         meta:3,  tipo:'comments' },
+  { id:'resultado',   icon:'🏆', nome:'Resulta',        desc:'Partilha 1 resultado de prova',         meta:1,  tipo:'resultado' },
+  { id:'segue',       icon:'👥', nome:'Networker',      desc:'Segue 2 columbófilos',                  meta:2,  tipo:'follows' },
+]
+
+const ESPECIALIDADES_RANKING = ['Velocidade','Meio-Fundo','Fundo','Grande Fundo']
 
 function TempoAtras({ ts }) {
   const d = (Date.now() - new Date(ts)) / 1000
@@ -316,6 +328,9 @@ export default function Comunidade({ nav }) {
 
   const nNaoLidas = notifs.filter(n => !n.lida).length
   const [hashtagFiltro, setHashtagFiltro] = useState(null)
+  const [pesquisa, setPesquisa] = useState('')
+  const [tabRanking, setTabRanking] = useState('geral')
+  const [showCartao, setShowCartao] = useState(false)
 
   // Formatar conteúdo com hashtags clicáveis
   const formatConteudo = (texto) => {
@@ -402,9 +417,17 @@ export default function Comunidade({ nav }) {
         <button className="btn btn-primary" onClick={() => setModalPost(true)}>✏️ Publicar</button>
       </div>
 
+      {/* Pesquisa global */}
+      <div style={{ display:'flex', gap:8, marginBottom:12 }}>
+        <input className="input" placeholder="🔍 Pesquisar posts, #hashtags..." value={pesquisa}
+          onChange={e => { setPesquisa(e.target.value); e.target.value.startsWith('#') ? setHashtagFiltro(e.target.value) : setHashtagFiltro(null) }}
+          style={{ flex:1, fontSize:13 }} />
+        <button className="btn btn-secondary btn-sm" onClick={() => setShowCartao(true)} title="Cartão de visita">💳</button>
+      </div>
+
       <div style={{ display:'flex', gap:4, background:'#101F40', borderRadius:8, padding:4, marginBottom:16, overflowX:'auto' }}>
-        {[['feed','📰 Feed'],['explorar','🔍 Explorar'],['notifs',`🔔 Notif.${nNaoLidas?` (${nNaoLidas})`:''}`],['ranking','🏆 Ranking']].map(([t,l]) => (
-          <button key={t} onClick={() => setTab(t)} style={{ flex:1, padding:'8px 10px', borderRadius:6, fontSize:12, fontWeight:500, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap', background:tab===t?'#1E5FD9':'none', color:tab===t?'#fff':'#94a3b8' }}>{l}</button>
+        {[['feed','📰 Feed'],['explorar','🔍 Explorar'],['desafios','🎯 Desafios'],['notifs',`🔔${nNaoLidas?` (${nNaoLidas})`:''}`],['ranking','🏆 Ranking']].map(([t,l]) => (
+          <button key={t} onClick={() => setTab(t)} style={{ flex:'none', padding:'8px 10px', borderRadius:6, fontSize:11, fontWeight:500, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap', background:tab===t?'#1E5FD9':'none', color:tab===t?'#fff':'#94a3b8' }}>{l}</button>
         ))}
       </div>
 
@@ -533,43 +556,55 @@ export default function Comunidade({ nav }) {
 
           {tab==='ranking' && (
             <div>
-              <div style={{ fontSize:12, color:'#94a3b8', marginBottom:12 }}>Pontuação: 50pts por badge · 30pts por desafio · 10pts por publicação · 2pts por like recebido</div>
+              {/* Sub-tabs especialidade */}
+              <div style={{ display:'flex', gap:4, marginBottom:12, overflowX:'auto' }}>
+                {[['geral','🏆 Geral'],...ESPECIALIDADES_RANKING.map(e=>[e,e])].map(([k,l])=>(
+                  <button key={k} onClick={()=>setTabRanking(k)} style={{ flexShrink:0, padding:'5px 12px', borderRadius:20, fontSize:11, fontWeight:500, cursor:'pointer', border:'none', fontFamily:'inherit', background:tabRanking===k?'#1E5FD9':'#101F40', color:tabRanking===k?'#fff':'#94a3b8' }}>{l}</button>
+                ))}
+              </div>
+              <div style={{ fontSize:11, color:'#7A8699', marginBottom:12 }}>50pts/badge · 30pts/desafio · 10pts/publicação · 2pts/like</div>
+              {tabRanking !== 'geral' && (
+                <div style={{ background:'rgba(76,141,255,.08)', border:'1px solid rgba(76,141,255,.15)', borderRadius:8, padding:'10px 14px', marginBottom:12, fontSize:12, color:'#94a3b8' }}>
+                  Ranking de <strong style={{ color:'#4C8DFF' }}>{tabRanking}</strong> — baseado nos percentis dos pombos desta especialidade
+                  {(() => {
+                    const top = pombos.filter(p=>p.esp?.includes(tabRanking)).sort((a,b)=>(b.percentil||0)-(a.percentil||0)).slice(0,3)
+                    return top.length>0 && <div style={{ marginTop:6 }}>{top.map((p,i)=><span key={p.id} style={{ marginRight:8, color:i===0?'#D4AF37':i===1?'#94a3b8':'#b45309' }}>{['🥇','🥈','🥉'][i]} {p.nome} ({p.percentil||0}%)</span>)}</div>
+                  })()}
+                </div>
+              )}
               {ranking.length===0
                 ? <EmptyState icon="🏆" title="Ranking vazio" desc="Publica resultados e conquista badges para entrar no ranking" />
                 : <>
-                    {/* Pódio top 3 */}
-                    {ranking.length >= 3 && (
+                    {ranking.length >= 3 && tabRanking==='geral' && (
                       <div style={{ display:'flex', justifyContent:'center', alignItems:'flex-end', gap:8, marginBottom:16, padding:'16px 8px 0' }}>
-                        {[ranking[1], ranking[0], ranking[2]].map((r,i) => {
-                          const pos = i===1?1:i===0?2:3
-                          const altura = i===1?72:i===0?56:44
-                          const cor = pos===1?'#D4AF37':pos===2?'#cbd5e1':'#b45309'
-                          const medal = pos===1?'🥇':pos===2?'🥈':'🥉'
-                          return r ? (
+                        {[ranking[1],ranking[0],ranking[2]].map((r,i)=>{
+                          const pos=i===1?1:i===0?2:3
+                          const alt=i===1?72:i===0?56:44
+                          const cor=pos===1?'#D4AF37':pos===2?'#cbd5e1':'#b45309'
+                          const med=pos===1?'🥇':pos===2?'🥈':'🥉'
+                          return r?(
                             <div key={r.id||pos} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
-                              <div style={{ fontSize:11, color:'#fff', fontWeight:600, maxWidth:70, textAlign:'center', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.nome?.split(' ')[0]}</div>
-                              <div style={{ fontSize:22 }}>{medal}</div>
-                              <div style={{ width:60, height:altura, background:`${cor}22`, border:`2px solid ${cor}`, borderRadius:'8px 8px 0 0', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                                <div style={{ fontSize:13, fontWeight:700, color:cor }}>{r.pontos}</div>
+                              <div style={{ fontSize:10, color:'#fff', fontWeight:600, maxWidth:70, textAlign:'center', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.nome?.split(' ')[0]}</div>
+                              <div style={{ fontSize:20 }}>{med}</div>
+                              <div style={{ width:60, height:alt, background:`${cor}22`, border:`2px solid ${cor}`, borderRadius:'8px 8px 0 0', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                                <div style={{ fontSize:12, fontWeight:700, color:cor }}>{r.pontos}</div>
                               </div>
                             </div>
-                          ) : null
+                          ):null
                         })}
                       </div>
                     )}
-                    {/* Lista completa */}
                     <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-                      {ranking.map((r,i) => {
-                        const souEu = r.nome===nome
-                        const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':null
+                      {ranking.map((r,i)=>{
+                        const souEu=r.nome===nome
+                        const med=i===0?'🥇':i===1?'🥈':i===2?'🥉':null
                         return (
                           <div key={r.id||i} className="card card-p" style={souEu?{borderColor:'rgba(76,141,255,.4)',background:'rgba(76,141,255,.06)'}:undefined}>
                             <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                               <div style={{ width:28, textAlign:'center' }}>
-                                {medal ? <span style={{ fontSize:18 }}>{medal}</span>
-                                  : <span style={{ fontFamily:"'Fraunces',serif", fontSize:16, fontWeight:700, color:'#475569' }}>{i+1}</span>}
+                                {med?<span style={{ fontSize:18 }}>{med}</span>:<span style={{ fontFamily:"'Fraunces',serif", fontSize:16, fontWeight:700, color:'#475569' }}>{i+1}</span>}
                               </div>
-                              <div style={{ flex:1, fontSize:13, color:'#fff', fontWeight: souEu?700:400 }}>{r.nome}{souEu?' (você)':''}</div>
+                              <div style={{ flex:1, fontSize:13, color:'#fff', fontWeight:souEu?700:400 }}>{r.nome}{souEu?' (você)':''}</div>
                               <div style={{ fontSize:15, fontWeight:700, color:'#D4AF37' }}>{r.pontos} <span style={{ fontSize:10, color:'#7A8699', fontWeight:400 }}>pts</span></div>
                             </div>
                           </div>
@@ -581,8 +616,112 @@ export default function Comunidade({ nav }) {
             </div>
           )}
 
+          {tab==='desafios' && (
+            <div>
+              {/* Streak */}
+              <div className="card card-p" style={{ marginBottom:12, background:'linear-gradient(135deg,rgba(212,175,55,.1),rgba(212,175,55,.03))', border:'1px solid rgba(212,175,55,.25)' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                  <div style={{ fontSize:36 }}>🔥</div>
+                  <div>
+                    <div style={{ fontSize:18, fontWeight:900, color:'#D4AF37', fontFamily:"'Fraunces',serif" }}>
+                      {posts.filter(p=>p.user_id===user?.id&&new Date(p.created_at)>new Date(Date.now()-7*86400000)).length} posts esta semana
+                    </div>
+                    <div style={{ fontSize:12, color:'#94a3b8' }}>Publica diariamente para manter o streak!</div>
+                  </div>
+                </div>
+              </div>
+              {/* Desafios */}
+              <div style={{ fontWeight:600, color:'#fff', marginBottom:10, fontSize:13 }}>🎯 Desafios desta semana</div>
+              <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:16 }}>
+                {DESAFIOS_SEMANAIS.map(d => {
+                  const prog = d.tipo==='posts' ? posts.filter(p=>p.user_id===user?.id&&new Date(p.created_at)>new Date(Date.now()-7*86400000)).length
+                    : d.tipo==='resultado' ? posts.filter(p=>p.user_id===user?.id&&p.tipo==='Resultado'&&new Date(p.created_at)>new Date(Date.now()-7*86400000)).length
+                    : d.tipo==='follows' ? following.size : 0
+                  const pct = Math.min(100, Math.round(prog/d.meta*100))
+                  const ok = prog >= d.meta
+                  return (
+                    <div key={d.id} className="card card-p" style={{ borderLeft:`3px solid ${ok?'#2DD4A7':'#1B2D52'}` }}>
+                      <div style={{ display:'flex', gap:10, alignItems:'center', marginBottom:8 }}>
+                        <span style={{ fontSize:20 }}>{d.icon}</span>
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontSize:13, fontWeight:600, color:ok?'#2DD4A7':'#fff' }}>{d.nome} {ok&&'✅'}</div>
+                          <div style={{ fontSize:11, color:'#7A8699' }}>{d.desc}</div>
+                        </div>
+                        <div style={{ fontSize:12, fontWeight:700, color:ok?'#2DD4A7':'#D4AF37' }}>{prog}/{d.meta}</div>
+                      </div>
+                      <div style={{ height:4, background:'#101F40', borderRadius:2 }}>
+                        <div style={{ height:'100%', width:`${pct}%`, background:ok?'#2DD4A7':'#1E5FD9', borderRadius:2, transition:'width .5s' }} />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              {/* Badges */}
+              <div style={{ fontWeight:600, color:'#fff', marginBottom:10, fontSize:13 }}>🏅 Badges conquistados</div>
+              {(() => {
+                const efect = pombos.filter(p=>!p.estado_ext||p.estado_ext==='proprio')
+                const pAno = provas.filter(p=>new Date(p.data_reg).getFullYear()===new Date().getFullYear())
+                const d = { vitorias:pAno.filter(p=>p.lugar===1).length, top3:pAno.filter(p=>p.lugar<=3).length, provas:pAno.length, borrachinhos:0, pombosComPedigree:efect.filter(p=>p.pai&&p.mae).length }
+                const ok = BADGES_DEF.filter(b=>b.cond(d))
+                const nok = BADGES_DEF.filter(b=>!b.cond(d))
+                return <>
+                  <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:10 }}>
+                    {ok.map(b=>(
+                      <div key={b.id} style={{ background:'rgba(212,175,55,.1)', border:'1px solid rgba(212,175,55,.3)', borderRadius:10, padding:'8px 12px', textAlign:'center' }}>
+                        <div style={{ fontSize:24 }}>{b.icon}</div>
+                        <div style={{ fontSize:11, fontWeight:600, color:'#D4AF37' }}>{b.nome}</div>
+                        <div style={{ fontSize:9, color:'#7A8699' }}>{b.desc}</div>
+                      </div>
+                    ))}
+                    {ok.length===0 && <div style={{ fontSize:12, color:'#7A8699' }}>Ainda sem badges. Participa em provas para ganhar!</div>}
+                  </div>
+                  {nok.length>0&&<><div style={{ fontSize:11, color:'#475569', marginBottom:6 }}>Por conquistar:</div>
+                  <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                    {nok.map(b=><div key={b.id} style={{ background:'#101F40', border:'1px solid #1B2D52', borderRadius:8, padding:'6px 10px', textAlign:'center', opacity:.4 }}>
+                      <div style={{ fontSize:16 }}>{b.icon}</div><div style={{ fontSize:9, color:'#7A8699' }}>{b.nome}</div>
+                    </div>)}
+                  </div></>}
+                </>
+              })()}
+            </div>
+          )}
+
         </>
       )}
+
+      {/* Cartão de visita digital */}
+      <Modal open={showCartao} onClose={()=>setShowCartao(false)} title="💳 Cartão de Visita Digital">
+        <div style={{ background:'linear-gradient(135deg,#050D1A,#0B1830)', border:'1px solid #D4AF37', borderRadius:16, overflow:'hidden' }}>
+          <div style={{ background:'linear-gradient(90deg,#B8960C,#D4AF37)', height:4 }} />
+          <div style={{ padding:'20px 20px 16px' }}>
+            <div style={{ display:'flex', gap:14, alignItems:'center', marginBottom:14 }}>
+              <div style={{ width:56, height:56, borderRadius:'50%', background:'linear-gradient(135deg,#1E5FD9,#4C8DFF)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, fontWeight:700, color:'#fff', overflow:'hidden', border:'2px solid #D4AF37', flexShrink:0 }}>
+                {perfil?.foto_perfil_url ? <img src={perfil.foto_perfil_url} style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : nome?.[0]?.toUpperCase()||'?'}
+              </div>
+              <div>
+                <div style={{ fontSize:16, fontWeight:900, color:'#D4AF37', fontFamily:"'Fraunces',serif" }}>{nome}</div>
+                <div style={{ fontSize:12, color:'#94a3b8' }}>{perfil?.org||'Columbófilo'}</div>
+                {perfil?.pombal_nome&&<div style={{ fontSize:11, color:'#4C8DFF' }}>🏠 {perfil.pombal_nome}</div>}
+              </div>
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8, marginBottom:12 }}>
+              {[['🐦',pombos.filter(p=>!p.estado_ext||p.estado_ext==='proprio').length,'Pombos'],['🏆',provas.length,'Provas'],[(pombos.filter(p=>!p.estado_ext||p.estado_ext==='proprio').reduce((s,p)=>s+(p.percentil||0),0)/Math.max(1,pombos.filter(p=>!p.estado_ext||p.estado_ext==='proprio').length))|0+'%','Percentil médio','📊']].map(([icon,val,label])=>(
+                <div key={label} style={{ background:'rgba(255,255,255,.05)', borderRadius:8, padding:'8px 4px', textAlign:'center' }}>
+                  <div style={{ fontSize:14 }}>{icon}</div>
+                  <div style={{ fontSize:16, fontWeight:700, color:'#fff' }}>{val}</div>
+                  <div style={{ fontSize:9, color:'#7A8699' }}>{label}</div>
+                </div>
+              ))}
+            </div>
+            {perfil?.bio&&<div style={{ fontSize:11, color:'#94a3b8', marginBottom:8, fontStyle:'italic' }}>"{perfil.bio}"</div>}
+            {perfil?.slug&&<div style={{ fontSize:10, color:'#475569', textAlign:'right' }}>championsloft.app/p/{perfil.slug}</div>}
+          </div>
+        </div>
+        <button className="btn btn-secondary" style={{ width:'100%', marginTop:12 }} onClick={()=>{
+          const txt=`${nome} — ${perfil?.org||'Columbófilo'}\n🐦 ${pombos.filter(p=>!p.estado_ext||p.estado_ext==='proprio').length} pombos · 🏆 ${provas.length} provas\nchampionsloft.app/p/${perfil?.slug||''}`
+          navigator.share?navigator.share({title:'ChampionsLoft',text:txt}):navigator.clipboard?.writeText(txt).then(()=>toast('Copiado!','ok'))
+        }}>🔗 Partilhar cartão</button>
+      </Modal>
 
       {/* Modal publicar */}
       <Modal open={modalPost} onClose={() => { setModalPost(false); setFormPost({tipo:'Geral',conteudo:'',hashtags:''}) }} title="✏️ Nova Publicação"
