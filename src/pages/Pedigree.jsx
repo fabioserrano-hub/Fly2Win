@@ -206,52 +206,54 @@ export default function Pedigree({ nav, params }) {
 
       // ==========================================
       // CABEÇALHO — fundo navy, borda dourada
-      // ==========================================
-      const HDR_H = 36
+      const HDR_H = 44
       doc.setFillColor(...NAVY); doc.rect(0,10,W,HDR_H,'F')
-      // Borda dourada em volta
-      doc.setDrawColor(...GOLD); doc.setLineWidth(0.8)
-      doc.rect(0,10,W,HDR_H)
-      // Linha dourada inferior
+      doc.setDrawColor(...GOLD); doc.setLineWidth(0.8); doc.rect(0,10,W,HDR_H)
       doc.setFillColor(...GOLD); doc.rect(0,10+HDR_H,W,1,'F')
 
-      // Fotos no cabeçalho
-      let fx = 12; const HY = 13
+      // Fotos — maiores, centradas verticalmente no cabeçalho
+      const HY = 12, FOTO_SZ = 28
+      let fx = 10
       if (fotoPerfilB64) {
-        // Apenas foto quadrada com borda dourada — sem circulo
         doc.setDrawColor(...GOLD); doc.setLineWidth(0.8)
-        doc.roundedRect(fx,HY,16,16,1,1,'S')
-        doc.addImage(fotoPerfilB64,'JPEG',fx+0.5,HY+0.5,15,15)
-        doc.setFontSize(4); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
-        doc.text('Columbofilo', fx+8, HY+19, {align:'center'}); fx+=22
+        doc.roundedRect(fx, HY, FOTO_SZ, FOTO_SZ, 1.5, 1.5, 'S')
+        doc.addImage(fotoPerfilB64,'JPEG',fx+0.5,HY+0.5,FOTO_SZ-1,FOTO_SZ-1)
+        doc.setFontSize(4.5); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
+        doc.text('Columbofilo', fx+FOTO_SZ/2, HY+FOTO_SZ+3, {align:'center'})
+        fx += FOTO_SZ + 6
       }
       if (fotoPombalB64) {
-        doc.setDrawColor(60,90,140); doc.setLineWidth(0.4)
-        doc.roundedRect(fx,HY,16,16,1,1,'S')
-        doc.addImage(fotoPombalB64,'JPEG',fx+0.4,HY+0.4,15.2,15.2)
-        doc.setFontSize(4); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
-        doc.text('Pombal', fx+8, HY+19, {align:'center'}); fx+=22
+        doc.setDrawColor(60,90,140); doc.setLineWidth(0.5)
+        doc.roundedRect(fx, HY, FOTO_SZ, FOTO_SZ, 1.5, 1.5, 'S')
+        doc.addImage(fotoPombalB64,'JPEG',fx+0.4,HY+0.4,FOTO_SZ-0.8,FOTO_SZ-0.8)
+        doc.setFontSize(4.5); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
+        doc.text('Pombal', fx+FOTO_SZ/2, HY+FOTO_SZ+3, {align:'center'})
+        fx += FOTO_SZ + 6
       }
-      // Linha dourada vertical decorativa
-      doc.setFillColor(...GOLD); doc.rect(fx+2,HY,0.8,16,'F')
-      const infoX = fx+6
 
-      doc.setFontSize(17); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
-      doc.text('PEDIGREE', infoX, HY+8)
-      doc.setFontSize(9.5); doc.setTextColor(...WHITE)
-      doc.text(perfil?.nome||'', infoX, HY+14)
-      doc.setFontSize(6.5); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
-      if (perfil?.pombal_nome) doc.text(perfil.pombal_nome+(perfil?.pombal_morada?' - '+perfil.pombal_morada:''), infoX, HY+19.5)
-      if (perfil?.org) { doc.setTextColor(100,112,145); doc.text(perfil.org+(perfil?.fed?' - '+perfil.fed:''), infoX, HY+24.5) }
+      // Linha dourada vertical separadora
+      doc.setFillColor(...GOLD); doc.rect(fx+2, HY, 0.8, FOTO_SZ, 'F')
 
-      // Data — destaque dourado
+      // Info columbófilo (esquerda do centro)
+      const infoX = fx + 6
+      doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
+      doc.text(perfil?.nome||'', infoX, HY+6)
+      doc.setFontSize(6); doc.setTextColor(100,115,148)
+      if (perfil?.pombal_nome) doc.text(perfil.pombal_nome+(perfil?.pombal_morada?' - '+perfil.pombal_morada:''), infoX, HY+12)
+      if (perfil?.org) doc.text(perfil.org+(perfil?.fed?' - '+perfil.fed:''), infoX, HY+18)
+
+      // "PEDIGREE" centrado e grande
+      doc.setFontSize(28); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
+      doc.text('PEDIGREE', W/2, HY+18, {align:'center'})
+
+      // Data (canto direito)
       doc.setFontSize(5.5); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
       doc.text('DATA DE EMISSAO', W-8, HY+6, {align:'right'})
       doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.setTextColor(...WHITE)
       doc.text(new Date().toLocaleDateString('pt-PT'), W-8, HY+14, {align:'right'})
       doc.setFontSize(5); doc.setFont('helvetica','normal'); doc.setTextColor(71,85,105)
-      doc.text('Documento oficial', W-8, HY+20, {align:'right'})
-      doc.text('ChampionsLoft (c) '+new Date().getFullYear(), W-8, HY+25, {align:'right'})
+      doc.text('Documento oficial', W-8, HY+21, {align:'right'})
+      doc.text('ChampionsLoft (c) '+new Date().getFullYear(), W-8, HY+26, {align:'right'})
 
       // ==========================================
       // LAYOUT: organograma (esq) + palmares (dir)
@@ -259,7 +261,7 @@ export default function Pedigree({ nav, params }) {
       const ORG_W = 207
       const PALM_X = 213
       const PALM_W = W - PALM_X - 5
-      const TOP = 49, BOTTOM = H-9, AVAIL = BOTTOM-TOP, VPAD = 0.8
+      const TOP = 57, BOTTOM = H-9, AVAIL = BOTTOM-TOP, VPAD = 0.8
 
       // Divisor
       doc.setDrawColor(...GOLD); doc.setLineWidth(0.4)
