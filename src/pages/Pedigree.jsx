@@ -165,8 +165,9 @@ export default function Pedigree({ nav, params }) {
         s.onload = res; s.onerror = rej; document.head.appendChild(s)
       })
       const { jsPDF } = window.jspdf
-      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
-      const W = 297, H = 210
+      const doc = new jsPDF({ orientation: 'l', unit: 'mm', format: [297, 210], putOnlyUsedFonts: true, compress: true })
+      const W = doc.internal.pageSize.getWidth()
+      const H = doc.internal.pageSize.getHeight()
 
       const toB64 = (url) => new Promise(res => {
         if (!url) return res(null)
