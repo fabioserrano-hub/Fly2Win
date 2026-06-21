@@ -210,48 +210,58 @@ export default function Pedigree({ nav, params }) {
       doc.setFontSize(5.5); doc.setFont('helvetica','normal'); doc.setTextColor(170,185,210)
       doc.text('PEDIGREE PREMIUM · championsloft.app', W-8, 7.5, {align:'right'})
 
-      // CABEÇALHO
-      doc.setFillColor(247,248,252); doc.rect(0,11,W,32,'F')
-      doc.setDrawColor(200,208,220); doc.setLineWidth(0.2); doc.line(0,43,W,43)
-      doc.setFillColor(...GOLD); doc.rect(8,14,2.5,26,'F')
+      // === CABEÇALHO — igual ao da app: fundo escuro + barra dourada ===
+      const HDR_H = 36
+      // Fundo escuro do cabeçalho (abaixo da barra topo)
+      doc.setFillColor(...NAVY); doc.rect(0,11,W,HDR_H,'F')
+      // Borda dourada em volta do cabeçalho
+      doc.setDrawColor(...GOLD); doc.setLineWidth(0.6)
+      doc.rect(5,11.5,W-10,HDR_H-1)
+      // Linha dourada inferior
+      doc.setFillColor(...GOLD); doc.rect(0,11+HDR_H-0.8,W,0.8,'F')
 
-      let fx=14; const HY=15
+      let fx=12; const HY=14
+      // Foto columbófilo — circular com borda dourada
       if (fotoPerfilB64) {
-        doc.setFillColor(...GOLD); doc.roundedRect(fx-0.5,HY-0.5,17,17,1,1,'F')
+        doc.setFillColor(...GOLD); doc.circle(fx+8,HY+8,9,'F')
         doc.addImage(fotoPerfilB64,'JPEG',fx,HY,16,16)
-        doc.setFontSize(4); doc.setTextColor(140,148,168); doc.setFont('helvetica','normal')
-        doc.text('Columbófilo', fx+8, HY+19, {align:'center'}); fx+=21
+        doc.setFontSize(4); doc.setTextColor(150,160,185); doc.setFont('helvetica','normal')
+        doc.text('Columbófilo', fx+8, HY+18.5, {align:'center'}); fx+=22
       }
+      // Foto pombal — rectangular com borda subtil
       if (fotoPombalB64) {
-        doc.setFillColor(...LGREY); doc.roundedRect(fx,HY,16,16,1,1,'F')
+        doc.setFillColor(30,50,90); doc.roundedRect(fx,HY,16,16,1,1,'F')
         doc.addImage(fotoPombalB64,'JPEG',fx+0.3,HY+0.3,15.4,15.4)
-        doc.setDrawColor(190,198,215); doc.setLineWidth(0.25); doc.roundedRect(fx,HY,16,16,1,1,'S')
-        doc.setFontSize(4); doc.setTextColor(140,148,168); doc.setFont('helvetica','normal')
-        doc.text('Pombal', fx+8, HY+19, {align:'center'}); fx+=21
+        doc.setDrawColor(60,90,140); doc.setLineWidth(0.3); doc.roundedRect(fx,HY,16,16,1,1,'S')
+        doc.setFontSize(4); doc.setTextColor(150,160,185); doc.setFont('helvetica','normal')
+        doc.text('Pombal', fx+8, HY+18.5, {align:'center'}); fx+=22
       }
-      const infoX = fx+2
-      doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
-      doc.text('PEDIGREE', infoX, HY+7)
-      doc.setFontSize(8.5); doc.setTextColor(...NAVY)
-      doc.text(perfil?.nome||'', infoX, HY+13)
-      doc.setFontSize(6); doc.setFont('helvetica','normal'); doc.setTextColor(75,90,135)
-      if (perfil?.pombal_nome) doc.text(perfil.pombal_nome+(perfil?.pombal_morada?' · '+perfil.pombal_morada:''), infoX, HY+18)
-      if (perfil?.org) { doc.setTextColor(125,132,160); doc.text(perfil.org+(perfil?.fed?' · '+perfil.fed:''), infoX, HY+23) }
-      doc.setFontSize(5); doc.setFont('helvetica','bold'); doc.setTextColor(140,148,168)
-      doc.text('DATA DE EMISSÃO', W-8, HY+6, {align:'right'})
-      doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY)
-      doc.text(new Date().toLocaleDateString('pt-PT'), W-8, HY+13, {align:'right'})
-      doc.setFontSize(4.5); doc.setFont('helvetica','normal'); doc.setTextColor(165,172,188)
-      doc.text('Documento oficial · ChampionsLoft © '+new Date().getFullYear(), W-8, HY+20, {align:'right'})
+      // Texto info — igual ao da app
+      const infoX=fx+3
+      doc.setFontSize(16); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
+      doc.text('PEDIGREE', infoX, HY+8)
+      doc.setFontSize(9); doc.setTextColor(...WHITE)
+      doc.text(perfil?.nome||'', infoX, HY+14)
+      doc.setFontSize(6.5); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
+      if (perfil?.pombal_nome) doc.text(perfil.pombal_nome+(perfil?.pombal_morada?' · '+perfil.pombal_morada:''), infoX, HY+20)
+      if (perfil?.org) { doc.setTextColor(112,120,148); doc.text(perfil.org+(perfil?.fed?' · '+perfil.fed:''), infoX, HY+25) }
+      // Data — canto direito
+      doc.setFontSize(5.5); doc.setFont('helvetica','bold'); doc.setTextColor(100,115,150)
+      doc.text('DATA DE EMISSÃO', W-8, HY+5, {align:'right'})
+      doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.setTextColor(...WHITE)
+      doc.text(new Date().toLocaleDateString('pt-PT'), W-8, HY+12, {align:'right'})
+      doc.setFontSize(4.5); doc.setFont('helvetica','normal'); doc.setTextColor(71,85,105)
+      doc.text('Documento oficial', W-8, HY+18, {align:'right'})
+      doc.text('ChampionsLoft (c) '+new Date().getFullYear(), W-8, HY+23, {align:'right'})
 
       // DIVISOR VERTICAL entre organograma e palmarés
       doc.setDrawColor(...LGREY); doc.setLineWidth(0.3)
-      doc.line(PALM_X-3, 44, PALM_X-3, H-9)
+      doc.line(PALM_X-3, 48, PALM_X-3, H-9)
 
       // =====================
       // PALMARÉS (coluna direita)
       // =====================
-      const PY = 46
+      const PY = 50
       // Título
       doc.setFillColor(...NAVY); doc.roundedRect(PALM_X, PY, PALM_W, 7, 1,1,'F')
       doc.setFontSize(6.5); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
@@ -298,7 +308,7 @@ export default function Pedigree({ nav, params }) {
       // =====================
       // ORGANOGRAMA (coluna esquerda, largura limitada)
       // =====================
-      const TOP=44, BOTTOM=H-9, AVAIL=BOTTOM-TOP, VPAD=0.8
+      const TOP=50, BOTTOM=H-9, AVAIL=BOTTOM-TOP, VPAD=0.8
 
       // Colunas dentro do espaço do organograma
       const C0W=36, GAP=2
