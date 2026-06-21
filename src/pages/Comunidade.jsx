@@ -3,8 +3,10 @@ import { db } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useToast, Spinner, Modal, EmptyState, Badge } from '../components/ui'
 
-const TIPOS_POST = ['Geral', 'Resultado', 'Treino', 'Conquista']
-const tipoIcon = { Geral: '📢', Resultado: '🏆', Treino: '🎯', Conquista: '🥇' }
+const TIPOS_POST = ['Geral', 'Resultado', 'Treino', 'Conquista', 'Reprodução', 'Pedigree']
+const tipoIcon = { Geral:'📢', Resultado:'🏆', Treino:'🎯', Conquista:'🥇', Reprodução:'🥚', Pedigree:'🌳' }
+const tipoCor = { Geral:'#4C8DFF', Resultado:'#D4AF37', Treino:'#2DD4A7', Conquista:'#D4AF37', Reprodução:'#c084fc', Pedigree:'#34d399' }
+const REACOES = ['❤️','🏆','🐦','👏','😮']
 
 const BADGES_DEF = [
   { id: 'campeao', icon: '🥇', nome: 'Campeão', cond: (d) => d.vitorias >= 1 },
@@ -179,8 +181,9 @@ export default function Comunidade({ nav }) {
   const [hasMore, setHasMore] = useState(true)
 
   const [modalPost, setModalPost] = useState(false)
-  const [formPost, setFormPost] = useState({ tipo: 'Geral', conteudo: '' })
+  const [formPost, setFormPost] = useState({ tipo: 'Geral', conteudo: '', hashtags: '' })
   const [savingPost, setSavingPost] = useState(false)
+  const [reacaoAberta, setReacaoAberta] = useState(null)  // post id com picker aberto
 
   const [modalComments, setModalComments] = useState(null)
   const [comments, setComments] = useState([])
@@ -249,12 +252,14 @@ export default function Comunidade({ nav }) {
     if (!formPost.conteudo.trim()) { toast('Escreve algo primeiro', 'warn'); return }
     setSavingPost(true)
     try {
+      const hashtags = (formPost.hashtags || '').split(/[\s,]+/).filter(h=>h).map(h=>h.startsWith('#')?h:'#'+h).join(' ')
+      const conteudo = formPost.conteudo.slice(0, 500) + (hashtags ? '\n' + hashtags : '')
       await db.createPost({
         autor_nome: nome,
         autor_avatar: perfil?.foto_perfil_url || '',
         autor_username: user?.email?.split('@')[0] || 'user',
         tipo: formPost.tipo,
-        conteudo: formPost.conteudo.slice(0, 500),
+        conteudo,
         likes_count: 0,
         comments_count: 0,
       })
@@ -310,35 +315,81 @@ export default function Comunidade({ nav }) {
   }
 
   const nNaoLidas = notifs.filter(n => !n.lida).length
+  const [hashtagFiltro, setHashtagFiltro] = useState(null)
+
+  // Formatar conteúdo com hashtags clicáveis
+  const formatConteudo = (texto) => {
+    if (!texto) return null
+    return texto.split('\n').map((linha, li) => (
+      <div key={li}>
+        {linha.split(/(\#\w+)/g).map((part, i) =>
+          part.startsWith('#')
+            ? <span key={i} style={{ color:'#4C8DFF', cursor:'pointer', fontWeight:500 }} onClick={() => setHashtagFiltro(part)}>{part}</span>
+            : part
+        )}
+      </div>
+    ))
+  }
 
   const PostCard = ({ post }) => {
     const souEu = post.user_id === user?.id
     const liked = myLikes.has(post.id)
+    const cor = tipoCor[post.tipo] || '#4C8DFF'
     return (
-      <div className="card card-p">
-        <div style={{ display:'flex', gap:10, marginBottom:10 }}>
-          <div style={{ width:38, height:38, borderRadius:'50%', background:'linear-gradient(135deg,#1E5FD9,#4C8DFF)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:700, color:'#fff', flexShrink:0, overflow:'hidden' }}>
-            {post.autor_avatar ? <img src={post.autor_avatar} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : post.autor_nome?.[0]?.toUpperCase() || '?'}
-          </div>
-          <div style={{ flex:1 }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <div style={{ fontSize:13, fontWeight:600, color:'#fff' }}>{post.autor_nome || 'Columbófilo'}</div>
-              <div style={{ display:'flex', gap:6, alignItems:'center' }}>
-                <span style={{ fontSize:10, color:'#7A8699' }}><TempoAtras ts={post.created_at} /></span>
-                <span style={{ fontSize:11, background:'rgba(76,141,255,.1)', color:'#4C8DFF', padding:'1px 8px', borderRadius:10 }}>{tipoIcon[post.tipo]} {post.tipo}</span>
+      <div className="card" style={{ overflow:'hidden', marginBottom:0 }}>
+        {/* Faixa colorida topo */}
+        <div style={{ height:3, background:`linear-gradient(90deg,${cor},${cor}88)` }} />
+        <div style={{ padding:'12px 14px' }}>
+          {/* Header */}
+          <div style={{ display:'flex', gap:10, marginBottom:10, alignItems:'flex-start' }}>
+            <div style={{ width:42, height:42, borderRadius:'50%', background:`linear-gradient(135deg,#1E5FD9,${cor})`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, fontWeight:700, color:'#fff', flexShrink:0, overflow:'hidden', border:`2px solid ${cor}44` }}>
+              {post.autor_avatar ? <img src={post.autor_avatar} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : post.autor_nome?.[0]?.toUpperCase() || '?'}
+            </div>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:6 }}>
+                <div style={{ fontSize:13, fontWeight:700, color:'#fff' }}>{post.autor_nome || 'Columbófilo'}</div>
+                <span style={{ fontSize:9, color:'#475569', flexShrink:0 }}><TempoAtras ts={post.created_at} /></span>
+              </div>
+              <div style={{ display:'flex', gap:6, alignItems:'center', marginTop:2 }}>
+                <span style={{ fontSize:10, background:`${cor}18`, color:cor, padding:'1px 8px', borderRadius:10, fontWeight:600 }}>{tipoIcon[post.tipo]} {post.tipo}</span>
               </div>
             </div>
           </div>
-        </div>
-        <div style={{ fontSize:13, color:'#cbd5e1', lineHeight:1.6, marginBottom:12 }}>{post.conteudo}</div>
-        <div style={{ display:'flex', gap:16, alignItems:'center' }}>
-          <button onClick={() => like(post)} style={{ display:'flex', alignItems:'center', gap:4, background:'none', border:'none', cursor:'pointer', fontSize:13, color:liked?'#f87171':'#7A8699', padding:0 }}>
-            {liked?'❤️':'🤍'} {post.likes_count||0}
-          </button>
-          <button onClick={() => abrirComments(post)} style={{ display:'flex', alignItems:'center', gap:4, background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#7A8699', padding:0 }}>
-            💬 {post.comments_count||0}
-          </button>
-          {souEu && <button onClick={async () => { await db.deletePost(post.id).catch(()=>{}); setPosts(ps=>ps.filter(p=>p.id!==post.id)) }} style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#475569', padding:0 }}>🗑️</button>}
+          {/* Conteúdo */}
+          <div style={{ fontSize:13, color:'#cbd5e1', lineHeight:1.7, marginBottom:12 }}>
+            {formatConteudo(post.conteudo)}
+          </div>
+          {/* Acções */}
+          <div style={{ display:'flex', gap:4, alignItems:'center', borderTop:'1px solid rgba(255,255,255,.05)', paddingTop:10, position:'relative' }}>
+            {/* Reacções */}
+            <div style={{ position:'relative' }}>
+              <button onClick={() => setReacaoAberta(reacaoAberta===post.id?null:post.id)}
+                style={{ display:'flex', alignItems:'center', gap:4, background:'none', border:'none', cursor:'pointer', fontSize:13, color:liked?'#f87171':'#7A8699', padding:'4px 8px', borderRadius:6 }}>
+                {liked?'❤️':'🤍'} {post.likes_count||0}
+              </button>
+              {reacaoAberta===post.id && (
+                <div style={{ position:'absolute', bottom:'100%', left:0, background:'#0B1830', border:'1px solid #1B2D52', borderRadius:12, padding:'6px 8px', display:'flex', gap:4, zIndex:50, boxShadow:'0 8px 24px rgba(0,0,0,.5)', marginBottom:4 }}>
+                  {REACOES.map(r => (
+                    <button key={r} onClick={() => { like(post); setReacaoAberta(null) }}
+                      style={{ fontSize:20, background:'none', border:'none', cursor:'pointer', padding:'2px 4px', borderRadius:6, transition:'transform .1s' }}
+                      onMouseEnter={e=>e.target.style.transform='scale(1.3)'} onMouseLeave={e=>e.target.style.transform='scale(1)'}>{r}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button onClick={() => abrirComments(post)}
+              style={{ display:'flex', alignItems:'center', gap:4, background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#7A8699', padding:'4px 8px', borderRadius:6 }}>
+              💬 {post.comments_count||0}
+            </button>
+            <button onClick={() => {
+              const txt = `${post.autor_nome}: ${post.conteudo.slice(0,100)}... — ChampionsLoft`
+              navigator.share ? navigator.share({ title:'ChampionsLoft', text:txt }) : navigator.clipboard?.writeText(txt).then(()=>toast('Copiado!','ok'))
+            }} style={{ display:'flex', alignItems:'center', gap:4, background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#7A8699', padding:'4px 8px', borderRadius:6 }}>
+              🔗
+            </button>
+            {souEu && <button onClick={async () => { await db.deletePost(post.id).catch(()=>{}); setPosts(ps=>ps.filter(p=>p.id!==post.id)) }}
+              style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#475569', padding:'4px 8px', borderRadius:6 }}>🗑️</button>}
+          </div>
         </div>
       </div>
     )
@@ -361,10 +412,51 @@ export default function Comunidade({ nav }) {
         <>
           {tab==='feed' && (
             <div>
-              {posts.length===0 ? <EmptyState icon="📰" title="Feed vazio" desc="Segue outros columbófilos ou publica o primeiro post" action={<button className="btn btn-primary" onClick={() => setModalPost(true)}>✏️ Publicar</button>} />
+              {/* Stories */}
+              {(provas.length > 0 || pombos.length > 0) && (
+                <div style={{ display:'flex', gap:10, overflowX:'auto', paddingBottom:8, marginBottom:14 }}>
+                  {/* Criar story */}
+                  <div onClick={() => setModalPost(true)} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4, cursor:'pointer', flexShrink:0 }}>
+                    <div style={{ width:52, height:52, borderRadius:'50%', background:'linear-gradient(135deg,#1E5FD9,#D4AF37)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, border:'2px solid #D4AF37' }}>
+                      {perfil?.foto_perfil_url ? <img src={perfil.foto_perfil_url} style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:'50%' }} /> : '✏️'}
+                    </div>
+                    <span style={{ fontSize:9, color:'#7A8699', whiteSpace:'nowrap' }}>Publicar</span>
+                  </div>
+                  {/* Top pombos como stories */}
+                  {pombos.filter(p=>p.foto_url&&p.estado==='ativo').slice(0,6).map(p => (
+                    <div key={p.id} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4, cursor:'pointer', flexShrink:0 }} onClick={() => nav?.('pombos')}>
+                      <div style={{ width:52, height:52, borderRadius:'50%', overflow:'hidden', border:'2px solid #2DD4A7' }}>
+                        <img src={p.foto_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                      </div>
+                      <span style={{ fontSize:9, color:'#94a3b8', maxWidth:54, textAlign:'center', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.nome}</span>
+                    </div>
+                  ))}
+                  {/* Últimas provas como stories */}
+                  {provas.slice(0,3).map(p => (
+                    <div key={p.id} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:4, cursor:'pointer', flexShrink:0 }} onClick={() => nav?.('provas')}>
+                      <div style={{ width:52, height:52, borderRadius:'50%', background:'linear-gradient(135deg,#D4AF37,#B8960C)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, border:'2px solid #D4AF37' }}>🏆</div>
+                      <span style={{ fontSize:9, color:'#94a3b8', maxWidth:54, textAlign:'center', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.nome}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Filtro de hashtag activo */}
+              {hashtagFiltro && (
+                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10, padding:'6px 12px', background:'rgba(76,141,255,.1)', borderRadius:8, border:'1px solid rgba(76,141,255,.2)' }}>
+                  <span style={{ fontSize:13, color:'#4C8DFF', fontWeight:600 }}>{hashtagFiltro}</span>
+                  <button onClick={() => setHashtagFiltro(null)} style={{ background:'none', border:'none', color:'#7A8699', cursor:'pointer', fontSize:12, marginLeft:'auto' }}>✕ Limpar filtro</button>
+                </div>
+              )}
+
+              {posts.length===0
+                ? <EmptyState icon="📰" title="Feed vazio" desc="Publica o primeiro post ou segue outros columbófilos" action={<button className="btn btn-primary" onClick={() => setModalPost(true)}>✏️ Publicar</button>} />
                 : <>
                     <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                      {posts.map(p => <PostCard key={p.id} post={p} />)}
+                      {posts
+                        .filter(p => !hashtagFiltro || p.conteudo?.includes(hashtagFiltro))
+                        .map(p => <PostCard key={p.id} post={p} />)
+                      }
                     </div>
                     {hasMore && <button className="btn btn-secondary" style={{ width:'100%', marginTop:12 }} onClick={carregarMais} disabled={loadingMore}>{loadingMore ? <Spinner /> : 'Carregar mais'}</button>}
                   </>
@@ -493,14 +585,53 @@ export default function Comunidade({ nav }) {
       )}
 
       {/* Modal publicar */}
-      <Modal open={modalPost} onClose={() => setModalPost(false)} title="✏️ Nova Publicação"
+      <Modal open={modalPost} onClose={() => { setModalPost(false); setFormPost({tipo:'Geral',conteudo:'',hashtags:''}) }} title="✏️ Nova Publicação"
         footer={<><button className="btn btn-secondary" onClick={() => setModalPost(false)}>Cancelar</button><button className="btn btn-primary" onClick={publicar} disabled={savingPost}>{savingPost?<Spinner />:null}Publicar</button></>}>
-        <div style={{ display:'flex', gap:8, marginBottom:12, flexWrap:'wrap' }}>
+        {/* Tipo */}
+        <div style={{ display:'flex', gap:6, marginBottom:12, flexWrap:'wrap' }}>
           {TIPOS_POST.map(t => (
-            <button key={t} onClick={() => setFormPost(f=>({...f,tipo:t}))} style={{ padding:'6px 14px', borderRadius:20, fontSize:12, fontWeight:500, cursor:'pointer', border:'none', fontFamily:'inherit', background:formPost.tipo===t?'#1E5FD9':'#101F40', color:formPost.tipo===t?'#fff':'#94a3b8' }}>{tipoIcon[t]} {t}</button>
+            <button key={t} onClick={() => {
+              setFormPost(f=>({...f, tipo:t}))
+              // Auto-preencher para resultados
+              if (t==='Resultado' && provas.length) {
+                const ul = provas[0]
+                setFormPost(f=>({...f, tipo:t, conteudo:`🏆 ${ul.nome} — ${ul.dist}km\n📍 ${ul.local_solta||''}\n📅 ${new Date(ul.data_reg).toLocaleDateString('pt-PT')}\n\n`, hashtags:'#prova #columbofilia'}))
+              }
+              if (t==='Treino') setFormPost(f=>({...f, tipo:t, hashtags:'#treino #pomboscorreio'}))
+              if (t==='Reprodução') setFormPost(f=>({...f, tipo:t, hashtags:'#reproducao #borrachinhos'}))
+            }} style={{ padding:'5px 12px', borderRadius:20, fontSize:11, fontWeight:600, cursor:'pointer', border:`1px solid ${formPost.tipo===t?tipoCor[t]:'#1B2D52'}`, fontFamily:'inherit', background:formPost.tipo===t?`${tipoCor[t]}22`:'none', color:formPost.tipo===t?tipoCor[t]:'#94a3b8' }}>
+              {tipoIcon[t]} {t}
+            </button>
           ))}
         </div>
-        <textarea className="input" rows={5} style={{ resize:'none', width:'100%' }} placeholder={`O que queres partilhar? (${500-formPost.conteudo.length} caracteres restantes)`} value={formPost.conteudo} onChange={e => setFormPost(f=>({...f,conteudo:e.target.value.slice(0,500)}))} />
+        {/* Conteúdo */}
+        <div style={{ display:'flex', gap:8, marginBottom:10 }}>
+          <div style={{ width:36, height:36, borderRadius:'50%', background:'linear-gradient(135deg,#1E5FD9,#4C8DFF)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:700, color:'#fff', flexShrink:0, overflow:'hidden' }}>
+            {perfil?.foto_perfil_url ? <img src={perfil.foto_perfil_url} style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : nome?.[0]?.toUpperCase()||'?'}
+          </div>
+          <textarea className="input" rows={5} style={{ resize:'none', flex:1 }}
+            placeholder={formPost.tipo==='Resultado'?'Partilha o resultado da prova...' : formPost.tipo==='Conquista'?'Que conquista queres partilhar?' : `O que tens para partilhar? (${500-formPost.conteudo.length} restantes)`}
+            value={formPost.conteudo} onChange={e => setFormPost(f=>({...f,conteudo:e.target.value.slice(0,500)}))} />
+        </div>
+        {/* Hashtags */}
+        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+          <span style={{ fontSize:12, color:'#7A8699', flexShrink:0 }}>🏷️ Tags:</span>
+          <input className="input" placeholder="#columbofilia #velocidade #fundo" value={formPost.hashtags} onChange={e => setFormPost(f=>({...f,hashtags:e.target.value}))} style={{ fontSize:12 }} />
+        </div>
+        {/* Atalho partilhar resultado rápido */}
+        {provas.length > 0 && formPost.tipo === 'Resultado' && (
+          <div style={{ marginTop:10 }}>
+            <div style={{ fontSize:11, color:'#7A8699', marginBottom:6 }}>Seleccionar prova:</div>
+            <div style={{ display:'flex', gap:6, overflowX:'auto', paddingBottom:4 }}>
+              {provas.slice(0,5).map(p => (
+                <button key={p.id} onClick={() => setFormPost(f=>({...f, conteudo:`🏆 ${p.nome} — ${p.dist}km\n📍 ${p.local_solta||''}\n📅 ${new Date(p.data_reg).toLocaleDateString('pt-PT')}\n\n`}))}
+                  style={{ flexShrink:0, padding:'4px 10px', background:'#101F40', border:'1px solid #1B2D52', borderRadius:8, fontSize:11, color:'#cbd5e1', cursor:'pointer' }}>
+                  🏆 {p.nome}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </Modal>
 
       {/* Modal comentários */}
