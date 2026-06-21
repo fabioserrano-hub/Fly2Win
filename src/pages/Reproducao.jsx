@@ -165,8 +165,8 @@ export default function Reproducao({ nav, params }) {
 
       {/* Tabs */}
       <div style={{display:'flex',gap:4,background:'#101F40',borderRadius:8,padding:4,marginBottom:16}}>
-        {[['cacifos','🏠 Cacifos'],['lista','📋 Lista'],['timeline','⏱️ Timeline']].map(([t,l])=>(
-          <button key={t} onClick={()=>setTab(t)} style={{flex:1,padding:'8px 10px',borderRadius:6,fontSize:12,fontWeight:500,cursor:'pointer',border:'none',fontFamily:'inherit',background:tab===t?'#1E5FD9':'none',color:tab===t?'#fff':'#94a3b8'}}>{l}</button>
+        {[['cacifos','🏠 Cacifos'],['lista','📋 Lista'],['timeline','⏱️ Timeline'],['cuidados','💡 Cuidados']].map(([t,l])=>(
+          <button key={t} onClick={()=>setTab(t)} style={{flex:1,padding:'8px 8px',borderRadius:6,fontSize:11,fontWeight:500,cursor:'pointer',border:'none',fontFamily:'inherit',background:tab===t?'#1E5FD9':'none',color:tab===t?'#fff':'#94a3b8'}}>{l}</button>
         ))}
       </div>
 
@@ -174,34 +174,49 @@ export default function Reproducao({ nav, params }) {
       {tab==='cacifos' && (
         <div>
           <div style={{fontSize:11,color:'#7A8699',marginBottom:10}}>Toque num cacifo vazio para registar casal · Verde = activo · Azul = concluído · Cinzento = vazio</div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:6}}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
             {cacifosGrid.map(n=>{
               const aca = acasalamentos.find(a=>a.cacifo===n&&a.estado==='em_progresso')
               const conc = !aca && acasalamentos.find(a=>a.cacifo===n&&a.estado==='concluido')
               const fase = aca ? getFase(aca) : null
+              const paiNome = aca ? pombos.find(p=>p.id===aca.pai_id)?.nome||'?' : null
+              const maeNome = aca ? pombos.find(p=>p.id===aca.mae_id)?.nome||'?' : null
               return (
                 <div key={n} onClick={()=>aca?setExpandido(expandido===aca.id?null:aca.id):openNew(n)}
-                  style={{background:aca?'rgba(45,212,167,.08)':conc?'rgba(76,141,255,.05)':'#101F40', border:`1.5px solid ${aca?'#2DD4A7':conc?'#1E5FD9':'#1B2D52'}`, borderRadius:10, padding:'10px 8px', cursor:'pointer', transition:'all .2s', position:'relative'}}>
-                  <div style={{fontSize:11,fontWeight:700,color:aca?'#2DD4A7':conc?'#4C8DFF':'#475569',marginBottom:aca?4:0}}>#{n}</div>
+                  style={{background:aca?'rgba(45,212,167,.07)':conc?'rgba(76,141,255,.05)':'#101F40', border:`2px solid ${aca?'#2DD4A7':conc?'#1E5FD9':'#1B2D52'}`, borderRadius:12, padding:'12px 12px 10px', cursor:'pointer', transition:'all .2s', position:'relative', minHeight:aca?100:72}}>
+                  {/* Número do cacifo */}
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:aca?6:0}}>
+                    <div style={{fontSize:10,fontWeight:700,color:aca?'#2DD4A7':conc?'#4C8DFF':'#475569',letterSpacing:.5}}>CACIFO</div>
+                    <div style={{fontSize:18,fontWeight:900,color:aca?'#D4AF37':conc?'#4C8DFF':'#2a3a5a',lineHeight:1}}>#{n}</div>
+                  </div>
                   {aca && <>
-                    <div style={{fontSize:10,color:'#fff',fontWeight:600,lineHeight:1.3,marginBottom:2}}>{pombos.find(p=>p.id===aca.pai_id)?.nome||'?'}</div>
-                    <div style={{fontSize:9,color:'#94a3b8'}}>× {pombos.find(p=>p.id===aca.mae_id)?.nome||'?'}</div>
-                    <div style={{fontSize:9,color:fase?.cor,marginTop:3,fontWeight:600}}>{fase?.label}</div>
-                    {aca.n_nascidos>0 && <div style={{fontSize:9,color:'#D4AF37',marginTop:1}}>🐣 {aca.n_nascidos}</div>}
+                    <div style={{fontSize:12,color:'#fff',fontWeight:700,lineHeight:1.3,marginBottom:1}}>{paiNome}</div>
+                    <div style={{fontSize:11,color:'#94a3b8',marginBottom:6}}>♀ {maeNome}</div>
+                    <div style={{display:'inline-flex',alignItems:'center',gap:4,background:'rgba(0,0,0,.2)',borderRadius:6,padding:'3px 7px'}}>
+                      <span style={{fontSize:11,color:fase?.cor,fontWeight:600}}>{fase?.label}</span>
+                    </div>
+                    {aca.n_nascidos>0 && <div style={{fontSize:11,color:'#D4AF37',marginTop:4,fontWeight:600}}>🐣 {aca.n_nascidos} nascido(s)</div>}
+                    {aca.data_eclosao_prev && <div style={{fontSize:10,color:'#7A8699',marginTop:2}}>Eclosão: {fmtData(aca.data_eclosao_prev)}</div>}
                   </>}
-                  {conc && <div style={{fontSize:9,color:'#4C8DFF',marginTop:2}}>🏁 Concluído</div>}
-                  {!aca && !conc && <div style={{fontSize:14,color:'#1B2D52',textAlign:'center',marginTop:2}}>＋</div>}
+                  {conc && <>
+                    <div style={{fontSize:11,color:'#4C8DFF',fontWeight:600,marginTop:4}}>🏁 Concluído</div>
+                    {conc.n_nascidos>0&&<div style={{fontSize:10,color:'#D4AF37'}}>🐣 {conc.n_nascidos} nascido(s)</div>}
+                  </>}
+                  {!aca && !conc && <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:40,fontSize:22,color:'#1B2D52'}}>＋</div>}
                   {aca && expandido===aca.id && (
-                    <div style={{position:'absolute',top:'100%',left:0,right:0,zIndex:50,background:'#0B1830',border:'1px solid #2DD4A7',borderRadius:10,padding:10,marginTop:4,boxShadow:'0 8px 24px rgba(0,0,0,.5)'}}>
-                      <div style={{fontSize:11,fontWeight:600,color:'#fff',marginBottom:6}}>{aca.pai_nome} × {aca.mae_nome}</div>
-                      {aca.data_postura&&<div style={{fontSize:10,color:'#94a3b8'}}>🥚 Postura: {fmtData(aca.data_postura)}</div>}
-                      {aca.data_eclosao_prev&&<div style={{fontSize:10,color:'#D4AF37'}}>🐣 Eclosão: {fmtData(aca.data_eclosao_prev)}</div>}
-                      {aca.obs&&<div style={{fontSize:10,color:'#7A8699',marginTop:4}}>{aca.obs}</div>}
-                      <div style={{display:'flex',gap:4,marginTop:8,flexWrap:'wrap'}}>
-                        <button className="btn btn-primary btn-sm" style={{fontSize:10}} onClick={e=>{e.stopPropagation();abrirModalNascimento(aca)}}>🐣 Nascimento</button>
-                        <button className="btn btn-secondary btn-sm" style={{fontSize:10}} onClick={e=>{e.stopPropagation();openEdit(aca)}}>✏️</button>
-                        <button className="btn btn-secondary btn-sm" style={{fontSize:10}} onClick={e=>{e.stopPropagation();nav?.('pedigree',{pomboId:aca.pai_id})}}>🌳</button>
-                        <button className="btn btn-icon btn-sm" style={{fontSize:10}} onClick={e=>{e.stopPropagation();setConfirm(aca)}}>🗑️</button>
+                    <div style={{position:'absolute',top:'100%',left:0,right:0,zIndex:50,background:'#0B1830',border:'1px solid #2DD4A7',borderRadius:12,padding:12,marginTop:6,boxShadow:'0 8px 32px rgba(0,0,0,.6)'}}>
+                      <div style={{fontSize:12,fontWeight:700,color:'#fff',marginBottom:8}}>{aca.pai_nome} × {aca.mae_nome}</div>
+                      <div style={{display:'flex',flexDirection:'column',gap:3,marginBottom:10}}>
+                        {aca.data_postura&&<div style={{fontSize:11,color:'#94a3b8'}}>🥚 Postura: {fmtData(aca.data_postura)}</div>}
+                        {aca.data_eclosao_prev&&<div style={{fontSize:11,color:'#D4AF37'}}>🐣 Eclosão prev.: {fmtData(aca.data_eclosao_prev)}</div>}
+                        {aca.data_eclosao_real&&<div style={{fontSize:11,color:'#2DD4A7'}}>✅ Eclosão real: {fmtData(aca.data_eclosao_real)}</div>}
+                        {aca.obs&&<div style={{fontSize:10,color:'#7A8699',marginTop:2}}>{aca.obs}</div>}
+                      </div>
+                      <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                        <button className="btn btn-primary btn-sm" onClick={e=>{e.stopPropagation();abrirModalNascimento(aca)}}>🐣 Nascimento</button>
+                        <button className="btn btn-secondary btn-sm" onClick={e=>{e.stopPropagation();openEdit(aca)}}>✏️ Editar</button>
+                        <button className="btn btn-secondary btn-sm" onClick={e=>{e.stopPropagation();nav?.('pedigree',{pomboId:aca.pai_id})}}>🌳 Pedigree</button>
+                        <button className="btn btn-icon btn-sm" onClick={e=>{e.stopPropagation();setConfirm(aca)}}>🗑️</button>
                       </div>
                     </div>
                   )}
@@ -303,6 +318,81 @@ export default function Reproducao({ nav, params }) {
                 )
               })
           }
+        </div>
+      )}
+
+      {/* TAB: CUIDADOS */}
+      {tab==='cuidados' && (
+        <div style={{display:'flex',flexDirection:'column',gap:10}}>
+
+          {/* Ciclo de referência */}
+          <div className="card card-p" style={{borderLeft:'3px solid #D4AF37'}}>
+            <div style={{fontWeight:700,color:'#D4AF37',marginBottom:10,fontSize:13}}>📅 Ciclo de Reprodução — Referência</div>
+            <div style={{display:'flex',flexDirection:'column',gap:6}}>
+              {[
+                ['Dia 0','❤️ Acasalamento','#f87171','Introduzir o casal no cacifo. Verificar compatibilidade nas primeiras horas.'],
+                ['Dia 8-12','🥚 Postura','#4C8DFF','A fêmea bota geralmente 2 ovos com 48h de intervalo. Não perturbar.'],
+                ['Dia 17-19','🔄 Viragem','#94a3b8','Os ovos devem ser virados naturalmente pelos pais. Verificar se estão férteis (luz).'],
+                ['Dia 28','🐣 Eclosão','#D4AF37','Prevista 28 dias após a postura. Temperatura ideal: 37-38°C.'],
+                ['Dia 28-35','🍼 Cuidados iniciais','#2DD4A7','Papo de leite dos pais. Não manipular os borrachinhos nas primeiras semanas.'],
+                ['Dia 25-30','💊 Tratamento Tricomoníase','#f87171','Tratar pais e borrachinhos preventivamente (Ronidazol 5-7 dias).'],
+                ['Dia 35-40','🌾 Sólidos','#94a3b8','Começam a comer sólidos. Garantir milho partido acessível.'],
+                ['Dia 45-60','🏠 Desmame','#4C8DFF','Separar os jovens dos pais. Anilhar se ainda não estiver feito.'],
+              ].map(([dia,evento,cor,desc])=>(
+                <div key={dia} style={{display:'flex',gap:10,padding:'8px 10px',background:'#101F40',borderRadius:8,alignItems:'flex-start'}}>
+                  <div style={{minWidth:52,fontSize:10,fontWeight:700,color:cor,paddingTop:1}}>{dia}</div>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:12,fontWeight:600,color:'#fff',marginBottom:1}}>{evento}</div>
+                    <div style={{fontSize:11,color:'#7A8699'}}>{desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Erros comuns */}
+          <div className="card card-p" style={{borderLeft:'3px solid #f87171'}}>
+            <div style={{fontWeight:700,color:'#f87171',marginBottom:10,fontSize:13}}>⚠️ Erros Mais Comuns</div>
+            <div style={{display:'flex',flexDirection:'column',gap:6}}>
+              {[
+                ['Acasalar pombos doentes','Verificar sempre saúde antes de acasalar. Tricomoníase e coccidiose transmitem-se facilmente aos borrachinhos.'],
+                ['Perturbar o ninho nos primeiros dias','Os primeiros 5 dias são críticos. Intervenções desnecessárias podem levar ao abandono dos ovos.'],
+                ['Excesso de ninhadas seguidas','Máximo 2-3 ninhadas por época por casal. Mais do que isso compromete a condição física dos pais.'],
+                ['Ovos não férteis não detectados','Verificar fertilidade ao 7º dia com luz (ovoscópio). Ovos claros devem ser removidos.'],
+                ['Tricomoníase não tratada','Causa mortalidade elevada em borrachinhos. Tratar preventivamente pai e mãe antes da postura.'],
+                ['Cacifo inadequado','Escuridão insuficiente, correntes de ar ou humidade comprometem a reprodução.'],
+                ['Anilhar demasiado cedo ou tarde','Anilhar entre os dias 6-8 de vida. Tarde demais e o anel não passa; cedo demais e a pata está frágil.'],
+                ['Separar casal antes do desmame','Os borrachinhos precisam dos pais até aos 35-40 dias. Separação precoce causa desnutrição.'],
+              ].map(([titulo,desc])=>(
+                <div key={titulo} style={{padding:'8px 10px',background:'rgba(248,113,113,.05)',border:'1px solid rgba(248,113,113,.15)',borderRadius:8}}>
+                  <div style={{fontSize:12,fontWeight:600,color:'#f87171',marginBottom:2}}>✗ {titulo}</div>
+                  <div style={{fontSize:11,color:'#7A8699'}}>{desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Dicas premium */}
+          <div className="card card-p" style={{borderLeft:'3px solid #2DD4A7'}}>
+            <div style={{fontWeight:700,color:'#2DD4A7',marginBottom:10,fontSize:13}}>✅ Dicas de Especialistas</div>
+            <div style={{display:'flex',flexDirection:'column',gap:6}}>
+              {[
+                ['Selecção de casais por linha genética','Cruzar linhas complementares: velocidade × resistência. Evitar consanguinidade excessiva (verificar pedigree).'],
+                ['Iluminação artificial','Aumentar o fotoperíodo para 16h/dia a partir de Janeiro para estimular a reprodução mais cedo.'],
+                ['Alimentação específica','Aumentar proteína (ervilhas, lentilhas) e cálcio (osso de sépia) nas 2 semanas antes da postura.'],
+                ['Ninho adequado','Taça de barro ou plástico 20cm, com palha ou tabaco seco. Limpar entre ninhadas.'],
+                ['Registo fotográfico','Fotografar os borrachinhos ao nascer e na anilhagem. Facilita identificação futura e construção do pedigree.'],
+                ['Ovoscopia ao 7º dia','Usar lanterna forte em ambiente escuro para verificar fertilidade. Ovo fértil tem veias vermelhas visíveis.'],
+                ['Vitaminas pré-reprodução','Suplementar vitaminas A, D, E e complexo B 2 semanas antes do acasalamento para aumentar fertilidade.'],
+              ].map(([titulo,desc])=>(
+                <div key={titulo} style={{padding:'8px 10px',background:'rgba(45,212,167,.05)',border:'1px solid rgba(45,212,167,.12)',borderRadius:8}}>
+                  <div style={{fontSize:12,fontWeight:600,color:'#2DD4A7',marginBottom:2}}>✓ {titulo}</div>
+                  <div style={{fontSize:11,color:'#7A8699'}}>{desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
       )}
 
