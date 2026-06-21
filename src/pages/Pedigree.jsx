@@ -206,54 +206,47 @@ export default function Pedigree({ nav, params }) {
 
       // ==========================================
       // CABEÇALHO — fundo navy, borda dourada
-      const HDR_H = 44
+      const HDR_H = 36
       doc.setFillColor(...NAVY); doc.rect(0,10,W,HDR_H,'F')
       doc.setDrawColor(...GOLD); doc.setLineWidth(0.8); doc.rect(0,10,W,HDR_H)
       doc.setFillColor(...GOLD); doc.rect(0,10+HDR_H,W,1,'F')
 
-      // Fotos — maiores, centradas verticalmente no cabeçalho
-      const HY = 12, FOTO_SZ = 28
+      const HY = 13, FOTO_SZ = 22
       let fx = 10
       if (fotoPerfilB64) {
         doc.setDrawColor(...GOLD); doc.setLineWidth(0.8)
-        doc.roundedRect(fx, HY, FOTO_SZ, FOTO_SZ, 1.5, 1.5, 'S')
+        doc.roundedRect(fx,HY,FOTO_SZ,FOTO_SZ,1.5,1.5,'S')
         doc.addImage(fotoPerfilB64,'JPEG',fx+0.5,HY+0.5,FOTO_SZ-1,FOTO_SZ-1)
-        doc.setFontSize(4.5); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
-        doc.text('Columbofilo', fx+FOTO_SZ/2, HY+FOTO_SZ+3, {align:'center'})
-        fx += FOTO_SZ + 6
+        doc.setFontSize(4); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
+        doc.text('Columbofilo', fx+FOTO_SZ/2, HY+FOTO_SZ+2.5, {align:'center'}); fx+=FOTO_SZ+5
       }
       if (fotoPombalB64) {
         doc.setDrawColor(60,90,140); doc.setLineWidth(0.5)
-        doc.roundedRect(fx, HY, FOTO_SZ, FOTO_SZ, 1.5, 1.5, 'S')
+        doc.roundedRect(fx,HY,FOTO_SZ,FOTO_SZ,1.5,1.5,'S')
         doc.addImage(fotoPombalB64,'JPEG',fx+0.4,HY+0.4,FOTO_SZ-0.8,FOTO_SZ-0.8)
-        doc.setFontSize(4.5); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
-        doc.text('Pombal', fx+FOTO_SZ/2, HY+FOTO_SZ+3, {align:'center'})
-        fx += FOTO_SZ + 6
+        doc.setFontSize(4); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
+        doc.text('Pombal', fx+FOTO_SZ/2, HY+FOTO_SZ+2.5, {align:'center'}); fx+=FOTO_SZ+5
       }
+      doc.setFillColor(...GOLD); doc.rect(fx+2,HY,0.7,FOTO_SZ,'F')
+      const infoX = fx+6
+      doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255)
+      doc.text(perfil?.nome||'', infoX, HY+5)
+      doc.setFontSize(6); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
+      if (perfil?.pombal_nome) doc.text(perfil.pombal_nome+(perfil?.pombal_morada?' - '+perfil.pombal_morada:''), infoX, HY+11)
+      if (perfil?.org) doc.text(perfil.org+(perfil?.fed?' - '+perfil.fed:''), infoX, HY+17)
 
-      // Linha dourada vertical separadora
-      doc.setFillColor(...GOLD); doc.rect(fx+2, HY, 0.8, FOTO_SZ, 'F')
+      // PEDIGREE — deslocado para a direita da info
+      const pedigreeX = infoX + 85
+      doc.setFontSize(26); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
+      doc.text('PEDIGREE', pedigreeX, HY+16)
 
-      // Info columbófilo (esquerda do centro)
-      const infoX = fx + 6
-      doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
-      doc.text(perfil?.nome||'', infoX, HY+6)
-      doc.setFontSize(6); doc.setTextColor(100,115,148)
-      if (perfil?.pombal_nome) doc.text(perfil.pombal_nome+(perfil?.pombal_morada?' - '+perfil.pombal_morada:''), infoX, HY+12)
-      if (perfil?.org) doc.text(perfil.org+(perfil?.fed?' - '+perfil.fed:''), infoX, HY+18)
-
-      // "PEDIGREE" centrado e grande
-      doc.setFontSize(28); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
-      doc.text('PEDIGREE', W/2, HY+18, {align:'center'})
-
-      // Data (canto direito)
       doc.setFontSize(5.5); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
-      doc.text('DATA DE EMISSAO', W-8, HY+6, {align:'right'})
-      doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.setTextColor(...WHITE)
-      doc.text(new Date().toLocaleDateString('pt-PT'), W-8, HY+14, {align:'right'})
+      doc.text('DATA DE EMISSAO', W-8, HY+5, {align:'right'})
+      doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255)
+      doc.text(new Date().toLocaleDateString('pt-PT'), W-8, HY+13, {align:'right'})
       doc.setFontSize(5); doc.setFont('helvetica','normal'); doc.setTextColor(71,85,105)
-      doc.text('Documento oficial', W-8, HY+21, {align:'right'})
-      doc.text('ChampionsLoft (c) '+new Date().getFullYear(), W-8, HY+26, {align:'right'})
+      doc.text('Documento oficial', W-8, HY+19, {align:'right'})
+      doc.text('ChampionsLoft (c) '+new Date().getFullYear(), W-8, HY+24, {align:'right'})
 
       // ==========================================
       // LAYOUT: organograma (esq) + palmares (dir)
@@ -261,7 +254,7 @@ export default function Pedigree({ nav, params }) {
       const ORG_W = 207
       const PALM_X = 213
       const PALM_W = W - PALM_X - 5
-      const TOP = 57, BOTTOM = H-9, AVAIL = BOTTOM-TOP, VPAD = 0.8
+      const TOP = 49, BOTTOM = H-9, AVAIL = BOTTOM-TOP, VPAD = 0.8
 
       // Divisor
       doc.setDrawColor(...GOLD); doc.setLineWidth(0.4)
@@ -318,8 +311,8 @@ export default function Pedigree({ nav, params }) {
       const rest=ORG_W-C0W-GAP*3-8
       // Bisavós apenas 22% da largura restante
       const C3W = geracoes>=3 ? Math.round(rest*0.22) : 0
-      const C1W = geracoes>=3 ? Math.round(rest*0.34) : Math.round(rest*0.47)
-      const C2W = rest - C1W - C3W
+      const C1W = geracoes>=3 ? Math.round(rest*0.36) : Math.round(rest*0.47)
+      const C2W = geracoes>=3 ? Math.round(rest*0.24) : rest - C1W  // avós mais estreitos
       const C0X=7, C1X=C0X+C0W+GAP+6, C2X=C1X+C1W+GAP, C3X=geracoes>=3?C2X+C2W+GAP:0
 
       // Labels gerações
@@ -341,8 +334,9 @@ export default function Pedigree({ nav, params }) {
                  tipo==='avo_pp'||tipo==='avo_pm'?[60,105,195]:tipo==='avo_mp'||tipo==='avo_mm'?[155,35,35]:[140,150,175]
         // Sombra
         doc.setFillColor(185,198,215); doc.roundedRect(x+0.8,by+0.8,w,bh,1.5,1.5,'F')
-        doc.setFillColor(...WHITE); doc.setDrawColor(...bc)
-        doc.setLineWidth(tipo==='main'?0.7:0.4); doc.roundedRect(x,by,w,bh,1.5,1.5,'FD')
+        const bgCol = tipo==='main'?[255,252,238]:tipo==='pai_p'?[240,245,255]:tipo==='pai_m'?[255,242,242]:
+                      tipo==='avo_pp'||tipo==='avo_pm'?[243,247,255]:tipo==='avo_mp'||tipo==='avo_mm'?[255,245,245]:[246,247,250]
+        doc.setFillColor(...bgCol); doc.setDrawColor(...bc)
         // Faixa topo colorida
         doc.setFillColor(...bc); doc.roundedRect(x,by,w,4.5,1.5,1.5,'F')
         doc.setFillColor(...bc); doc.rect(x,by+2.5,w,2,'F')
@@ -402,7 +396,9 @@ export default function Pedigree({ nav, params }) {
           const by2=TOP+i*bisH+VPAD, bh2=bisH-VPAD*2
           const node=arvore[k], isEmpty=!node?.nome&&!node?.anilha
           doc.setFillColor(185,198,215); doc.roundedRect(C3X+0.6,by2+0.6,C3W,bh2,1.2,1.2,'F')
-          doc.setFillColor(...WHITE); doc.setDrawColor(...bc); doc.setLineWidth(0.35)
+          // Fundo ligeiramente colorido para bisavós
+          const bisBg = i<4?[242,246,255]:[255,244,244]
+          doc.setFillColor(...bisBg); doc.setDrawColor(...bc); doc.setLineWidth(0.35)
           doc.roundedRect(C3X,by2,C3W,bh2,1.2,1.2,'FD')
           doc.setFillColor(...bc); doc.roundedRect(C3X,by2,C3W,3.8,1.2,1.2,'F')
           doc.setFillColor(...bc); doc.rect(C3X,by2+2,C3W,1.8,'F')
