@@ -211,7 +211,9 @@ export default function Pedigree({ nav, params }) {
       doc.setDrawColor(...GOLD); doc.setLineWidth(0.8); doc.rect(0,10,W,HDR_H)
       doc.setFillColor(...GOLD); doc.rect(0,10+HDR_H,W,1,'F')
 
-      const HY = 12, FOTO_SZ = 18
+      // Fotos centradas verticalmente
+      const FOTO_SZ = 18
+      const HY = 10 + (HDR_H - FOTO_SZ) / 2
       let fx = 10
       if (fotoPerfilB64) {
         doc.setDrawColor(...GOLD); doc.setLineWidth(0.8)
@@ -229,17 +231,15 @@ export default function Pedigree({ nav, params }) {
       }
       doc.setFillColor(...GOLD); doc.rect(fx+2,HY,0.7,FOTO_SZ,'F')
       const infoX = fx+6
-      doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255)
-      doc.text(perfil?.nome||'', infoX, HY+5)
-      doc.setFontSize(6); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
-      if (perfil?.pombal_nome) doc.text(perfil.pombal_nome+(perfil?.pombal_morada?' - '+perfil.pombal_morada:''), infoX, HY+11)
-      if (perfil?.org) doc.text(perfil.org+(perfil?.fed?' - '+perfil.fed:''), infoX, HY+17)
-
-      // PEDIGREE — deslocado para a direita da info
+      const midY = HY + FOTO_SZ/2
+      doc.setFontSize(8.5); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255)
+      doc.text(perfil?.nome||'', infoX, midY-4)
+      doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
+      if (perfil?.pombal_nome) doc.text(perfil.pombal_nome+(perfil?.pombal_morada?' - '+perfil.pombal_morada:''), infoX, midY+2)
+      if (perfil?.org) doc.text(perfil.org+(perfil?.fed?' - '+perfil.fed:''), infoX, midY+8)
       const pedigreeX = infoX + 85
       doc.setFontSize(26); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
-      doc.text('PEDIGREE', pedigreeX, HY+16)
-
+      doc.text('PEDIGREE', pedigreeX, midY+5)
       doc.setFontSize(5.5); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
       doc.text('DATA DE EMISSAO', W-8, HY+5, {align:'right'})
       doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255)
@@ -331,15 +331,16 @@ export default function Pedigree({ nav, params }) {
         const bh=h-VPAD*2, by=y+VPAD
         const bc=tipo==='main'?GOLD:tipo==='pai_p'?[35,70,165]:tipo==='pai_m'?[130,20,20]:
                  tipo==='avo_pp'||tipo==='avo_pm'?[60,105,195]:tipo==='avo_mp'||tipo==='avo_mm'?[155,35,35]:[140,150,175]
-        // Sombra
-        doc.setFillColor(185,198,215); doc.roundedRect(x+0.8,by+0.8,w,bh,1.5,1.5,'F')
-        // Fundo: tom muito claro da cor da borda (igual aos bisavós)
         const bgCol = tipo==='main'?[255,252,235]:tipo==='pai_p'?[235,242,255]:tipo==='pai_m'?[255,238,238]:
                       tipo==='avo_pp'||tipo==='avo_pm'?[238,244,255]:tipo==='avo_mp'||tipo==='avo_mm'?[255,240,240]:[244,245,248]
+        // 1. Fundo colorido claro
         doc.setFillColor(...bgCol); doc.setDrawColor(...bc)
-        // Faixa topo colorida
-        doc.setFillColor(...bc); doc.roundedRect(x,by,w,4.5,1.5,1.5,'F')
-        doc.setFillColor(...bc); doc.rect(x,by+2.5,w,2,'F')
+        doc.setLineWidth(tipo==='main'?0.7:0.4)
+        doc.roundedRect(x,by,w,bh,1.5,1.5,'FD')
+        // 2. Faixa colorida no topo (sobre o fundo, dentro da borda)
+        doc.setFillColor(...bc)
+        doc.roundedRect(x+0.2,by+0.2,w-0.4,5,1.3,1.3,'F')
+        doc.rect(x+0.2,by+3,w-0.4,2.4,'F')
         if(isEmpty){ doc.setFontSize(5); doc.setTextColor(185,192,210); doc.text('—',x+w/2,by+bh/2+2,{align:'center'}); return }
         let ty=by+7
         // Foto apenas para pombo e pais, e só se showFoto
@@ -395,15 +396,16 @@ export default function Pedigree({ nav, params }) {
           const bisH=AVAIL/8
           const by2=TOP+i*bisH+VPAD, bh2=bisH-VPAD*2
           const node=arvore[k], isEmpty=!node?.nome&&!node?.anilha
-          doc.setFillColor(185,198,215); doc.roundedRect(C3X+0.6,by2+0.6,C3W,bh2,1.2,1.2,'F')
           // Fundo ligeiramente colorido para bisavós
           const bisBg = i<4?[242,246,255]:[255,244,244]
           doc.setFillColor(...bisBg); doc.setDrawColor(...bc); doc.setLineWidth(0.35)
           doc.roundedRect(C3X,by2,C3W,bh2,1.2,1.2,'FD')
-          doc.setFillColor(...bc); doc.roundedRect(C3X,by2,C3W,3.8,1.2,1.2,'F')
-          doc.setFillColor(...bc); doc.rect(C3X,by2+2,C3W,1.8,'F')
+          // Faixa topo dentro da borda
+          doc.setFillColor(...bc)
+          doc.roundedRect(C3X+0.2,by2+0.2,C3W-0.4,4,1,1,'F')
+          doc.rect(C3X+0.2,by2+2.5,C3W-0.4,1.9,'F')
           doc.setFontSize(4); doc.setFont('helvetica','bold'); doc.setTextColor(...WHITE)
-          doc.text(lbl,C3X+C3W/2,by2+3,{align:'center'})
+          doc.text(lbl,C3X+C3W/2,by2+3.2,{align:'center'})
           if(!isEmpty){
             let ty=by2+5.5
             if(node.anilha){ doc.setFontSize(4.5); doc.setFont('courier','bold'); doc.setTextColor(...GOLD); doc.text(node.anilha.substring(0,16),C3X+1.5,ty); ty+=2.8 }
