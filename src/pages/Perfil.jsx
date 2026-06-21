@@ -15,7 +15,7 @@ export default function Perfil() {
   const [fotoPombalPreview, setFotoPombalPreview] = useState(null)
   const [fotoLogoFile, setFotoLogoFile] = useState(null)
   const [fotoLogoPreview, setFotoLogoPreview] = useState(null)
-  const [form, setForm] = useState({ nome: '', tel: '', fed: '', org: '', pombal_nome: '', pombal_morada: '', pombal_lat: '', pombal_lon: '', foto_perfil_url: '', foto_pombal_url: '', logo_url: '', conquistas: [] })
+  const [form, setForm] = useState({ nome: '', tel: '', fed: '', org: '', pombal_nome: '', pombal_morada: '', pombal_lat: '', pombal_lon: '', foto_perfil_url: '', foto_pombal_url: '', logo_url: '', conquistas: [], slug: '', bio: '', perfil_publico: false })
   const sf = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function Perfil() {
       setLoading(true)
       try {
         const p = await db.getPerfil()
-        if (p) setForm({ nome: p.nome || '', tel: p.tel || '', fed: p.fed || '', org: p.org || '', pombal_nome: p.pombal_nome || '', pombal_morada: p.pombal_morada || '', pombal_lat: String(p.pombal_lat || ''), pombal_lon: String(p.pombal_lon || ''), foto_perfil_url: p.foto_perfil_url || '', foto_pombal_url: p.foto_pombal_url || '', logo_url: p.logo_url || '', conquistas: p.conquistas || [] })
+        if (p) setForm({ nome: p.nome || '', tel: p.tel || '', fed: p.fed || '', org: p.org || '', pombal_nome: p.pombal_nome || '', pombal_morada: p.pombal_morada || '', pombal_lat: String(p.pombal_lat || ''), pombal_lon: String(p.pombal_lon || ''), foto_perfil_url: p.foto_perfil_url || '', foto_pombal_url: p.foto_pombal_url || '', logo_url: p.logo_url || '', conquistas: p.conquistas || [], slug: p.slug || '', bio: p.bio || '', perfil_publico: p.perfil_publico || false })
         else setForm(f => ({ ...f, nome: user?.user_metadata?.nome || '' }))
       } catch (e) {}
       finally { setLoading(false) }
@@ -60,7 +60,7 @@ export default function Perfil() {
         try { logo_url = await uploadFoto(fotoLogoFile, `perfis/${uid}/logo`) }
         catch (e) { toast('Logo não guardado: ' + e.message, 'warn') }
       }
-      await db.savePerfil({ nome: form.nome, tel: form.tel, fed: form.fed, org: form.org, pombal_nome: form.pombal_nome, pombal_morada: form.pombal_morada, pombal_lat: form.pombal_lat ? parseFloat(form.pombal_lat) : null, pombal_lon: form.pombal_lon ? parseFloat(form.pombal_lon) : null, foto_perfil_url, foto_pombal_url, logo_url, conquistas: form.conquistas.filter(c=>c.trim()) })
+      await db.savePerfil({ nome: form.nome, tel: form.tel, fed: form.fed, org: form.org, pombal_nome: form.pombal_nome, pombal_morada: form.pombal_morada, pombal_lat: form.pombal_lat ? parseFloat(form.pombal_lat) : null, pombal_lon: form.pombal_lon ? parseFloat(form.pombal_lon) : null, foto_perfil_url, foto_pombal_url, logo_url, conquistas: form.conquistas.filter(c=>c.trim()), slug: form.slug.toLowerCase().replace(/[^a-z0-9-]/g,'').slice(0,30) || null, bio: form.bio, perfil_publico: form.perfil_publico })
       setForm(f => ({ ...f, foto_perfil_url, foto_pombal_url, logo_url }))
       toast('Perfil guardado! ✅', 'ok')
     } catch (e) { toast('Erro: ' + e.message, 'err') }
@@ -163,6 +163,28 @@ export default function Perfil() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Perfil Público */}
+      <div className="card card-p" style={{ marginBottom: 12 }}>
+        <div style={{ fontWeight: 600, color: '#fff', marginBottom: 12 }}>🌐 Perfil Público</div>
+        <label style={{ display:'flex', alignItems:'center', gap:10, cursor:'pointer', marginBottom:14, padding:'10px 12px', background: form.perfil_publico ? 'rgba(45,212,167,.08)' : '#101F40', borderRadius:8, border: `1px solid ${form.perfil_publico ? 'rgba(45,212,167,.3)' : '#1B2D52'}` }}>
+          <input type="checkbox" checked={form.perfil_publico} onChange={e => sf('perfil_publico', e.target.checked)} style={{ accentColor:'#2DD4A7', width:18, height:18 }} />
+          <div>
+            <div style={{ fontSize:13, fontWeight:600, color: form.perfil_publico ? '#2DD4A7' : '#cbd5e1' }}>Perfil visível na Comunidade</div>
+            <div style={{ fontSize:11, color:'#7A8699' }}>Outros columbófilos podem seguir-te e ver as tuas publicações</div>
+          </div>
+        </label>
+        <Field label="🔗 URL do teu perfil (só letras, números e -)">
+          <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+            <span style={{ fontSize:12, color:'#7A8699', whiteSpace:'nowrap' }}>championsloft.app/p/</span>
+            <input className="input" placeholder="fabio-serrano" value={form.slug} onChange={e => sf('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g,''))} />
+          </div>
+          {form.slug && <div style={{ fontSize:11, color:'#2DD4A7', marginTop:4 }}>✅ championsloft.app/p/{form.slug}</div>}
+        </Field>
+        <Field label="Bio (aparece no teu perfil público)">
+          <textarea className="input" rows={2} style={{ resize:'none' }} placeholder="Ex: Columbófilo há 20 anos, especialista em Fundo..." value={form.bio} onChange={e => sf('bio', e.target.value)} />
+        </Field>
       </div>
 
       {/* Palmarés editável */}
