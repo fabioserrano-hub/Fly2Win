@@ -206,12 +206,12 @@ export default function Pedigree({ nav, params }) {
 
       // ==========================================
       // CABEÇALHO — fundo navy, borda dourada
-      const HDR_H = 36
+      const HDR_H = 29
       doc.setFillColor(...NAVY); doc.rect(0,10,W,HDR_H,'F')
       doc.setDrawColor(...GOLD); doc.setLineWidth(0.8); doc.rect(0,10,W,HDR_H)
       doc.setFillColor(...GOLD); doc.rect(0,10+HDR_H,W,1,'F')
 
-      const HY = 13, FOTO_SZ = 22
+      const HY = 12, FOTO_SZ = 18
       let fx = 10
       if (fotoPerfilB64) {
         doc.setDrawColor(...GOLD); doc.setLineWidth(0.8)
@@ -254,11 +254,11 @@ export default function Pedigree({ nav, params }) {
       const ORG_W = 207
       const PALM_X = 213
       const PALM_W = W - PALM_X - 5
-      const TOP = 49, BOTTOM = H-9, AVAIL = BOTTOM-TOP, VPAD = 0.8
+      const TOP = 46, BOTTOM = H-9, AVAIL = BOTTOM-TOP, VPAD = 0.5
 
       // Divisor
       doc.setDrawColor(...GOLD); doc.setLineWidth(0.4)
-      doc.line(PALM_X-3, TOP-2, PALM_X-3, BOTTOM)
+      doc.line(PALM_X-3, TOP-4, PALM_X-3, BOTTOM)
 
       // ==========================================
       // PALMARES
@@ -306,14 +306,13 @@ export default function Pedigree({ nav, params }) {
       // ==========================================
       // ORGANOGRAMA
       // ==========================================
-      // Colunas — bisavós recebem menos espaço
-      const C0W=36, GAP=2
-      const rest=ORG_W-C0W-GAP*3-8
-      // Bisavós apenas 22% da largura restante
+      // Colunas com espaço entre elas
+      const C0W=36, GAP=2, COL_GAP=5
+      const rest=ORG_W-C0W-GAP*3-COL_GAP*2-8
       const C3W = geracoes>=3 ? Math.round(rest*0.22) : 0
       const C1W = geracoes>=3 ? Math.round(rest*0.36) : Math.round(rest*0.47)
-      const C2W = geracoes>=3 ? Math.round(rest*0.24) : rest - C1W  // avós mais estreitos
-      const C0X=7, C1X=C0X+C0W+GAP+6, C2X=C1X+C1W+GAP, C3X=geracoes>=3?C2X+C2W+GAP:0
+      const C2W = geracoes>=3 ? Math.round(rest*0.24) : rest - C1W
+      const C0X=7, C1X=C0X+C0W+GAP+6, C2X=C1X+C1W+GAP+COL_GAP, C3X=geracoes>=3?C2X+C2W+GAP+COL_GAP:0
 
       // Labels gerações
       const gL=(t,x)=>{ doc.setFontSize(4.8); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY); doc.text(t,x,TOP-1) }
@@ -334,8 +333,9 @@ export default function Pedigree({ nav, params }) {
                  tipo==='avo_pp'||tipo==='avo_pm'?[60,105,195]:tipo==='avo_mp'||tipo==='avo_mm'?[155,35,35]:[140,150,175]
         // Sombra
         doc.setFillColor(185,198,215); doc.roundedRect(x+0.8,by+0.8,w,bh,1.5,1.5,'F')
-        const bgCol = tipo==='main'?[255,252,238]:tipo==='pai_p'?[240,245,255]:tipo==='pai_m'?[255,242,242]:
-                      tipo==='avo_pp'||tipo==='avo_pm'?[243,247,255]:tipo==='avo_mp'||tipo==='avo_mm'?[255,245,245]:[246,247,250]
+        // Fundo: tom muito claro da cor da borda (igual aos bisavós)
+        const bgCol = tipo==='main'?[255,252,235]:tipo==='pai_p'?[235,242,255]:tipo==='pai_m'?[255,238,238]:
+                      tipo==='avo_pp'||tipo==='avo_pm'?[238,244,255]:tipo==='avo_mp'||tipo==='avo_mm'?[255,240,240]:[244,245,248]
         doc.setFillColor(...bgCol); doc.setDrawColor(...bc)
         // Faixa topo colorida
         doc.setFillColor(...bc); doc.roundedRect(x,by,w,4.5,1.5,1.5,'F')
