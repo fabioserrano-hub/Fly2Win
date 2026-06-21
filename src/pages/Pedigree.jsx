@@ -267,20 +267,21 @@ export default function Pedigree({ nav, params }) {
       const rowH_pai = rowH_avo * 2
 
       // Larguras das colunas
-      const C0W = 46  // pombo principal
-      const C1W = geracoes>=3 ? 44 : 54  // pais
-      const C2W = geracoes>=3 ? 40 : 50  // avós
-      const C3W = geracoes>=3 ? 32 : 0   // bisavós
-      const GAP = 4
+      // Colunas — preencher A4 completo (W=297, margem 7 cada lado = 283 úteis)
+      const USABLE = W - 14  // 283mm
+      const C0W = 40  // pombo principal
+      const GAP = 3
+      // Larguras restantes distribuídas proporcionalmente
+      const restW = USABLE - C0W - GAP*3
+      const C1W = geracoes>=3 ? Math.floor(restW*0.30) : Math.floor(restW*0.45)
+      const C2W = geracoes>=3 ? Math.floor(restW*0.28) : Math.floor(restW*0.55)
+      const C3W = geracoes>=3 ? restW - C1W - C2W : 0
       const C0X = 7
-      const C1X = C0X + C0W + GAP + 8
-      const C2X = C1X + C1W + GAP + 6
-      const C3X = geracoes>=3 ? C2X + C2W + GAP + 4 : 0
+      const C1X = C0X + C0W + GAP + 5
+      const C2X = C1X + C1W + GAP
+      const C3X = geracoes>=3 ? C2X + C2W + GAP : 0
+      const VPAD = 0.8
 
-      // Margem vertical de cada box
-      const VPAD = 1
-
-      // Centro Y de cada slot
       const cY = (row, total) => TOP + (row + 0.5) * (AVAIL / total)
 
       const drawBox = (nodeKey, x, y, w, h, tipo='normal') => {
@@ -318,28 +319,28 @@ export default function Pedigree({ nav, params }) {
         }
         // Anilha
         if (node.anilha) {
-          doc.setFontSize(tipo==='main'?6:4.8); doc.setFont('courier','bold'); doc.setTextColor(...GOLD)
-          doc.text(node.anilha.substring(0,20), x+2.5, ty); ty+=3.2
+          doc.setFontSize(tipo==='main'?6.5:5.5); doc.setFont('courier','bold'); doc.setTextColor(...GOLD)
+          doc.text(node.anilha.substring(0,20), x+2.5, ty); ty+=3.5
         }
         // Nome
         if (node.nome) {
-          const fs = tipo==='main'?9:bh>28?7:bh>18?6:5.5
+          const fs = tipo==='main'?9.5:bh>28?8:bh>18?7:6
           doc.setFontSize(fs); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY)
-          doc.text(node.nome.substring(0,17), x+2.5, ty); ty+=fs*0.45+2
+          doc.text(node.nome.substring(0,17), x+2.5, ty); ty+=fs*0.42+2
         }
         // Cor
         if (node.cor && bh>20) {
-          doc.setFontSize(4.8); doc.setFont('helvetica','normal'); doc.setTextColor(95,105,135)
-          doc.text(node.cor.substring(0,20), x+2.5, ty); ty+=3
+          doc.setFontSize(5.5); doc.setFont('helvetica','normal'); doc.setTextColor(95,105,135)
+          doc.text(node.cor.substring(0,20), x+2.5, ty); ty+=3.5
         }
         // Linhagem
         if (node.linhagem && bh>26) {
-          doc.setFontSize(4.5); doc.setTextColor(...[40,75,170])
-          doc.text(node.linhagem.substring(0,20), x+2.5, ty); ty+=3
+          doc.setFontSize(5.5); doc.setTextColor(...[40,75,170])
+          doc.text(node.linhagem.substring(0,20), x+2.5, ty); ty+=3.5
         }
         // Conquistas
         if (node.conquistas && ty < by+bh-2) {
-          doc.setFontSize(4.2); doc.setTextColor(...GREEN)
+          doc.setFontSize(5); doc.setTextColor(...GREEN)
           doc.text(node.conquistas.substring(0,38), x+2.5, ty, {maxWidth:w-4})
         }
         if (node.externo) {
@@ -392,28 +393,56 @@ export default function Pedigree({ nav, params }) {
       // BISAVÓS
       if (geracoes >= 3) {
         const bisSlots = [
-          ['bis_ppp',0],['bis_ppm',1],['bis_pmp',2],['bis_pmm',3],
-          ['bis_mpp',4],['bis_mpm',5],['bis_mmp',6],['bis_mmm',7]
+          ['bis_ppp',0,'PP-Pai',[60,100,190]],['bis_ppm',1,'PP-Mãe',[60,100,190]],
+          ['bis_pmp',2,'PM-Pai',[90,130,215]],['bis_pmm',3,'PM-Mãe',[90,130,215]],
+          ['bis_mpp',4,'MP-Pai',[155,35,35]],['bis_mpm',5,'MP-Mãe',[155,35,35]],
+          ['bis_mmp',6,'MM-Pai',[185,55,85]],['bis_mmm',7,'MM-Mãe',[185,55,85]]
         ]
-        const avoParent = [0,0,1,1,2,2,3,3] // qual avô é o pai
-        bisSlots.forEach(([k,row]) => {
+        const avoParent = [0,0,1,1,2,2,3,3]
+        bisSlots.forEach(([k,row,bisLabel,bisCol]) => {
           const bcY = TOP + (row+0.5)*(AVAIL/8)
-          drawBox(k, C3X, TOP+row*(AVAIL/8), C3W, AVAIL/8)
-          // Linha do avô
+          // Passar label e cor para o box via override
+          const node = arvore[k]
+          const isEmpty = !node?.nome && !node?.anilha
+          const bh = AVAIL/8 - VPAD*2, by = TOP+row*(AVAIL/8) + VPAD
+          // Sombra
+          doc.setFillColor(190,200,215); doc.roundedRect(C3X+1,by+1,C3W,bh,2,2,'F')
+          doc.setFillColor(...WHITE)
+          doc.setDrawColor(...bisCol); doc.setLineWidth(0.4)
+          doc.roundedRect(C3X,by,C3W,bh,2,2,'FD')
+          // Faixa topo colorida com label
+          doc.setFillColor(...bisCol); doc.roundedRect(C3X,by,C3W,5,2,2,'F')
+          doc.setFillColor(...bisCol); doc.rect(C3X,by+3,C3W,2,'F')
+          doc.setFontSize(4.5); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255)
+          doc.text(bisLabel, C3X+C3W/2, by+3.8, {align:'center'})
+          if (isEmpty) {
+            doc.setFontSize(5); doc.setTextColor(185,192,210)
+            doc.text('—', C3X+C3W/2, by+bh/2+2, {align:'center'})
+          } else {
+            let ty = by+8
+            if (node.anilha) {
+              doc.setFontSize(5.5); doc.setFont('courier','bold'); doc.setTextColor(...GOLD)
+              doc.text(node.anilha.substring(0,18), C3X+2.5, ty); ty+=3.5
+            }
+            if (node.nome) {
+              doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY)
+              doc.text(node.nome.substring(0,16), C3X+2.5, ty); ty+=4
+            }
+            if (node.cor && ty < by+bh-2) {
+              doc.setFontSize(5); doc.setFont('helvetica','normal'); doc.setTextColor(95,105,135)
+              doc.text(node.cor.substring(0,18), C3X+2.5, ty); ty+=3
+            }
+            if (node.conquistas && ty < by+bh-2) {
+              doc.setFontSize(4.5); doc.setTextColor(...GREEN)
+              doc.text(node.conquistas.substring(0,30), C3X+2.5, ty, {maxWidth:C3W-4})
+            }
+          }
+          // Linha de conexão do avô
           const avoRow = avoParent[row]
           const avoMidX = C2X + C2W
           const avoMidY = TOP + (avoRow+0.5)*(AVAIL/4)
           const col = avoRow<2?[100,130,200]:[180,60,60]
           connectLine(avoMidX, avoMidY, C3X, bcY, col)
-        })
-        // Labels bisavós
-        const bisLabels = ['PP-Pai','PP-Mãe','PM-Pai','PM-Mãe','MP-Pai','MP-Mãe','MM-Pai','MM-Mãe']
-        bisLabels.forEach((l,i) => {
-          const bcY = TOP + (i+0.5)*(AVAIL/8)
-          doc.setFontSize(3.8); doc.setFont('helvetica','bold')
-          const col = i<4?[60,100,190]:[150,30,30]
-          doc.setTextColor(...col)
-          doc.text(l, C3X+C3W/2, TOP+i*(AVAIL/8)+1.5, {align:'center'})
         })
       }
 
