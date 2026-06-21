@@ -165,191 +165,197 @@ export default function Pedigree({ nav, params }) {
         s.onload = res; s.onerror = rej; document.head.appendChild(s)
       })
       const { jsPDF } = window.jspdf
-      const doc = new jsPDF({ orientation: 'l', unit: 'mm', format: [297,210], putOnlyUsedFonts:true, compress:true })
+      const doc = new jsPDF({ orientation:'l', unit:'mm', format:[297,210], putOnlyUsedFonts:true, compress:true })
       const W = doc.internal.pageSize.getWidth()
       const H = doc.internal.pageSize.getHeight()
 
-      const toB64 = (url) => new Promise(res => {
+      const toB64 = url => new Promise(res => {
         if (!url) return res(null)
-        const img = new Image(); img.crossOrigin='anonymous'
+        const img = new Image(); img.crossOrigin = 'anonymous'
         img.onload = () => {
-          const c = document.createElement('canvas'); c.width=img.width; c.height=img.height
+          const c = document.createElement('canvas')
+          c.width = img.width; c.height = img.height
           c.getContext('2d').drawImage(img,0,0)
           try { res(c.toDataURL('image/jpeg',0.85)) } catch { res(null) }
         }
         img.onerror = () => res(null); img.src = url
       })
 
-      const GOLD=[180,134,11], NAVY=[15,30,65], WHITE=[255,255,255]
+      const GOLD=[180,134,11], GOLD_L=[218,170,50], NAVY=[15,30,65], WHITE=[255,255,255]
       const LGREY=[210,218,228], GREEN=[0,105,65], BLUE_L=[40,80,175], RED_D=[130,20,20]
 
-      const allNodes=['pombo','pai','mae','avo_pp','avo_pm','avo_mp','avo_mm',
-        'bis_ppp','bis_ppm','bis_pmp','bis_pmm','bis_mpp','bis_mpm','bis_mmp','bis_mmm']
-      const imgs={}
-      await Promise.all(allNodes.map(async k=>{ if(arvore[k]?.foto_url) imgs[k]=await toB64(arvore[k].foto_url) }))
+      // Carregar fotos — apenas pombo e pais
+      const imgs = {}
+      for (const k of ['pombo','pai','mae']) {
+        if (arvore[k]?.foto_url) imgs[k] = await toB64(arvore[k].foto_url)
+      }
       const fotoPerfilB64 = perfil?.foto_perfil_url ? await toB64(perfil.foto_perfil_url) : null
       const fotoPombalB64 = perfil?.foto_pombal_url ? await toB64(perfil.foto_pombal_url) : null
 
-      // =====================
-      // LAYOUT PRINCIPAL
-      // Organograma: x=7 até x=210 (largura 203mm)
-      // Palmarés: x=213 até x=290 (largura 77mm)
-      // =====================
-      const ORG_W = 205  // largura do organograma
-      const PALM_X = 215 // inicio do palmarés
-      const PALM_W = W - PALM_X - 7
-
-      // FUNDO
+      // FUNDO BRANCO
       doc.setFillColor(...WHITE); doc.rect(0,0,W,H,'F')
 
-      // BARRA TOPO
-      doc.setFillColor(...NAVY); doc.rect(0,0,W,11,'F')
-      doc.setFillColor(...GOLD); doc.rect(0,10.3,W,0.8,'F')
-      doc.setFontSize(8.5); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
-      doc.text('CHAMPIONSLOFT', 8, 7.5)
-      doc.setFontSize(5.5); doc.setFont('helvetica','normal'); doc.setTextColor(170,185,210)
-      doc.text('PEDIGREE PREMIUM · championsloft.app', W-8, 7.5, {align:'right'})
+      // ==========================================
+      // BARRA TOPO — dourada sólida com texto
+      // ==========================================
+      doc.setFillColor(...GOLD); doc.rect(0,0,W,10,'F')
+      doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY)
+      doc.text('CHAMPIONSLOFT', 8, 7)
+      doc.setFontSize(6); doc.setFont('helvetica','normal')
+      doc.text('PEDIGREE PREMIUM  |  championsloft.app', W-8, 7, {align:'right'})
 
-      // === CABEÇALHO — igual ao da app: fundo escuro + barra dourada ===
+      // ==========================================
+      // CABEÇALHO — fundo navy, borda dourada
+      // ==========================================
       const HDR_H = 36
-      // Fundo escuro do cabeçalho (abaixo da barra topo)
-      doc.setFillColor(...NAVY); doc.rect(0,11,W,HDR_H,'F')
-      // Borda dourada em volta do cabeçalho
-      doc.setDrawColor(...GOLD); doc.setLineWidth(0.6)
-      doc.rect(5,11.5,W-10,HDR_H-1)
+      doc.setFillColor(...NAVY); doc.rect(0,10,W,HDR_H,'F')
+      // Borda dourada em volta
+      doc.setDrawColor(...GOLD); doc.setLineWidth(0.8)
+      doc.rect(0,10,W,HDR_H)
       // Linha dourada inferior
-      doc.setFillColor(...GOLD); doc.rect(0,11+HDR_H-0.8,W,0.8,'F')
+      doc.setFillColor(...GOLD); doc.rect(0,10+HDR_H,W,1,'F')
 
-      let fx=12; const HY=14
-      // Foto columbófilo — circular com borda dourada
+      // Fotos no cabeçalho
+      let fx = 12; const HY = 13
       if (fotoPerfilB64) {
-        doc.setFillColor(...GOLD); doc.circle(fx+8,HY+8,9,'F')
-        doc.addImage(fotoPerfilB64,'JPEG',fx,HY,16,16)
-        doc.setFontSize(4); doc.setTextColor(150,160,185); doc.setFont('helvetica','normal')
-        doc.text('Columbófilo', fx+8, HY+18.5, {align:'center'}); fx+=22
+        // Apenas foto quadrada com borda dourada — sem circulo
+        doc.setDrawColor(...GOLD); doc.setLineWidth(0.8)
+        doc.roundedRect(fx,HY,16,16,1,1,'S')
+        doc.addImage(fotoPerfilB64,'JPEG',fx+0.5,HY+0.5,15,15)
+        doc.setFontSize(4); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
+        doc.text('Columbofilo', fx+8, HY+19, {align:'center'}); fx+=22
       }
-      // Foto pombal — rectangular com borda subtil
       if (fotoPombalB64) {
-        doc.setFillColor(30,50,90); doc.roundedRect(fx,HY,16,16,1,1,'F')
-        doc.addImage(fotoPombalB64,'JPEG',fx+0.3,HY+0.3,15.4,15.4)
-        doc.setDrawColor(60,90,140); doc.setLineWidth(0.3); doc.roundedRect(fx,HY,16,16,1,1,'S')
-        doc.setFontSize(4); doc.setTextColor(150,160,185); doc.setFont('helvetica','normal')
-        doc.text('Pombal', fx+8, HY+18.5, {align:'center'}); fx+=22
+        doc.setDrawColor(60,90,140); doc.setLineWidth(0.4)
+        doc.roundedRect(fx,HY,16,16,1,1,'S')
+        doc.addImage(fotoPombalB64,'JPEG',fx+0.4,HY+0.4,15.2,15.2)
+        doc.setFontSize(4); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
+        doc.text('Pombal', fx+8, HY+19, {align:'center'}); fx+=22
       }
-      // Texto info — igual ao da app
-      const infoX=fx+3
-      doc.setFontSize(16); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
+      // Linha dourada vertical decorativa
+      doc.setFillColor(...GOLD); doc.rect(fx+2,HY,0.8,16,'F')
+      const infoX = fx+6
+
+      doc.setFontSize(17); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
       doc.text('PEDIGREE', infoX, HY+8)
-      doc.setFontSize(9); doc.setTextColor(...WHITE)
+      doc.setFontSize(9.5); doc.setTextColor(...WHITE)
       doc.text(perfil?.nome||'', infoX, HY+14)
       doc.setFontSize(6.5); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
-      if (perfil?.pombal_nome) doc.text(perfil.pombal_nome+(perfil?.pombal_morada?' · '+perfil.pombal_morada:''), infoX, HY+20)
-      if (perfil?.org) { doc.setTextColor(112,120,148); doc.text(perfil.org+(perfil?.fed?' · '+perfil.fed:''), infoX, HY+25) }
-      // Data — canto direito
-      doc.setFontSize(5.5); doc.setFont('helvetica','bold'); doc.setTextColor(100,115,150)
-      doc.text('DATA DE EMISSÃO', W-8, HY+5, {align:'right'})
-      doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.setTextColor(...WHITE)
-      doc.text(new Date().toLocaleDateString('pt-PT'), W-8, HY+12, {align:'right'})
-      doc.setFontSize(4.5); doc.setFont('helvetica','normal'); doc.setTextColor(71,85,105)
-      doc.text('Documento oficial', W-8, HY+18, {align:'right'})
-      doc.text('ChampionsLoft (c) '+new Date().getFullYear(), W-8, HY+23, {align:'right'})
+      if (perfil?.pombal_nome) doc.text(perfil.pombal_nome+(perfil?.pombal_morada?' - '+perfil.pombal_morada:''), infoX, HY+19.5)
+      if (perfil?.org) { doc.setTextColor(100,112,145); doc.text(perfil.org+(perfil?.fed?' - '+perfil.fed:''), infoX, HY+24.5) }
 
-      // DIVISOR VERTICAL entre organograma e palmarés
-      doc.setDrawColor(...LGREY); doc.setLineWidth(0.3)
-      doc.line(PALM_X-3, 48, PALM_X-3, H-9)
+      // Data — destaque dourado
+      doc.setFontSize(5.5); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
+      doc.text('DATA DE EMISSAO', W-8, HY+6, {align:'right'})
+      doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.setTextColor(...WHITE)
+      doc.text(new Date().toLocaleDateString('pt-PT'), W-8, HY+14, {align:'right'})
+      doc.setFontSize(5); doc.setFont('helvetica','normal'); doc.setTextColor(71,85,105)
+      doc.text('Documento oficial', W-8, HY+20, {align:'right'})
+      doc.text('ChampionsLoft (c) '+new Date().getFullYear(), W-8, HY+25, {align:'right'})
 
-      // =====================
-      // PALMARÉS (coluna direita)
-      // =====================
-      const PY = 50
-      // Título
-      doc.setFillColor(...NAVY); doc.roundedRect(PALM_X, PY, PALM_W, 7, 1,1,'F')
-      doc.setFontSize(6.5); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
-      doc.text('🏆  PALMARÉS', PALM_X+PALM_W/2, PY+5, {align:'center'})
+      // ==========================================
+      // LAYOUT: organograma (esq) + palmares (dir)
+      // ==========================================
+      const ORG_W = 207
+      const PALM_X = 213
+      const PALM_W = W - PALM_X - 5
+      const TOP = 49, BOTTOM = H-9, AVAIL = BOTTOM-TOP, VPAD = 0.8
 
-      // Top pombos automático
+      // Divisor
+      doc.setDrawColor(...GOLD); doc.setLineWidth(0.4)
+      doc.line(PALM_X-3, TOP-2, PALM_X-3, BOTTOM)
+
+      // ==========================================
+      // PALMARES
+      // ==========================================
+      const PY = TOP
+      doc.setFillColor(...NAVY); doc.roundedRect(PALM_X,PY,PALM_W,7,1,1,'F')
+      doc.setDrawColor(...GOLD); doc.setLineWidth(0.5); doc.roundedRect(PALM_X,PY,PALM_W,7,1,1,'S')
+      doc.setFontSize(6); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
+      doc.text('PALMARES', PALM_X+PALM_W/2, PY+5, {align:'center'})
+
       const topPombos = (pombos||[]).slice().sort((a,b)=>(b.percentil||0)-(a.percentil||0)).slice(0,4)
       doc.setFontSize(5); doc.setFont('helvetica','bold'); doc.setTextColor(100,108,135)
-      doc.text('TOP POMBOS DO EFECTIVO', PALM_X+1, PY+11)
+      doc.text('TOP POMBOS DO EFECTIVO', PALM_X+1, PY+12)
+      doc.setDrawColor(...LGREY); doc.setLineWidth(0.15); doc.line(PALM_X+1,PY+13.5,PALM_X+PALM_W-1,PY+13.5)
       topPombos.forEach((p,i)=>{
-        const medals=['1.','2.','3.','4.']
         const cor=i===0?GOLD:i<3?NAVY:[110,118,145]
+        const pos=['1.','2.','3.','4.']
         doc.setFontSize(5.5); doc.setFont('helvetica',i===0?'bold':'normal'); doc.setTextColor(...cor)
-        doc.text(`${medals[i]} ${p.nome}`, PALM_X+1, PY+16+i*5.5)
-        doc.setFontSize(4.5); doc.setFont('helvetica','normal'); doc.setTextColor(130,138,165)
-        doc.text(`${p.percentil||0}% percentil  |  ${p.provas||0} provas`, PALM_X+5, PY+19.5+i*5.5)
+        doc.text(pos[i]+' '+p.nome, PALM_X+1, PY+17+i*7)
+        doc.setFontSize(4.5); doc.setFont('helvetica','normal'); doc.setTextColor(140,148,170)
+        doc.text(String(p.percentil||0)+'% percentil  |  '+String(p.provas||0)+' provas', PALM_X+4, PY+20.5+i*7)
       })
 
-      // Linha separadora
-      const sepY = PY + 40
-      doc.setDrawColor(...LGREY); doc.setLineWidth(0.2); doc.line(PALM_X, sepY, PALM_X+PALM_W, sepY)
-
-      // Conquistas manuais do columbófilo (do perfil ou editável)
+      const sepY = PY+46
+      doc.setDrawColor(...GOLD); doc.setLineWidth(0.3); doc.line(PALM_X+1,sepY,PALM_X+PALM_W-1,sepY)
       doc.setFontSize(5); doc.setFont('helvetica','bold'); doc.setTextColor(100,108,135)
       doc.text('CONQUISTAS PESSOAIS', PALM_X+1, sepY+5)
-      const conquistas = perfil?.conquistas || []
-      if (conquistas.length > 0) {
-        conquistas.slice(0,8).forEach((c,i)=>{
+      doc.setDrawColor(...LGREY); doc.setLineWidth(0.15); doc.line(PALM_X+1,sepY+6.5,PALM_X+PALM_W-1,sepY+6.5)
+
+      const conquistas = perfil?.conquistas||[]
+      if (conquistas.length>0) {
+        conquistas.slice(0,9).forEach((c,i)=>{
           doc.setFontSize(5); doc.setFont('helvetica','normal'); doc.setTextColor(...NAVY)
-          doc.text(`· ${String(c).substring(0,32)}`, PALM_X+1, sepY+10+i*5)
+          doc.text('- '+String(c).substring(0,30), PALM_X+1, sepY+11+i*7)
         })
       } else {
-        // Linhas em branco para preencher manualmente após impressão
-        for(let i=0;i<8;i++){
-          doc.setDrawColor(200,208,220); doc.setLineWidth(0.2)
-          doc.line(PALM_X+1, sepY+10+i*8, PALM_X+PALM_W-1, sepY+10+i*8)
-          doc.setFontSize(4); doc.setTextColor(190,195,210)
-          doc.text('_', PALM_X+1, sepY+9+i*8)
+        for(let i=0;i<9;i++){
+          doc.setDrawColor(190,200,215); doc.setLineWidth(0.2)
+          doc.line(PALM_X+1,sepY+11+i*7,PALM_X+PALM_W-1,sepY+11+i*7)
         }
-        doc.setFontSize(4.5); doc.setTextColor(170,178,200)
-        doc.text('(preencha as suas conquistas em Perfil)', PALM_X+PALM_W/2, sepY+78, {align:'center'})
+        doc.setFontSize(4); doc.setTextColor(175,182,200)
+        doc.text('Adicione conquistas em Perfil > Palmares', PALM_X+PALM_W/2, BOTTOM-4, {align:'center'})
       }
 
-      // =====================
-      // ORGANOGRAMA (coluna esquerda, largura limitada)
-      // =====================
-      const TOP=50, BOTTOM=H-9, AVAIL=BOTTOM-TOP, VPAD=0.8
-
-      // Colunas dentro do espaço do organograma
+      // ==========================================
+      // ORGANOGRAMA
+      // ==========================================
+      // Colunas — bisavós recebem menos espaço
       const C0W=36, GAP=2
       const rest=ORG_W-C0W-GAP*3-8
-      const C1W=geracoes>=3?Math.round(rest*0.32):Math.round(rest*0.47)
-      const C2W=geracoes>=3?Math.round(rest*0.30):Math.round(rest*0.53)
-      const C3W=geracoes>=3?rest-C1W-C2W:0
+      // Bisavós apenas 22% da largura restante
+      const C3W = geracoes>=3 ? Math.round(rest*0.22) : 0
+      const C1W = geracoes>=3 ? Math.round(rest*0.34) : Math.round(rest*0.47)
+      const C2W = rest - C1W - C3W
       const C0X=7, C1X=C0X+C0W+GAP+6, C2X=C1X+C1W+GAP, C3X=geracoes>=3?C2X+C2W+GAP:0
 
       // Labels gerações
-      const gLbl=(txt,x)=>{ doc.setFontSize(4.8); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY); doc.text(txt,x,TOP-1) }
-      gLbl('POMBO',C0X); gLbl('PAIS',C1X)
-      if(geracoes>=2) gLbl('AVÓS',C2X)
-      if(geracoes>=3) gLbl('BISAVÓS',C3X)
+      const gL=(t,x)=>{ doc.setFontSize(4.8); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY); doc.text(t,x,TOP-1) }
+      gL('POMBO',C0X); gL('PAIS',C1X)
+      if(geracoes>=2) gL('AVOS',C2X)
+      if(geracoes>=3) gL('BISAVOS',C3X)
 
-      // Linhas divisórias entre gerações
+      // Linhas divisórias
       doc.setDrawColor(220,226,235); doc.setLineWidth(0.15)
       ;[C1X,C2X,C3X].filter(Boolean).forEach(x=>doc.line(x-1.5,TOP-2,x-1.5,BOTTOM))
 
-      const box=(nodeKey,x,y,w,h,tipo='normal',maxFH=0)=>{
+      const drawBox = (nodeKey,x,y,w,h,tipo,showFoto=false) => {
         const node=typeof nodeKey==='string'?arvore[nodeKey]:null
         if(!node) return
         const isEmpty=!node.nome&&!node.anilha
         const bh=h-VPAD*2, by=y+VPAD
         const bc=tipo==='main'?GOLD:tipo==='pai_p'?[35,70,165]:tipo==='pai_m'?[130,20,20]:
-                 tipo==='avo_pp'||tipo==='avo_pm'?[60,105,195]:tipo==='avo_mp'||tipo==='avo_mm'?[155,35,35]:[150,158,180]
-        doc.setFillColor(190,200,215); doc.roundedRect(x+0.8,by+0.8,w,bh,1.5,1.5,'F')
-        doc.setFillColor(...WHITE); doc.setDrawColor(...bc); doc.setLineWidth(tipo==='main'?0.7:0.4)
-        doc.roundedRect(x,by,w,bh,1.5,1.5,'FD')
+                 tipo==='avo_pp'||tipo==='avo_pm'?[60,105,195]:tipo==='avo_mp'||tipo==='avo_mm'?[155,35,35]:[140,150,175]
+        // Sombra
+        doc.setFillColor(185,198,215); doc.roundedRect(x+0.8,by+0.8,w,bh,1.5,1.5,'F')
+        doc.setFillColor(...WHITE); doc.setDrawColor(...bc)
+        doc.setLineWidth(tipo==='main'?0.7:0.4); doc.roundedRect(x,by,w,bh,1.5,1.5,'FD')
+        // Faixa topo colorida
         doc.setFillColor(...bc); doc.roundedRect(x,by,w,4.5,1.5,1.5,'F')
         doc.setFillColor(...bc); doc.rect(x,by+2.5,w,2,'F')
         if(isEmpty){ doc.setFontSize(5); doc.setTextColor(185,192,210); doc.text('—',x+w/2,by+bh/2+2,{align:'center'}); return }
-        let ty=by+6.5
-        const foto=imgs[typeof nodeKey==='string'?nodeKey:null]
-        const fh=maxFH>0&&foto?Math.min(maxFH,bh-14):0
-        if(foto&&fh>4){ doc.addImage(foto,'JPEG',x+1.5,ty,w-3,fh); ty+=fh+1.5 }
-        if(node.anilha){ doc.setFontSize(tipo==='main'?6:5); doc.setFont('courier','bold'); doc.setTextColor(...GOLD); doc.text(node.anilha.substring(0,20),x+2.5,ty); ty+=3.2 }
-        if(node.nome){ const fs=tipo==='main'?8:bh>20?7:6; doc.setFontSize(fs); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY); doc.text(node.nome.substring(0,16),x+2.5,ty); ty+=fs*0.4+1.8 }
-        if(node.cor&&ty<by+bh-3){ doc.setFontSize(5); doc.setFont('helvetica','normal'); doc.setTextColor(95,108,138); doc.text(node.cor.substring(0,20),x+2.5,ty); ty+=3 }
-        if(node.linhagem&&ty<by+bh-3){ doc.setFontSize(5); doc.setTextColor(...BLUE_L); doc.text(node.linhagem.substring(0,20),x+2.5,ty); ty+=3 }
-        if(node.conquistas&&ty<by+bh-2){ doc.setFontSize(4.8); doc.setTextColor(...GREEN); doc.text(node.conquistas.substring(0,34),x+2.5,ty,{maxWidth:w-4}) }
+        let ty=by+7
+        // Foto apenas para pombo e pais, e só se showFoto
+        if(showFoto && imgs[nodeKey]) {
+          const fh=Math.min(18,bh-18)
+          if(fh>6){ doc.addImage(imgs[nodeKey],'JPEG',x+1.5,ty,w-3,fh); ty+=fh+1.5 }
+        }
+        if(node.anilha){ doc.setFontSize(tipo==='main'?6:4.8); doc.setFont('courier','bold'); doc.setTextColor(...GOLD); doc.text(node.anilha.substring(0,20),x+2.5,ty); ty+=3.2 }
+        if(node.nome){ const fs=tipo==='main'?8.5:bh>20?7:6; doc.setFontSize(fs); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY); doc.text(node.nome.substring(0,17),x+2.5,ty); ty+=fs*0.42+1.8 }
+        if(node.cor&&ty<by+bh-3){ doc.setFontSize(5); doc.setFont('helvetica','normal'); doc.setTextColor(95,108,138); doc.text(node.cor.substring(0,20),x+2.5,ty); ty+=3.2 }
+        if(node.linhagem&&ty<by+bh-3){ doc.setFontSize(4.8); doc.setTextColor(...BLUE_L); doc.text(node.linhagem.substring(0,20),x+2.5,ty); ty+=3 }
+        if(node.conquistas&&ty<by+bh-2){ doc.setFontSize(4.5); doc.setTextColor(...GREEN); doc.text(node.conquistas.substring(0,34),x+2.5,ty,{maxWidth:w-4}) }
         if(node.externo){ doc.setFontSize(4); doc.setTextColor(165,75,25); doc.text('Ext.',x+w-3,by+bh-2) }
       }
 
@@ -359,55 +365,53 @@ export default function Pedigree({ nav, params }) {
         doc.lines([[mx-x1,0],[0,y2-y1],[x2-mx,0]],x1,y1)
       }
 
-      // POMBO PRINCIPAL
+      // Pombo principal
       const mainCY=(TOP+BOTTOM)/2
-      const mainH=Math.min(58,AVAIL*0.78)
-      box('pombo',C0X,mainCY-mainH/2,C0W,mainH,'main',16)
+      const mainH=Math.min(55,AVAIL*0.75)
+      drawBox('pombo',C0X,mainCY-mainH/2,C0W,mainH,'main',true)
       const midX0=C0X+C0W
 
-      // PAIS
-      box('pai',C1X,TOP,C1W,AVAIL/2,'pai_p',16)
+      // Pais — com fotos
+      drawBox('pai',C1X,TOP,C1W,AVAIL/2,'pai_p',true)
       conn(midX0,mainCY,C1X,TOP+AVAIL/4,[...BLUE_L])
-      box('mae',C1X,TOP+AVAIL/2,C1W,AVAIL/2,'pai_m',16)
+      drawBox('mae',C1X,TOP+AVAIL/2,C1W,AVAIL/2,'pai_m',true)
       conn(midX0,mainCY,C1X,TOP+3*AVAIL/4,[...RED_D])
 
-      // AVÓS
+      // Avós — sem fotos
       if(geracoes>=2){
         const avos=[['avo_pp','avo_pp'],['avo_pm','avo_pm'],['avo_mp','avo_mp'],['avo_mm','avo_mm']]
         avos.forEach(([k,tipo],i)=>{
-          box(k,C2X,TOP+i*AVAIL/4,C2W,AVAIL/4,tipo,12)
-          const py=i<2?TOP+AVAIL/4:TOP+3*AVAIL/4
-          conn(C1X+C1W,py,C2X,TOP+(i+0.5)*AVAIL/4,i<2?[...BLUE_L]:[...RED_D])
+          drawBox(k,C2X,TOP+i*AVAIL/4,C2W,AVAIL/4,tipo,false)
+          conn(C1X+C1W,i<2?TOP+AVAIL/4:TOP+3*AVAIL/4,C2X,TOP+(i+0.5)*AVAIL/4,i<2?[...BLUE_L]:[...RED_D])
         })
       }
 
-      // BISAVÓS
+      // Bisavós — sem fotos, boxes mais pequenos
       if(geracoes>=3){
         const bisData=[
-          ['bis_ppp','PP-Pai',[50,90,190]],['bis_ppm','PP-Mãe',[50,90,190]],
-          ['bis_pmp','PM-Pai',[80,130,215]],['bis_pmm','PM-Mãe',[80,130,215]],
-          ['bis_mpp','MP-Pai',[150,30,30]],['bis_mpm','MP-Mãe',[150,30,30]],
-          ['bis_mmp','MM-Pai',[185,55,85]],['bis_mmm','MM-Mãe',[185,55,85]]
+          ['bis_ppp','PP-P',[50,90,190]],['bis_ppm','PP-M',[50,90,190]],
+          ['bis_pmp','PM-P',[80,130,215]],['bis_pmm','PM-M',[80,130,215]],
+          ['bis_mpp','MP-P',[150,30,30]],['bis_mpm','MP-M',[150,30,30]],
+          ['bis_mmp','MM-P',[185,55,85]],['bis_mmm','MM-M',[185,55,85]]
         ]
         const avoP=[0,0,1,1,2,2,3,3]
         bisData.forEach(([k,lbl,bc],i)=>{
           const bisH=AVAIL/8
           const by2=TOP+i*bisH+VPAD, bh2=bisH-VPAD*2
           const node=arvore[k], isEmpty=!node?.nome&&!node?.anilha
-          doc.setFillColor(190,200,215); doc.roundedRect(C3X+0.8,by2+0.8,C3W,bh2,1.2,1.2,'F')
+          doc.setFillColor(185,198,215); doc.roundedRect(C3X+0.6,by2+0.6,C3W,bh2,1.2,1.2,'F')
           doc.setFillColor(...WHITE); doc.setDrawColor(...bc); doc.setLineWidth(0.35)
           doc.roundedRect(C3X,by2,C3W,bh2,1.2,1.2,'FD')
-          doc.setFillColor(...bc); doc.roundedRect(C3X,by2,C3W,4,1.2,1.2,'F')
-          doc.setFillColor(...bc); doc.rect(C3X,by2+2.2,C3W,1.8,'F')
-          doc.setFontSize(4.5); doc.setFont('helvetica','bold'); doc.setTextColor(...WHITE)
-          doc.text(lbl,C3X+C3W/2,by2+3.2,{align:'center'})
+          doc.setFillColor(...bc); doc.roundedRect(C3X,by2,C3W,3.8,1.2,1.2,'F')
+          doc.setFillColor(...bc); doc.rect(C3X,by2+2,C3W,1.8,'F')
+          doc.setFontSize(4); doc.setFont('helvetica','bold'); doc.setTextColor(...WHITE)
+          doc.text(lbl,C3X+C3W/2,by2+3,{align:'center'})
           if(!isEmpty){
-            let ty=by2+6
-            if(node.anilha){ doc.setFontSize(5); doc.setFont('courier','bold'); doc.setTextColor(...GOLD); doc.text(node.anilha.substring(0,16),C3X+2,ty); ty+=3 }
-            if(node.nome){ doc.setFontSize(6); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY); doc.text(node.nome.substring(0,14),C3X+2,ty); ty+=3.5 }
-            if(node.cor&&ty<by2+bh2-1){ doc.setFontSize(4.8); doc.setFont('helvetica','normal'); doc.setTextColor(95,108,138); doc.text(node.cor.substring(0,15),C3X+2,ty); ty+=3 }
-            if(node.conquistas&&ty<by2+bh2-1){ doc.setFontSize(4.5); doc.setTextColor(...GREEN); doc.text(node.conquistas.substring(0,26),C3X+2,ty,{maxWidth:C3W-3}) }
-          } else { doc.setFontSize(5); doc.setTextColor(185,192,210); doc.text('—',C3X+C3W/2,by2+bh2/2+1,{align:'center'}) }
+            let ty=by2+5.5
+            if(node.anilha){ doc.setFontSize(4.5); doc.setFont('courier','bold'); doc.setTextColor(...GOLD); doc.text(node.anilha.substring(0,16),C3X+1.5,ty); ty+=2.8 }
+            if(node.nome){ doc.setFontSize(5.5); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY); doc.text(node.nome.substring(0,13),C3X+1.5,ty); ty+=3.2 }
+            if(node.cor&&ty<by2+bh2-1){ doc.setFontSize(4.2); doc.setFont('helvetica','normal'); doc.setTextColor(95,108,138); doc.text(node.cor.substring(0,14),C3X+1.5,ty) }
+          } else { doc.setFontSize(4.5); doc.setTextColor(185,192,210); doc.text('—',C3X+C3W/2,by2+bh2/2+1,{align:'center'}) }
           conn(C2X+C2W,TOP+(avoP[i]+0.5)*AVAIL/4,C3X,TOP+(i+0.5)*AVAIL/8,avoP[i]<2?[100,130,200]:[180,60,60])
         })
       }
@@ -416,9 +420,9 @@ export default function Pedigree({ nav, params }) {
       doc.setFillColor(...NAVY); doc.rect(0,H-9,W,9,'F')
       doc.setFillColor(...GOLD); doc.rect(0,H-9,W,0.6,'F')
       doc.setFontSize(5); doc.setFont('helvetica','normal'); doc.setTextColor(150,165,200)
-      doc.text('Documento gerado pela ChampionsLoft · championsloft.app', 8, H-3.5)
+      doc.text('Documento gerado pela ChampionsLoft - championsloft.app', 8, H-3.5)
       doc.setTextColor(...GOLD)
-      doc.text('© '+new Date().getFullYear()+' '+(perfil?.nome||''), W-8, H-3.5, {align:'right'})
+      doc.text('(c) '+new Date().getFullYear()+' '+(perfil?.nome||''), W-8, H-3.5, {align:'right'})
 
       doc.save('pedigree-'+(arvore.pombo.nome||'pombo')+'.pdf')
       toast('PDF gerado!', 'ok')
