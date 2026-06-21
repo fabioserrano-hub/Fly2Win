@@ -15,7 +15,7 @@ export default function Perfil() {
   const [fotoPombalPreview, setFotoPombalPreview] = useState(null)
   const [fotoLogoFile, setFotoLogoFile] = useState(null)
   const [fotoLogoPreview, setFotoLogoPreview] = useState(null)
-  const [form, setForm] = useState({ nome: '', tel: '', fed: '', org: '', pombal_nome: '', pombal_morada: '', pombal_lat: '', pombal_lon: '', foto_perfil_url: '', foto_pombal_url: '', logo_url: '' })
+  const [form, setForm] = useState({ nome: '', tel: '', fed: '', org: '', pombal_nome: '', pombal_morada: '', pombal_lat: '', pombal_lon: '', foto_perfil_url: '', foto_pombal_url: '', logo_url: '', conquistas: [] })
   const sf = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function Perfil() {
       setLoading(true)
       try {
         const p = await db.getPerfil()
-        if (p) setForm({ nome: p.nome || '', tel: p.tel || '', fed: p.fed || '', org: p.org || '', pombal_nome: p.pombal_nome || '', pombal_morada: p.pombal_morada || '', pombal_lat: String(p.pombal_lat || ''), pombal_lon: String(p.pombal_lon || ''), foto_perfil_url: p.foto_perfil_url || '', foto_pombal_url: p.foto_pombal_url || '', logo_url: p.logo_url || '' })
+        if (p) setForm({ nome: p.nome || '', tel: p.tel || '', fed: p.fed || '', org: p.org || '', pombal_nome: p.pombal_nome || '', pombal_morada: p.pombal_morada || '', pombal_lat: String(p.pombal_lat || ''), pombal_lon: String(p.pombal_lon || ''), foto_perfil_url: p.foto_perfil_url || '', foto_pombal_url: p.foto_pombal_url || '', logo_url: p.logo_url || '', conquistas: p.conquistas || [] })
         else setForm(f => ({ ...f, nome: user?.user_metadata?.nome || '' }))
       } catch (e) {}
       finally { setLoading(false) }
@@ -60,7 +60,7 @@ export default function Perfil() {
         try { logo_url = await uploadFoto(fotoLogoFile, `perfis/${uid}/logo`) }
         catch (e) { toast('Logo não guardado: ' + e.message, 'warn') }
       }
-      await db.savePerfil({ nome: form.nome, tel: form.tel, fed: form.fed, org: form.org, pombal_nome: form.pombal_nome, pombal_morada: form.pombal_morada, pombal_lat: form.pombal_lat ? parseFloat(form.pombal_lat) : null, pombal_lon: form.pombal_lon ? parseFloat(form.pombal_lon) : null, foto_perfil_url, foto_pombal_url, logo_url })
+      await db.savePerfil({ nome: form.nome, tel: form.tel, fed: form.fed, org: form.org, pombal_nome: form.pombal_nome, pombal_morada: form.pombal_morada, pombal_lat: form.pombal_lat ? parseFloat(form.pombal_lat) : null, pombal_lon: form.pombal_lon ? parseFloat(form.pombal_lon) : null, foto_perfil_url, foto_pombal_url, logo_url, conquistas: form.conquistas.filter(c=>c.trim()) })
       setForm(f => ({ ...f, foto_perfil_url, foto_pombal_url, logo_url }))
       toast('Perfil guardado! ✅', 'ok')
     } catch (e) { toast('Erro: ' + e.message, 'err') }
@@ -163,6 +163,20 @@ export default function Perfil() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Palmarés editável */}
+      <div className="card card-p" style={{ marginBottom: 12 }}>
+        <div style={{ fontWeight: 600, color: '#fff', marginBottom: 12 }}>🏆 Palmarés / Conquistas</div>
+        <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 10 }}>Estas conquistas aparecem no PDF do Pedigree. Uma por linha.</div>
+        {(form.conquistas.length > 0 ? form.conquistas : ['']).map((c, i) => (
+          <div key={i} style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+            <input className="input" style={{ flex: 1 }} placeholder={`Ex: 1.º Nacional Velocidade 2024`} value={c}
+              onChange={e => { const a=[...form.conquistas]; a[i]=e.target.value; sf('conquistas',a) }} />
+            <button className="btn btn-secondary btn-sm" onClick={() => { const a=[...form.conquistas]; a.splice(i,1); sf('conquistas',a.length?a:['']) }}>✕</button>
+          </div>
+        ))}
+        <button className="btn btn-secondary btn-sm" onClick={() => sf('conquistas',[...form.conquistas,''])}>＋ Adicionar conquista</button>
       </div>
 
       {/* Secção de Backup */}
