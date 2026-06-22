@@ -3,34 +3,38 @@ import { useAuth } from '../hooks/useAuth'
 import { useLicenca } from '../hooks/useLicenca'
 import { useToast, Spinner, Badge } from '../components/ui'
 
-// ⚠️ SUBSTITUIR pelos Price IDs reais do Stripe (formato price_xxxxxxxxxxxxx)
-// Cada plano tem um ID para mensal e outro para anual.
+// Price IDs live — 22/06/2026
 const PRICE_IDS = {
-  base:                 { mensal: 'price_REPLACE_base_mensal',                 anual: 'price_REPLACE_base_anual' },
-  profissional:         { mensal: 'price_REPLACE_profissional_mensal',         anual: 'price_REPLACE_profissional_anual' },
-  elite:                { mensal: 'price_REPLACE_elite_mensal',                anual: 'price_REPLACE_elite_anual' },
-  pro_grupo_1_5:        { mensal: 'price_REPLACE_pro_grupo_1_5_mensal',        anual: 'price_REPLACE_pro_grupo_1_5_anual' },
-  pro_grupo_6_12:       { mensal: 'price_REPLACE_pro_grupo_6_12_mensal',       anual: 'price_REPLACE_pro_grupo_6_12_anual' },
-  pro_grupo_13:         { mensal: 'price_REPLACE_pro_grupo_13_mensal',         anual: 'price_REPLACE_pro_grupo_13_anual' },
-  elite_grupo_1_5:      { mensal: 'price_REPLACE_elite_grupo_1_5_mensal',      anual: 'price_REPLACE_elite_grupo_1_5_anual' },
-  elite_grupo_6_12:     { mensal: 'price_REPLACE_elite_grupo_6_12_mensal',     anual: 'price_REPLACE_elite_grupo_6_12_anual' },
-  elite_grupo_13:       { mensal: 'price_REPLACE_elite_grupo_13_mensal',       anual: 'price_REPLACE_elite_grupo_13_anual' },
+  base:        { mensal: 'price_1TlGBkCuZCS32LoSbGw1sYoR', anual: 'price_1TlGBkCuZCS32LoSETHnq6Aj' },
+  profissional:{ mensal: 'price_1TlGLoCuZCS32LoSLDhybK7f', anual: 'price_1TlGLoCuZCS32LoSp19L3Q3U' },
+  elite:       { mensal: 'price_1TlGQFCuZCS32LoSxqT2nOqy', anual: 'price_1TlGQFCuZCS32LoSyM0xMYmG' },
+  // Grupos usam o mesmo price ID — quantidade enviada ao checkout determina faixa
+  pro_grupo_3_5:    { mensal: 'price_1TlGLoCuZCS32LoSLDhybK7f', anual: 'price_1TlGLoCuZCS32LoSp19L3Q3U' },
+  pro_grupo_6_12:   { mensal: 'price_1TlGLoCuZCS32LoSLDhybK7f', anual: 'price_1TlGLoCuZCS32LoSp19L3Q3U' },
+  pro_grupo_13:     { mensal: 'price_1TlGLoCuZCS32LoSLDhybK7f', anual: 'price_1TlGLoCuZCS32LoSp19L3Q3U' },
+  elite_grupo_3_5:  { mensal: 'price_1TlGQFCuZCS32LoSxqT2nOqy', anual: 'price_1TlGQFCuZCS32LoSyM0xMYmG' },
+  elite_grupo_6_12: { mensal: 'price_1TlGQFCuZCS32LoSxqT2nOqy', anual: 'price_1TlGQFCuZCS32LoSyM0xMYmG' },
+  elite_grupo_13:   { mensal: 'price_1TlGQFCuZCS32LoSxqT2nOqy', anual: 'price_1TlGQFCuZCS32LoSyM0xMYmG' },
 }
 
 const PLANOS_INDIVIDUAL = [
-  { id: 'gratuito', nome: 'Gratuito', icon: '🕊️', desc: 'Para experimentar', precoMes: 0, precoAno: 0, feats: ['Até 15 pombos', 'Provas e treinos', 'Saúde básica'], bloqueadas: ['Comunidade', 'Relatório IA'] },
-  { id: 'base', nome: 'Base', icon: '🐦', desc: 'Para o columbófilo activo', precoMes: 7.99, precoAno: 79.90, feats: ['Pombos ilimitados', 'Reprodução completa', 'Alimentação & tratamentos', 'Calendário & checklist'], bloqueadas: ['Relatório IA'] },
-  { id: 'profissional', nome: 'Profissional', icon: '⭐', desc: 'Para o columbófilo exigente', precoMes: 11.99, precoAno: 119.90, feats: ['Tudo do Base', 'Comunidade & rankings', 'MeteoProva', 'Fim de época'], bloqueadas: ['Relatório IA'], destaque: true },
-  { id: 'elite', nome: 'Elite AI', icon: '🏆', desc: 'O poder da IA', precoMes: 16.99, precoAno: 169.90, feats: ['Tudo do Profissional', 'Relatório IA de época', 'Sugestões de casais por IA', 'Suporte prioritário'], bloqueadas: [], gold: true },
+  { id: 'trial', nome: 'Trial', icon: '🕊️', desc: '30 dias grátis — sem compromisso', precoMes: 0, precoAno: 0, diaLabel: '30 dias grátis',
+    feats: ['Até 15 pombos', 'Todos os módulos visíveis', 'Backup dos dados incluído'], bloqueadas: ['Comunidade', 'IA', 'Relatórios'] },
+  { id: 'base', nome: 'Base', icon: '🐦', desc: 'Para o columbófilo activo', precoMes: 7.99, precoAno: 79.90, diaLabel: '€0,22/dia',
+    feats: ['Pombos ilimitados', 'Reprodução completa', 'Alimentação & tratamentos', 'Calendário & checklist', 'Comunidade'], bloqueadas: ['Relatório IA', 'Casais IA'] },
+  { id: 'profissional', nome: 'Pro', icon: '⭐', desc: 'Para o columbófilo exigente', precoMes: 9.99, precoAno: 99.90, diaLabel: '€0,27/dia',
+    feats: ['Tudo do Base', 'MeteoProva', 'Marketplace', 'Mensagens', 'Relatórios avançados'], bloqueadas: ['Relatório IA', 'Casais IA'], destaque: true },
+  { id: 'elite', nome: 'Elite AI', icon: '🏆', desc: 'O poder da IA ao serviço do teu pombal', precoMes: 13.99, precoAno: 139.90, diaLabel: '€0,38/dia',
+    feats: ['Tudo do Pro', 'Relatório IA de época', 'Seleccionador de Casais IA', 'Suporte prioritário'], bloqueadas: [], gold: true },
 ]
 
 const PLANOS_GRUPO = [
-  { id: 'pro_grupo_1_5', nome: 'Profissional Grupo', faixa: '1-5 utilizadores', icon: '⭐', precoMes: 11.99, precoAno: 119.90 },
-  { id: 'pro_grupo_6_12', nome: 'Profissional Grupo', faixa: '6-12 utilizadores', icon: '⭐', precoMes: 9.99, precoAno: 99.90 },
-  { id: 'pro_grupo_13', nome: 'Profissional Grupo', faixa: '13+ utilizadores', icon: '⭐', precoMes: 7.99, precoAno: 79.90 },
-  { id: 'elite_grupo_1_5', nome: 'Elite AI Grupo', faixa: '1-5 utilizadores', icon: '🏆', precoMes: 16.99, precoAno: 169.90, gold: true },
-  { id: 'elite_grupo_6_12', nome: 'Elite AI Grupo', faixa: '6-12 utilizadores', icon: '🏆', precoMes: 13.99, precoAno: 139.90, gold: true },
-  { id: 'elite_grupo_13', nome: 'Elite AI Grupo', faixa: '13+ utilizadores', icon: '🏆', precoMes: 5.99, precoAno: 59.90, gold: true },
+  { id: 'pro_grupo_3_5',   nome: 'Pro Grupo', faixa: '3-5 licenças',   icon: '⭐', precoMes: 8.99,  precoAno: 89.90,  diaLabel: '€0,25/lic/dia', quantidade: 3 },
+  { id: 'pro_grupo_6_12',  nome: 'Pro Grupo', faixa: '6-12 licenças',  icon: '⭐', precoMes: 7.99,  precoAno: 79.90,  diaLabel: '€0,22/lic/dia', quantidade: 6, destaque: true },
+  { id: 'pro_grupo_13',    nome: 'Pro Grupo', faixa: '13+ licenças',   icon: '⭐', precoMes: 6.99,  precoAno: 69.90,  diaLabel: '€0,19/lic/dia', quantidade: 13 },
+  { id: 'elite_grupo_3_5', nome: 'Elite AI Grupo', faixa: '3-5 licenças',  icon: '🏆', precoMes: 12.99, precoAno: 129.90, diaLabel: '€0,36/lic/dia', quantidade: 3, gold: true },
+  { id: 'elite_grupo_6_12',nome: 'Elite AI Grupo', faixa: '6-12 licenças', icon: '🏆', precoMes: 11.99, precoAno: 119.90, diaLabel: '€0,33/lic/dia', quantidade: 6, gold: true },
+  { id: 'elite_grupo_13',  nome: 'Elite AI Grupo', faixa: '13+ licenças',  icon: '🏆', precoMes: 10.99, precoAno: 109.90, diaLabel: '€0,30/lic/dia', quantidade: 13, gold: true },
 ]
 
 export default function Precos({ nav }) {
@@ -91,8 +95,14 @@ export default function Precos({ nav }) {
                 <div style={{ fontSize: 15, fontWeight: 700, color: p.gold ? '#facc15' : '#fff' }}>{p.nome}</div>
                 <div style={{ fontSize: 11, color: '#64748b', marginBottom: 14 }}>{p.desc}</div>
                 <div style={{ marginBottom: 14 }}>
-                  {preco === 0 ? <div style={{ fontFamily: 'Barlow Condensed', fontSize: 28, fontWeight: 700, color: '#fff' }}>Grátis</div>
-                    : <><span style={{ fontFamily: 'Barlow Condensed', fontSize: 28, fontWeight: 700, color: '#fff' }}>{preco}€</span><span style={{ fontSize: 11, color: '#64748b' }}>/{periodo === 'mensal' ? 'mês' : 'ano'}</span></>}
+                  {preco === 0
+                    ? <div style={{ fontFamily:'Barlow Condensed', fontSize:28, fontWeight:700, color:'#fff' }}>Grátis</div>
+                    : <>
+                        <span style={{ fontFamily:'Barlow Condensed', fontSize:28, fontWeight:700, color:'#fff' }}>{preco}€</span>
+                        <span style={{ fontSize:11, color:'#64748b' }}>/{periodo==='mensal'?'mês':'ano'}</span>
+                        {p.diaLabel && <div style={{ fontSize:10, color: p.gold?'#D4AF37':'#2DD4A7', fontWeight:600, marginTop:2 }}>{p.diaLabel} ☕</div>}
+                      </>
+                  }
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16, minHeight: 100 }}>
                   {p.feats.map((f, i) => <div key={i} style={{ fontSize: 11, color: '#cbd5e1', display: 'flex', gap: 6 }}><span style={{ color: '#1ed98a' }}>✓</span>{f}</div>)}
@@ -110,22 +120,33 @@ export default function Precos({ nav }) {
 
       {tipo === 'grupo' && (
         <div>
-          <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 16 }}>Para coletividades e clubes — preço por utilizador/mês, escalonado pelo número de membros.</div>
+          {/* Banner argumento coletividade */}
+          <div style={{ background:'rgba(45,212,167,.08)', border:'1px solid rgba(45,212,167,.2)', borderRadius:10, padding:'12px 16px', marginBottom:14, display:'flex', alignItems:'center', gap:12 }}>
+            <div style={{ fontSize:28 }}>☕</div>
+            <div>
+              <div style={{ fontSize:13, fontWeight:700, color:'#2DD4A7' }}>Por menos de 19 cêntimos por dia, organize toda a sua coletividade</div>
+              <div style={{ fontSize:11, color:'#7A8699' }}>Pro Grupo 13+ · €5,99/utilizador/mês · Cancela quando quiser</div>
+            </div>
+          </div>
+          <div style={{ fontSize:13, color:'#94a3b8', marginBottom:12 }}>Preço por utilizador/mês — quanto maior o grupo, maior o desconto.</div>
           <div className="grid-3">
             {PLANOS_GRUPO.map(p => {
               const preco = periodo === 'mensal' ? p.precoMes : p.precoAno
               const isAtual = planoAtual === p.id
               return (
-                <div key={p.id} className="card card-p" style={{ borderColor: p.gold ? 'rgba(250,204,21,.3)' : undefined }}>
-                  <div style={{ fontSize: 22, marginBottom: 6 }}>{p.icon}</div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: p.gold ? '#facc15' : '#fff' }}>{p.nome}</div>
+                <div key={p.id} className="card card-p" style={{ borderColor: p.destaque?'#2DD4A7':p.gold?'rgba(250,204,21,.3)':undefined, position:'relative' }}>
+                  {p.destaque && <div style={{ position:'absolute', top:-10, left:'50%', transform:'translateX(-50%)', background:'#2DD4A7', color:'#0a0f14', fontSize:9, fontWeight:700, padding:'3px 10px', borderRadius:99, whiteSpace:'nowrap' }}>MELHOR VALOR</div>}
+                  <div style={{ fontSize:22, marginBottom:6 }}>{p.icon}</div>
+                  <div style={{ fontSize:14, fontWeight:700, color:p.gold?'#facc15':'#fff' }}>{p.nome}</div>
                   <Badge v="gray">{p.faixa}</Badge>
-                  <div style={{ marginTop: 10, marginBottom: 14 }}>
-                    <span style={{ fontFamily: 'Barlow Condensed', fontSize: 22, fontWeight: 700, color: '#fff' }}>{preco}€</span>
-                    <span style={{ fontSize: 11, color: '#64748b' }}>/utilizador/{periodo === 'mensal' ? 'mês' : 'ano'}</span>
+                  <div style={{ marginTop:10, marginBottom:4 }}>
+                    <span style={{ fontFamily:'Barlow Condensed', fontSize:22, fontWeight:700, color:'#fff' }}>{preco}€</span>
+                    <span style={{ fontSize:11, color:'#64748b' }}>/utilizador/{periodo==='mensal'?'mês':'ano'}</span>
                   </div>
-                  <button className="btn btn-primary w-full" style={{ justifyContent: 'center' }} disabled={isAtual || loadingPlano === p.id} onClick={() => checkout(p.id)}>
-                    {loadingPlano === p.id ? <Spinner /> : isAtual ? 'Plano Actual' : 'Subscrever'}
+                  {p.diaLabel && <div style={{ fontSize:10, color:p.gold?'#D4AF37':'#2DD4A7', fontWeight:600, marginBottom:10 }}>{p.diaLabel} ☕</div>}
+                  <button className="btn btn-primary w-full" style={{ justifyContent:'center', ...(p.gold&&!isAtual?{background:'#facc15',color:'#0a0f14'}:{}) }}
+                    disabled={isAtual||loadingPlano===p.id} onClick={()=>checkout(p.id)}>
+                    {loadingPlano===p.id?<Spinner />:isAtual?'Plano Actual':'Subscrever'}
                   </button>
                 </div>
               )
