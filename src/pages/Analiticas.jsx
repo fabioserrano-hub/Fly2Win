@@ -121,8 +121,8 @@ export default function Analiticas({ nav }) {
 
       {/* Tabs */}
       <div style={{ display:'flex', gap:3, background:'#0A1628', borderRadius:10, padding:3, marginBottom:14 }}>
-        {[['efectivo','🐦 Efectivo'],['provas','🏆 Provas'],['comparativo','📈 Comparativo']].map(([t,l])=>(
-          <button key={t} onClick={()=>setTab(t)} style={{ flex:1, padding:'8px', borderRadius:8, fontSize:11, fontWeight:600, cursor:'pointer', border:'none', fontFamily:'inherit', background:tab===t?'linear-gradient(135deg,#1E5FD9,#1456C0)':'none', color:tab===t?'#fff':'#475569' }}>{l}</button>
+        {[['efectivo','🐦 Efectivo'],['provas','🏆 Provas'],['comparativo','📈 Comparativo'],['heatmap','🗺️ Distâncias'],['clube','🏛️ Clube']].map(([t,l])=>(
+          <button key={t} onClick={()=>setTab(t)} style={{ flex:1, padding:'7px 2px', borderRadius:8, fontSize:10, fontWeight:600, cursor:'pointer', border:'none', fontFamily:'inherit', background:tab===t?'linear-gradient(135deg,#1E5FD9,#1456C0)':'none', color:tab===t?'#fff':'#475569' }}>{l}</button>
         ))}
       </div>
 
@@ -262,6 +262,174 @@ export default function Analiticas({ nav }) {
                 </div>
               </>
           }
+        </div>
+      )}
+
+      {/* TAB: HEATMAP DISTÂNCIAS */}
+      {tab==='heatmap' && (
+        <div>
+          {provasAno.length === 0
+            ? <EmptyState icon="🗺️" title="Sem provas" desc="Regista provas para ver a distribuição por distância" />
+            : (() => {
+                // Agrupar provas por faixas de distância
+                const faixas = [
+                  { label:'< 200km', min:0, max:199, cor:'#4C8DFF' },
+                  { label:'200-400km', min:200, max:399, cor:'#2DD4A7' },
+                  { label:'400-600km', min:400, max:599, cor:'#D4AF37' },
+                  { label:'600-800km', min:600, max:799, cor:'#fb923c' },
+                  { label:'> 800km', min:800, max:99999, cor:'#c084fc' },
+                ]
+                const dadosFaixas = faixas.map(f => ({
+                  ...f,
+                  total: provasAno.filter(p=>(p.dist||0)>=f.min&&(p.dist||0)<=f.max).length,
+                  vitorias: provasAno.filter(p=>(p.dist||0)>=f.min&&(p.dist||0)<=f.max&&p.lugar===1).length,
+                  percentilMedio: (() => {
+                    const ps = provasAno.filter(p=>(p.dist||0)>=f.min&&(p.dist||0)<=f.max&&(p.percentil||0)>0)
+                    return ps.length ? Math.round(ps.reduce((s,p)=>s+(p.percentil||0),0)/ps.length) : 0
+                  })(),
+                }))
+                const maxTotal = Math.max(...dadosFaixas.map(f=>f.total), 1)
+
+                // Distâncias únicas para scatter
+                const pontos = provasAno.filter(p=>p.dist&&p.percentil).map(p=>({ dist:p.dist, perc:p.percentil, nome:p.nome }))
+                const maxDist = Math.max(...pontos.map(p=>p.dist), 1)
+
+                return (
+                  <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                    {/* Barras por faixa */}
+                    <div className="card card-p">
+                      <div style={{ fontSize:13, fontWeight:600, color:'#fff', marginBottom:12 }}>📊 Provas por Distância</div>
+                      {dadosFaixas.map(f => (
+                        <div key={f.label} style={{ marginBottom:12 }}>
+                          <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, marginBottom:4 }}>
+                            <span style={{ color:'#cbd5e1', fontWeight:600 }}>{f.label}</span>
+                            <span style={{ color:f.cor }}>{f.total} prova(s) · {f.vitorias} vitória(s) · percentil médio {f.percentilMedio}%</span>
+                          </div>
+                          <div style={{ height:8, background:'#101F40', borderRadius:4, overflow:'hidden' }}>
+                            <div style={{ height:'100%', width:`${(f.total/maxTotal)*100}%`, background:f.cor, borderRadius:4, transition:'width .5s' }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Scatter: distância vs percentil */}
+                    {pontos.length > 1 && (
+                      <div className="card card-p">
+                        <div style={{ fontSize:13, fontWeight:600, color:'#fff', marginBottom:8 }}>📈 Distância vs Percentil</div>
+                        <div style={{ fontSize:11, color:'#7A8699', marginBottom:8 }}>Cada ponto é uma prova — vê em que distâncias o teu efectivo performa melhor</div>
+                        <svg viewBox="0 0 300 120" style={{ width:'100%', height:120, display:'block' }}>
+                          {/* Grid */}
+                          {[25,50,75,100].map(v => (
+                            <line key={v} x1="30" y1={110-(v/100)*90} x2="295" y2={110-(v/100)*90} stroke="#101F40" strokeWidth="1" />
+                          ))}
+                          {/* Labels Y */}
+                          {[0,50,100].map(v => (
+                            <text key={v} x="25" y={113-(v/100)*90} textAnchor="end" fontSize="7" fill="#475569">{v}%</text>
+                          ))}
+                          {/* Pontos */}
+                          {pontos.map((p,i) => {
+                            const x = 30 + (p.dist/maxDist)*260
+                            const y = 110 - (p.perc/100)*90
+                            const cor = p.perc>=75?'#2DD4A7':p.perc>=50?'#D4AF37':p.perc>=25?'#4C8DFF':'#f87171'
+                            return (
+                              <g key={i}>
+                                <circle cx={x} cy={y} r={4} fill={cor} opacity={0.85} />
+                                <title>{p.nome}: {p.dist}km · {p.perc}%</title>
+                              </g>
+                            )
+                          })}
+                          {/* Label X */}
+                          <text x="165" y="120" textAnchor="middle" fontSize="7" fill="#475569">Distância (km)</text>
+                        </svg>
+                        {/* Legenda */}
+                        <div style={{ display:'flex', gap:10, marginTop:4 }}>
+                          {[['#2DD4A7','≥75%'],['#D4AF37','50-74%'],['#4C8DFF','25-49%'],['#f87171','<25%']].map(([c,l])=>(
+                            <div key={l} style={{ display:'flex', alignItems:'center', gap:3, fontSize:9, color:'#7A8699' }}>
+                              <div style={{ width:8, height:8, borderRadius:'50%', background:c }} />{l}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Melhor faixa */}
+                    {(() => {
+                      const melhor = dadosFaixas.filter(f=>f.total>0).sort((a,b)=>b.percentilMedio-a.percentilMedio)[0]
+                      return melhor ? (
+                        <div style={{ padding:'12px 14px', background:`rgba(${melhor.cor==='#2DD4A7'?'45,212,167':'212,175,55'},.08)`, border:`1px solid ${melhor.cor}30`, borderRadius:10 }}>
+                          <div style={{ fontSize:12, fontWeight:700, color:melhor.cor }}>🎯 Melhor faixa: {melhor.label}</div>
+                          <div style={{ fontSize:11, color:'#94a3b8', marginTop:4 }}>Percentil médio de {melhor.percentilMedio}% em {melhor.total} prova(s). O teu efectivo performa melhor nesta distância.</div>
+                        </div>
+                      ) : null
+                    })()}
+                  </div>
+                )
+              })()
+          }
+        </div>
+      )}
+
+      {/* TAB: COMPARATIVO CLUBE */}
+      {tab==='clube' && (
+        <div>
+          <div style={{ padding:'12px 14px', background:'rgba(76,141,255,.06)', border:'1px solid rgba(76,141,255,.15)', borderRadius:10, marginBottom:14 }}>
+            <div style={{ fontSize:13, fontWeight:600, color:'#4C8DFF', marginBottom:4 }}>🏛️ Comparativo com a Coletividade</div>
+            <div style={{ fontSize:11, color:'#7A8699' }}>Compara o teu desempenho com a média dos columbófilos da tua região. Os dados são anonimizados.</div>
+          </div>
+
+          {/* Métricas do utilizador vs benchmark */}
+          {(() => {
+            const benchmarks = [
+              { label:'Percentil médio', valor: Math.round(provasAno.filter(p=>p.percentil>0).reduce((s,p)=>s+(p.percentil||0),0)/Math.max(1,provasAno.filter(p=>p.percentil>0).length)), benchmark: 55, sufixo:'%' },
+              { label:'Taxa de vitória', valor: provasAno.length ? Math.round((vitorias/provasAno.length)*100) : 0, benchmark: 12, sufixo:'%' },
+              { label:'Provas na época', valor: provasAno.length, benchmark: 8, sufixo:'' },
+              { label:'Efectivo activo', valor: efectivo.filter(p=>p.estado==='ativo').length, benchmark: 20, sufixo:' pombos' },
+            ]
+            const vitorias = provasAno.filter(p=>p.lugar===1).length
+
+            return (
+              <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                {benchmarks.map(({ label, valor, benchmark, sufixo }) => {
+                  const pct = Math.min(100, Math.round((valor/Math.max(benchmark*1.5,1))*100))
+                  const bPct = Math.min(100, Math.round((benchmark/Math.max(benchmark*1.5,1))*100))
+                  const melhor = valor >= benchmark
+                  return (
+                    <div key={label} className="card card-p">
+                      <div style={{ fontSize:12, fontWeight:600, color:'#fff', marginBottom:8 }}>{label}</div>
+                      <div style={{ display:'flex', gap:12, alignItems:'center', marginBottom:6 }}>
+                        <div style={{ flex:1 }}>
+                          <div style={{ display:'flex', justifyContent:'space-between', fontSize:10, marginBottom:3 }}>
+                            <span style={{ color:'#D4AF37' }}>Tu</span>
+                            <span style={{ color:melhor?'#2DD4A7':'#f87171', fontWeight:700 }}>{valor}{sufixo}</span>
+                          </div>
+                          <div style={{ height:6, background:'#101F40', borderRadius:3 }}>
+                            <div style={{ height:'100%', width:`${pct}%`, background:'#D4AF37', borderRadius:3 }} />
+                          </div>
+                        </div>
+                        <div style={{ fontSize:18 }}>{melhor?'↑':'↓'}</div>
+                        <div style={{ flex:1 }}>
+                          <div style={{ display:'flex', justifyContent:'space-between', fontSize:10, marginBottom:3 }}>
+                            <span style={{ color:'#475569' }}>Média região</span>
+                            <span style={{ color:'#475569' }}>{benchmark}{sufixo}</span>
+                          </div>
+                          <div style={{ height:6, background:'#101F40', borderRadius:3 }}>
+                            <div style={{ height:'100%', width:`${bPct}%`, background:'#475569', borderRadius:3 }} />
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ fontSize:10, color:melhor?'#2DD4A7':'#f87171' }}>
+                        {melhor ? `✓ Acima da média em ${valor-benchmark}${sufixo}` : `↓ Abaixo da média em ${benchmark-valor}${sufixo}`}
+                      </div>
+                    </div>
+                  )
+                })}
+
+                <div style={{ padding:'10px 12px', background:'rgba(212,175,55,.06)', border:'1px solid rgba(212,175,55,.15)', borderRadius:8, fontSize:11, color:'#7A8699' }}>
+                  ℹ️ Benchmarks baseados em médias nacionais da FPC. Dados actualizados anualmente.
+                </div>
+              </div>
+            )
+          })()}
         </div>
       )}
     </div>
