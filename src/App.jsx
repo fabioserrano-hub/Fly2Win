@@ -31,6 +31,12 @@ import Partilha     from './pages/Partilha'
 import Forum        from './pages/Forum'
 import Dicas        from './pages/Dicas'
 import Admin        from './pages/Admin'
+import SeleccionadorCasais from './pages/SeleccionadorCasais'
+import ImportacaoCSV from './pages/ImportacaoCSV'
+import Mensagens from './pages/Mensagens'
+import Marketplace from './pages/Marketplace'
+import Onboarding, { useOnboarding } from './components/Onboarding'
+import { IdiomaContext, useIdiomaState } from './hooks/useIdioma'
 import Perfil       from './pages/Perfil'
 import Documentos   from './pages/Documentos'
 import PaginaSucesso from './pages/PaginaSucesso'
@@ -52,6 +58,7 @@ const NAV = [
     { id: 'saude',       icon: '🏥', label: 'Saúde' },
     { id: 'reproducao',  icon: '🥚', label: 'Reprodução' },
     { id: 'pedigree',    icon: '🌳', label: 'Pedigree' },
+    { id: 'casais',      icon: '🧬', label: 'Casais IA' },
     { id: 'alimentacao', icon: '🌾', label: 'Alimentação' },
     { id: 'tratamentos', icon: '🧪', label: 'Tratamentos' },
     { id: 'financas',    icon: '💰', label: 'Finanças' },
@@ -63,6 +70,8 @@ const NAV = [
   ]},
   { section: 'Social', items: [
     { id: 'comunidade',  icon: '🌐', label: 'Comunidade' },
+    { id: 'mensagens',   icon: '💬', label: 'Mensagens' },
+    { id: 'marketplace', icon: '🛒', label: 'Marketplace' },
     { id: 'ligas',       icon: '🏆', label: 'Ligas' },
     { id: 'patrocinadores', icon: '🛍️', label: 'Parceiros' },
     { id: 'partilha',       icon: '📤', label: 'Partilhar' },
@@ -71,6 +80,7 @@ const NAV = [
   ]},
   { section: 'Sistema', items: [
     { id: 'precos',      icon: '💳', label: 'Planos' },
+    { id: 'importacao',   icon: '📥', label: 'Importar' },
     { id: 'admin',       icon: '👑', label: 'Admin' },
     { id: 'perfil',      icon: '⚙️', label: 'Perfil' },
     { id: 'documentos',  icon: '📄', label: 'Documentos' },
@@ -104,6 +114,8 @@ function useSidebarCollapse() {
 function AppLayout() {
   const { user } = useAuth()
   const { flags, isAdmin, betaTester } = useFeatureFlags()
+  const { mostrar: mostrarOnboarding, concluir: concluirOnboarding } = useOnboarding()
+  const { idioma, trocar: trocarIdioma } = useIdiomaState()
   const [page, setPage] = useState('dashboard')
   const [navParams, setNavParams] = useState({})
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -127,6 +139,22 @@ function AppLayout() {
 
   const initials = user?.user_metadata?.nome?.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
     || user?.email?.[0]?.toUpperCase() || 'U'
+
+  // PWA Install
+  const [installPrompt, setInstallPrompt] = useState(null)
+  useEffect(() => {
+    if (window.matchMedia('(display-mode: standalone)').matches) return
+    const handler = e => { e.preventDefault(); setInstallPrompt(e) }
+    window.addEventListener('beforeinstallprompt', handler)
+    window.addEventListener('appinstalled', () => setInstallPrompt(null))
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+  const instalarApp = async () => {
+    if (!installPrompt) return
+    installPrompt.prompt()
+    const { outcome } = await installPrompt.userChoice
+    if (outcome === 'accepted') setInstallPrompt(null)
+  }
 
   const [tema, setTema] = useState(() => localStorage.getItem('cl_tema') || 'dark')
 
@@ -159,6 +187,10 @@ function AppLayout() {
       case 'meteorologia': return <Meteorologia nav={nav} params={navParams} />
       case 'precos':       return <Precos nav={nav} />
       case 'admin':        return <Admin nav={nav} />
+      case 'casais':       return <SeleccionadorCasais nav={nav} />
+      case 'importacao':   return <ImportacaoCSV nav={nav} />
+      case 'mensagens':    return <Mensagens nav={nav} />
+      case 'marketplace':  return <Marketplace nav={nav} />
       case 'comunidade':   return <Comunidade nav={nav} />
       case 'ligas':        return <Ligas nav={nav} />
       case 'patrocinadores': return <Patrocinadores nav={nav} />
@@ -171,6 +203,7 @@ function AppLayout() {
   }
 
   return (
+    <IdiomaContext.Provider value={idioma}>
     <div className="app">
       <div className={`mobile-overlay${sidebarOpen ? ' show' : ''}`} onClick={() => setSidebarOpen(false)} />
 
@@ -248,6 +281,18 @@ function AppLayout() {
             <span className="tb-search-kbd">⌘K</span>
           </div>
           <div className="tb-right">
+            {/* Toggle idioma PT/BR */}
+            <button onClick={trocarIdioma} title="Alternar PT/BR"
+              style={{ background:'rgba(255,255,255,.06)', border:'1px solid #1B2D52', borderRadius:8, padding:'5px 10px', cursor:'pointer', fontSize:11, fontWeight:700, color:'#94a3b8', fontFamily:'inherit' }}>
+              {idioma==='pt'?'🇵🇹 PT':'🇧🇷 BR'}
+            </button>
+            {/* Botão instalar PWA */}
+            {installPrompt && (
+              <button onClick={instalarApp} title="Instalar app no dispositivo"
+                style={{ display:'flex', alignItems:'center', gap:5, background:'linear-gradient(135deg,#D4AF37,#B8960C)', border:'none', borderRadius:8, padding:'6px 12px', cursor:'pointer', fontSize:12, fontWeight:700, color:'#050D1A' }}>
+                📲 Instalar
+              </button>
+            )}
             <button className="btn btn-icon" onClick={() => setTema(t => t === 'dark' ? 'light' : 'dark')} title={tema === 'dark' ? 'Modo Claro' : 'Modo Escuro'} style={{ fontSize: 16 }}>
               {tema === 'dark' ? '☀️' : '🌙'}
             </button>
@@ -278,10 +323,12 @@ function AppLayout() {
           }
         `}</style>
         <main className="page">
+          {mostrarOnboarding && <Onboarding nav={nav} onConcluir={concluirOnboarding} />}
           {renderPage()}
         </main>
       </div>
     </div>
+    </IdiomaContext.Provider>
   )
 }
 
