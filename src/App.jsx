@@ -37,6 +37,7 @@ import Mensagens from './pages/Mensagens'
 import Marketplace from './pages/Marketplace'
 import Analiticas from './pages/Analiticas'
 import RastreioForma from './pages/RastreioForma'
+import Clubes from './pages/Clubes'
 import PerfilPublico from './pages/PerfilPublico'
 import Onboarding, { useOnboarding } from './components/Onboarding'
 import { IdiomaContext, useIdiomaState } from './hooks/useIdioma'
@@ -76,6 +77,7 @@ const NAV = [
   { section: 'Social', items: [
     { id: 'comunidade',  icon: '🌐', label: 'Comunidade' },
     { id: 'mensagens',   icon: '💬', label: 'Mensagens' },
+    { id: 'clubes',      icon: '🏛️', label: 'Clubes' },
     { id: 'marketplace', icon: '🛒', label: 'Marketplace' },
     { id: 'ligas',       icon: '🏆', label: 'Ligas' },
     { id: 'patrocinadores', icon: '🛍️', label: 'Parceiros' },
@@ -198,6 +200,7 @@ function AppLayout() {
       case 'marketplace':  return <Marketplace nav={nav} />
       case 'analiticas':   return <Analiticas nav={nav} />
       case 'forma':        return <RastreioForma nav={nav} />
+      case 'clubes':       return <Clubes nav={nav} />
       case 'perfil-publico': return <PerfilPublico nav={nav} params={navParams} />
       case 'comunidade':   return <Comunidade nav={nav} />
       case 'ligas':        return <Ligas nav={nav} />
