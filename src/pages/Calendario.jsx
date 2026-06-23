@@ -5,8 +5,22 @@ import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../component
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
 const DIAS_SEMANA = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
 const EMPTY = { titulo: '', data_ev: new Date().toISOString().slice(0, 10), tipo: 'Outro', obs: '' }
-const tipoCor = { 'Prova': '#D4AF37', 'Treino': '#4C8DFF', 'Tarefa': '#2DD4A7', 'Reprodução': '#c084fc', 'Outro': '#94a3b8' }
-const tipoIcon = { 'Prova': '🏆', 'Treino': '🎯', 'Tarefa': '✅', 'Reprodução': '🥚', 'Outro': '📌' }
+const tipoCor = { 'Prova': '#D4AF37', 'Treino': '#4C8DFF', 'Tarefa': '#2DD4A7', 'Reprodução': '#c084fc', 'Coletivo': '#fb923c', 'Outro': '#94a3b8' }
+const tipoIcon = { 'Prova': '🏆', 'Treino': '🎯', 'Tarefa': '✅', 'Reprodução': '🥚', 'Coletivo': '📅', 'Outro': '📌' }
+
+const PROVAS_FPC_2026 = [
+  { id:'fpc-1',  titulo:'FPC — Abertura Época',       data:'2026-03-14', tipo:'Coletivo', dist:150 },
+  { id:'fpc-2',  titulo:'FPC — 1ª Velocidade',        data:'2026-03-28', tipo:'Coletivo', dist:250 },
+  { id:'fpc-3',  titulo:'FPC — 2ª Velocidade',        data:'2026-04-11', tipo:'Coletivo', dist:300 },
+  { id:'fpc-4',  titulo:'FPC — 1ª Meio-Fundo',        data:'2026-04-25', tipo:'Coletivo', dist:450 },
+  { id:'fpc-5',  titulo:'FPC — 2ª Meio-Fundo',        data:'2026-05-09', tipo:'Coletivo', dist:500 },
+  { id:'fpc-6',  titulo:'FPC — 1ª Fundo',             data:'2026-05-23', tipo:'Coletivo', dist:650 },
+  { id:'fpc-7',  titulo:'FPC — Nacional Velocidade',   data:'2026-06-06', tipo:'Coletivo', dist:350 },
+  { id:'fpc-8',  titulo:'FPC — 2ª Fundo',             data:'2026-06-20', tipo:'Coletivo', dist:700 },
+  { id:'fpc-9',  titulo:'FPC — Grande Fundo',          data:'2026-07-04', tipo:'Coletivo', dist:900 },
+  { id:'fpc-10', titulo:'FPC — Nacional Fundo',        data:'2026-07-18', tipo:'Coletivo', dist:800 },
+  { id:'fpc-11', titulo:'FPC — Encerramento Época',    data:'2026-08-01', tipo:'Coletivo', dist:500 },
+]
 
 // Parser de CSV simples: aceita vírgula ou ponto-e-vírgula como separador, sem dependências externas.
 // Suficiente para ficheiros bem formados como os exportados por federações/folhas de cálculo.
@@ -69,6 +83,7 @@ export default function Calendario({ nav }) {
   const [importando, setImportando] = useState(false)
 
   const [acasalamentos, setAcasalamentos] = useState([])
+  const [mostrarColetivas, setMostrarColetivas] = useState(true)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -83,12 +98,12 @@ export default function Calendario({ nav }) {
 
   const todosEventos = [
     ...provas.map(p => ({ id: 'prova-' + p.id, titulo: p.nome, data: p.data_reg?.slice(0, 10), tipo: 'Prova', origem: p })),
-    ...treinos.map(t => ({ id: 'treino-' + t.id, titulo: t.local, data: t.data_reg?.slice(0, 10), tipo: 'Treino', origem: t })),
+    ...treinos.map(t => ({ id: 'treino-' + t.id, titulo: t.local, data: t.data?.slice(0, 10) || t.data_reg?.slice(0, 10), tipo: 'Treino', origem: t })),
     ...tarefas.filter(t => t.data_prevista).map(t => ({ id: 'tarefa-' + t.id, titulo: t.titulo, data: t.data_prevista, tipo: 'Tarefa', origem: t, concluida: t.estado === 'concluida' })),
     ...eventos.map(e => ({ id: 'evento-' + e.id, titulo: e.titulo, data: e.data_ev?.slice(0, 10), tipo: e.tipo || 'Outro', origem: e, manual: true })),
-    // Eclosões previstas da reprodução
-    ...acasalamentos.filter(a => a.data_eclosao_prev && a.estado === 'em_progresso').map(a => ({ id: 'eclosao-' + a.id, titulo: `🐣 Eclosão: ${a.pai_nome?.split(' ')[0]} × ${a.mae_nome?.split(' ')[0]}${a.cacifo ? ` (#${a.cacifo})` : ''}`, data: a.data_eclosao_prev?.slice(0, 10), tipo: 'Reprodução', origem: a })),
+    ...acasalamentos.filter(a => a.data_eclosao_prev && a.estado === 'em_progresso').map(a => ({ id: 'eclosao-' + a.id, titulo: `🐣 ${a.pai_nome?.split(' ')[0]} × ${a.mae_nome?.split(' ')[0]}${a.cacifo ? ` (#${a.cacifo})` : ''}`, data: a.data_eclosao_prev?.slice(0, 10), tipo: 'Reprodução', origem: a })),
     ...acasalamentos.filter(a => a.data_postura && a.estado === 'em_progresso').map(a => ({ id: 'postura-' + a.id, titulo: `🥚 Postura: ${a.pai_nome?.split(' ')[0]} × ${a.mae_nome?.split(' ')[0]}`, data: a.data_postura?.slice(0, 10), tipo: 'Reprodução', origem: a })),
+    ...(mostrarColetivas ? PROVAS_FPC_2026.map(p => ({ ...p, tipo: 'Coletivo' })) : []),
   ].filter(e => e.data)
 
   const ano = mesAtual.getFullYear(), mes = mesAtual.getMonth()
@@ -193,12 +208,24 @@ export default function Calendario({ nav }) {
     <div>
       <div className="section-header">
         <div><div className="section-title">Calendário</div><div className="section-sub">{MESES[mes]} {ano}</div></div>
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button className="btn btn-secondary btn-sm" onClick={() => setModalImport(true)}>📥 Importar CSV</button>
+        <div style={{ display:'flex', gap:6, flexWrap:'wrap', alignItems:'center' }}>
+          <button onClick={() => setMostrarColetivas(v => !v)}
+            style={{ padding:'5px 10px', borderRadius:8, fontSize:11, fontWeight:600, cursor:'pointer', border:`1px solid ${mostrarColetivas?'#fb923c':'#1B2D52'}`, background:mostrarColetivas?'rgba(251,146,60,.1)':'none', color:mostrarColetivas?'#fb923c':'#475569', fontFamily:'inherit' }}>
+            📅 FPC {mostrarColetivas ? '✓' : ''}
+          </button>
+          <button className="btn btn-secondary btn-sm" onClick={() => setModalImport(true)}>📥 CSV</button>
           <button className="btn btn-icon" onClick={() => mudarMes(-1)}>‹</button>
           <button className="btn btn-secondary btn-sm" onClick={() => setMesAtual(new Date())}>Hoje</button>
           <button className="btn btn-icon" onClick={() => mudarMes(1)}>›</button>
         </div>
+      </div>
+      {/* Legenda */}
+      <div style={{ display:'flex', gap:10, flexWrap:'wrap', marginBottom:10 }}>
+        {Object.entries(tipoCor).map(([tipo, cor]) => (
+          <div key={tipo} style={{ display:'flex', alignItems:'center', gap:4, fontSize:10, color:'#7A8699' }}>
+            <div style={{ width:8, height:8, borderRadius:'50%', background:cor }} />{tipo}
+          </div>
+        ))}
       </div>
 
       {loading ? <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}><Spinner lg /></div>
