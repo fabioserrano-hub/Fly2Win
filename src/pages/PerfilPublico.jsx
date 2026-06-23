@@ -64,7 +64,13 @@ export default function PerfilPublico({ nav, params }) {
                 {perfil.foto_perfil_url ? <img src={perfil.foto_perfil_url} style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : perfil.nome?.[0]?.toUpperCase()||'?'}
               </div>
               <div style={{ flex:1 }}>
-                <div style={{ fontSize:20, fontWeight:900, color:'#fff', fontFamily:"'Fraunces',serif" }}>{perfil.nome}</div>
+                <div style={{ fontSize:20, fontWeight:900, color:'#fff', fontFamily:"'Fraunces',serif" }}>
+                  {perfil.nome}
+                  {perfil.verificado && (
+                    <span title={`Conta verificada — ${perfil.tipo_verificado||'oficial'}`}
+                      style={{ marginLeft:6, fontSize:14, color:'#2DD4A7' }}>✅</span>
+                  )}
+                </div>
                 {perfil.org && <div style={{ fontSize:12, color:'#D4AF37', marginTop:2 }}>{perfil.org}</div>}
                 {perfil.pombal_nome && <div style={{ fontSize:11, color:'#94a3b8', marginTop:1 }}>🏠 {perfil.pombal_nome}{perfil.pombal_morada?` · ${perfil.pombal_morada}`:''}</div>}
                 {perfil.fed && <div style={{ fontSize:11, color:'#475569' }}>{perfil.fed}</div>}
@@ -155,4 +161,4 @@ export default function PerfilPublico({ nav, params }) {
   )
 
   return conteudo()
-                  }
+}
