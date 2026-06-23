@@ -17,14 +17,15 @@ export default function Epoca({ nav }) {
   const [saving, setSaving] = useState(false)
   const [relatorioIA, setRelatorioIA] = useState(null)
   const [loadingIA, setLoadingIA] = useState(false)
+  const [perfil, setPerfil] = useState(null)
 
   const anoAtual = new Date().getFullYear()
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const [p, pv, f, a, ep] = await Promise.all([db.getPombos(), db.getProvas(), db.getFinancas(), db.getAcasalamentos(), db.getEpocas()])
-      setPombos(p); setProvas(pv); setFinancas(f); setAcasalamentos(a); setEpocas(ep)
+      const [p, pv, f, a, ep, pf] = await Promise.all([db.getPombos(), db.getProvas(), db.getFinancas(), db.getAcasalamentos(), db.getEpocas(), db.getPerfil()])
+      setPombos(p); setProvas(pv); setFinancas(f); setAcasalamentos(a); setEpocas(ep); setPerfil(pf)
     } catch (e) { toast('Erro: ' + e.message, 'err') }
     finally { setLoading(false) }
   }, [])
@@ -101,6 +102,109 @@ export default function Epoca({ nav }) {
     finally { setLoadingIA(false) }
   }
 
+  const gerarPDFEpoca = async (perfil) => {
+    toast('A gerar PDF...', 'ok')
+    try {
+      await new Promise((res, rej) => {
+        if (window.jspdf) return res()
+        const s = document.createElement('script')
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+        s.onload = res; s.onerror = rej; document.head.appendChild(s)
+      })
+      const { jsPDF } = window.jspdf
+      const doc = new jsPDF({ orientation:'p', unit:'mm', format:'a4', putOnlyUsedFonts:true })
+      const W=210, H=297
+      const GOLD=[180,134,11], NAVY=[15,30,65], WHITE=[255,255,255]
+
+      // CAPA
+      doc.setFillColor(...NAVY); doc.rect(0,0,W,H,'F')
+      doc.setFillColor(...GOLD); doc.rect(0,0,W,8,'F')
+      doc.setFillColor(...GOLD); doc.rect(0,H-8,W,8,'F')
+      doc.setFontSize(32); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
+      doc.text('RELATÓRIO DE ÉPOCA', W/2, 80, {align:'center'})
+      doc.setFontSize(48); doc.setFont('helvetica','bold'); doc.setTextColor(...WHITE)
+      doc.text(String(anoAtual), W/2, 108, {align:'center'})
+      doc.setFontSize(14); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
+      doc.text(perfil?.nome || 'ChampionsLoft', W/2, 125, {align:'center'})
+      if (perfil?.pombal_nome) doc.text(perfil.pombal_nome, W/2, 133, {align:'center'})
+      if (perfil?.org) doc.text(perfil.org, W/2, 141, {align:'center'})
+
+      // KPIs capa
+      const kpis = [
+        [`${efectivo.length}`, 'Efectivo'],
+        [`${provasAno.length}`, 'Provas'],
+        [`${vitorias}`, 'Vitórias'],
+        [`${ranking[0]?.percentil||0}%`, 'Melhor Percentil'],
+        [`${borrachinhos}`, 'Nascidos'],
+        [`${(rec-dep).toFixed(0)}€`, 'Saldo'],
+      ]
+      kpis.forEach(([v,l],i) => {
+        const col = i%3, row = Math.floor(i/3)
+        const x = 25 + col*60, y = 175 + row*28
+        doc.setFillColor(20,40,80); doc.roundedRect(x,y,50,22,2,2,'F')
+        doc.setFontSize(16); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
+        doc.text(v, x+25, y+11, {align:'center'})
+        doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
+        doc.text(l, x+25, y+17, {align:'center'})
+      })
+      doc.setFontSize(8); doc.setTextColor(71,85,105)
+      doc.text(`Emitido em ${new Date().toLocaleDateString('pt-PT')} · ChampionsLoft`, W/2, H-12, {align:'center'})
+
+      // PÁGINA 2 — Ranking
+      doc.addPage()
+      doc.setFillColor(247,248,252); doc.rect(0,0,W,H,'F')
+      doc.setFillColor(...GOLD); doc.rect(0,0,W,1.5,'F')
+      doc.setFontSize(18); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY)
+      doc.text('Top Pombos da Época', 15, 22)
+      doc.setDrawColor(220,226,235); doc.setLineWidth(0.3); doc.line(15,26,W-15,26)
+
+      ranking.slice(0,20).forEach((p,i) => {
+        const y = 35 + i*11
+        const cor = i===0?GOLD:i<3?NAVY:[80,90,120]
+        // Barra de percentil
+        doc.setFillColor(230,235,245); doc.rect(60, y-3, 90, 6, 'F')
+        doc.setFillColor(...cor); doc.rect(60, y-3, 90*(p.percentil||0)/100, 6, 'F')
+        doc.setFontSize(i===0?9:8); doc.setFont('helvetica',i<3?'bold':'normal'); doc.setTextColor(...cor)
+        doc.text(`${i+1}. ${p.nome}`, 15, y+1)
+        doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(80,90,120)
+        doc.text(`${p.percentil||0}%`, 153, y+1)
+        doc.text(`${p.provas||0} provas`, 170, y+1)
+      })
+
+      // PÁGINA 3 — Análise IA (se disponível)
+      if (relatorioIA) {
+        doc.addPage()
+        doc.setFillColor(247,248,252); doc.rect(0,0,W,H,'F')
+        doc.setFillColor(...GOLD); doc.rect(0,0,W,1.5,'F')
+        doc.setFontSize(18); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY)
+        doc.text('Analise IA — Epoca '+anoAtual, 15, 22)
+        doc.setDrawColor(220,226,235); doc.setLineWidth(0.3); doc.line(15,26,W-15,26)
+        doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(50,60,90)
+        const linhas = doc.splitTextToSize(relatorioIA.replace(/[^\x00-\x7F]/g,' '), W-30)
+        doc.text(linhas, 15, 35)
+      }
+
+      // PÁGINA 4 — Financeiro
+      doc.addPage()
+      doc.setFillColor(247,248,252); doc.rect(0,0,W,H,'F')
+      doc.setFillColor(...GOLD); doc.rect(0,0,W,1.5,'F')
+      doc.setFontSize(18); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY)
+      doc.text('Resumo Financeiro '+anoAtual, 15, 22)
+      doc.setDrawColor(220,226,235); doc.setLineWidth(0.3); doc.line(15,26,W-15,26)
+      ;[['Receitas', rec, '#2DD4A7'],['Despesas', dep, '#f87171'],['Saldo', rec-dep, rec-dep>=0?'#2DD4A7':'#f87171']].forEach(([l,v,c],i) => {
+        const y=40+i*18
+        doc.setFontSize(11); doc.setFont('helvetica','normal'); doc.setTextColor(80,90,120); doc.text(l, 20, y)
+        const rgb = c==='#2DD4A7'?[45,212,167]:c==='#f87171'?[248,113,113]:[248,113,113]
+        doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.setTextColor(...rgb)
+        doc.text(`${v>=0?'+':''}${v.toFixed(2)} EUR`, W-20, y, {align:'right'})
+        doc.setDrawColor(220,226,235); doc.setLineWidth(0.2); doc.line(20,y+3,W-20,y+3)
+      })
+
+      doc.save(`relatorio-epoca-${anoAtual}.pdf`)
+      toast('PDF gerado!','ok')
+    } catch(e) { toast('Erro PDF: '+e.message,'err') }
+  }
+
   const TABS = [
     ['resumo', '📋 Resumo'],
     ['ranking', '🏆 Ranking'],
@@ -121,6 +225,7 @@ export default function Epoca({ nav }) {
           </div>
         </div>
         {!epocaJaFechada && <button className="btn btn-primary" onClick={() => setConfirmNova(true)}>🔒 Fechar Época</button>}
+        <button className="btn btn-secondary" onClick={() => gerarPDFEpoca(perfil)}>📄 PDF</button>
       </div>
 
       <div style={{ display: 'flex', gap: 4, background: '#101F40', borderRadius: 8, padding: 4, marginBottom: 16, overflowX: 'auto' }}>
