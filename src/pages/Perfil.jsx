@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase, db } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useToast, Spinner, Field } from '../components/ui'
+import { BotaoQR } from '../components/QRCode'
 
 export default function Perfil() {
   const { user, signOut } = useAuth()
@@ -126,6 +127,13 @@ export default function Perfil() {
     <div>
       <div className="section-header">
         <div><div className="section-title">Perfil</div><div className="section-sub">{user?.email}</div></div>
+        {form.slug && form.perfil_publico && (
+          <BotaoQR
+            titulo={form.nome || 'O meu perfil'}
+            conteudo={`${window.location.origin}/p/${form.slug}`}
+            subtitulo={`championsloft.app/p/${form.slug}`}
+          />
+        )}
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn btn-primary" onClick={save} disabled={saving}>{saving ? <Spinner /> : '💾'} Guardar</button>
           <button className="btn btn-secondary" onClick={signOut}>Sair</button>
