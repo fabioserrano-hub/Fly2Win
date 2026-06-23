@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { db } from '../lib/supabase'
 import { useToast, Spinner, Modal, Field, EmptyState } from '../components/ui'
+import { BotaoQR } from '../components/QRCode'
 
 const LINHAS_GENETICAS = ['Janssen','Koopman','Gaby Vandenabeele','Leo Heremans','Schellens','Aarden','Wittenbuik','Van Loon','Staf Aarden','Hofkens','Bricoux','Sion','De Rauw-Sablon','Outro']
 
@@ -478,6 +479,13 @@ export default function Pedigree({ nav, params }) {
       <div className="section-header" id="pedigree-config-card">
         <div><div className="section-title">🌳 Pedigree</div></div>
         {arvore && <button className="btn btn-primary btn-sm" onClick={gerarPDF}>📥 Descarregar PDF</button>}
+        {arvore && pomboPedigree?.id && (
+          <BotaoQR
+            titulo={`Pedigree — ${pomboPedigree.nome}`}
+            conteudo={`${window.location.origin}/p/${perfil?.slug || ''}#pedigree/${pomboPedigree.anilha}`}
+            subtitulo={`${pomboPedigree.nome} · ${pomboPedigree.anilha}`}
+          />
+        )}
       </div>
 
       <div className="card card-p" id="pedigree-config-card" style={{ marginBottom: 16 }}>
