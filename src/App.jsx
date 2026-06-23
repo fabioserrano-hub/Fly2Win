@@ -37,6 +37,7 @@ import Mensagens from './pages/Mensagens'
 import Marketplace from './pages/Marketplace'
 import Analiticas from './pages/Analiticas'
 import RastreioForma from './pages/RastreioForma'
+import PerfilPublico from './pages/PerfilPublico'
 import Onboarding, { useOnboarding } from './components/Onboarding'
 import { IdiomaContext, useIdiomaState } from './hooks/useIdioma'
 import Perfil       from './pages/Perfil'
@@ -197,6 +198,7 @@ function AppLayout() {
       case 'marketplace':  return <Marketplace nav={nav} />
       case 'analiticas':   return <Analiticas nav={nav} />
       case 'forma':        return <RastreioForma nav={nav} />
+      case 'perfil-publico': return <PerfilPublico nav={nav} params={navParams} />
       case 'comunidade':   return <Comunidade nav={nav} />
       case 'ligas':        return <Ligas nav={nav} />
       case 'patrocinadores': return <Patrocinadores nav={nav} />
@@ -344,6 +346,10 @@ import { Spinner } from './components/ui'
 function AppContent() {
   const { user, loading } = useAuth()
   const [mostrarLanding, setMostrarLanding] = useState(true)
+
+  // Rota pública /p/:slug — acessível sem login
+  const slugMatch = window.location.pathname.match(/^\/p\/([a-z0-9-]+)$/i)
+  if (slugMatch) return <PerfilPublico nav={() => { window.location.href = '/' }} params={{ slug: slugMatch[1] }} />
 
   if (window.location.pathname === '/sucesso') return <PaginaSucesso />
 
