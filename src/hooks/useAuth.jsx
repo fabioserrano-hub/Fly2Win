@@ -8,12 +8,19 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Timeout de segurança — nunca ficar preso em loading
+    const timeout = setTimeout(() => setLoading(false), 5000)
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
       setLoading(false)
-    })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      clearTimeout(timeout)
+    }).catch(() => { setLoading(false); clearTimeout(timeout) })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
+      // Se sessão expirou ou foi invalidada, garantir que loading é false
+      if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' || !session) {
+        setLoading(false)
+      }
     })
     return () => subscription.unsubscribe()
   }, [])
