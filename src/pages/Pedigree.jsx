@@ -105,6 +105,9 @@ export default function Pedigree({ nav, params }) {
     (!filtroSexo || p.sexo === filtroSexo)
   )
 
+  // Pombo actualmente seleccionado
+  const pomboPedigree = pombos.find(p => p.id === pomboSel) || null
+
   const selecionarPombo = async (id) => {
     setPomboSel(id)
     if (!id) { setArvore(null); return }
