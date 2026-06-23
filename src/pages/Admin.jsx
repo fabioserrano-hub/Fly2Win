@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { db, supabase } from '../lib/supabase'
-import { useAuth } from './hooks/useAuth'
+import { useAuth } from '../hooks/useAuth'
 import { useToast, Spinner, Modal, EmptyState, Badge, Field } from '../components/ui'
 
 const planoBadge = { gratuito:'gray', base:'blue', profissional:'yellow', elite:'green' }
