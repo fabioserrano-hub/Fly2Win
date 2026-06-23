@@ -367,6 +367,7 @@ import { Spinner } from './components/ui'
 function AppContent() {
   const { user, loading } = useAuth()
   const [mostrarLanding, setMostrarLanding] = useState(true)
+  const [erroApp, setErroApp] = useState(null)
 
   // Rota pública /p/:slug — acessível sem login
   const slugMatch = window.location.pathname.match(/^\/p\/([a-z0-9-]+)$/i)
@@ -375,15 +376,32 @@ function AppContent() {
   if (window.location.pathname === '/sucesso') return <PaginaSucesso />
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', background: '#0a0f14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 40, marginBottom: 16 }}>🕊️</div>
-        <Spinner lg />
-      </div>
+    <div style={{ minHeight:'100vh', background:'#050D1A', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:16 }}>
+      <div style={{ fontSize:40 }}>🕊️</div>
+      <Spinner lg />
+      <div style={{ fontSize:12, color:'#475569' }}>A carregar...</div>
     </div>
   )
 
-  if (user) return <AppLayout />
+  if (erroApp) return (
+    <div style={{ minHeight:'100vh', background:'#050D1A', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:16, padding:20, textAlign:'center' }}>
+      <div style={{ fontSize:48 }}>⚠️</div>
+      <div style={{ fontSize:16, color:'#fff', fontWeight:600 }}>Algo correu mal</div>
+      <div style={{ fontSize:12, color:'#7A8699', maxWidth:300 }}>{erroApp}</div>
+      <button className="btn btn-primary" onClick={() => { setErroApp(null); window.location.reload() }}>
+        🔄 Recarregar
+      </button>
+      <button className="btn btn-secondary" onClick={async () => {
+        const { supabase } = await import('./lib/supabase')
+        await supabase.auth.signOut()
+        window.location.reload()
+      }}>
+        Fazer logout e tentar novamente
+      </button>
+    </div>
+  )
+
+  if (user) return <AppLayout onError={setErroApp} />
   if (mostrarLanding) return <Landing onEntrar={() => setMostrarLanding(false)} />
   return <Login />
 }
