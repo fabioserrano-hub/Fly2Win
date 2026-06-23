@@ -8,6 +8,7 @@ export default function Dashboard({ nav }) {
   const toast = useToast()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [clima, setClima] = useState(null)
   const nome = user?.user_metadata?.nome?.split(' ')[0] || 'Columbófilo'
   const h = new Date().getHours()
   const saudacao = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'
@@ -16,7 +17,7 @@ export default function Dashboard({ nav }) {
     async function load() {
       setLoading(true)
       try {
-        const [pombos, provas, fin, saude, treinos, tarefas, acas, stock, eventos, treatmentPlans, treatmentApps, treatmentProducts] = await Promise.all([
+        const [pombos, provas, fin, saude, treinos, tarefas, acas, stock, eventos, treatmentPlans, treatmentApps, treatmentProducts, perfil] = await Promise.all([
           db.getPombos(),
           db.getProvas(),
           db.getFinancas(),
@@ -29,7 +30,19 @@ export default function Dashboard({ nav }) {
           db.getTreatmentPlans().catch(() => []),
           db.getTreatmentApplications().catch(() => []),
           db.getTreatmentProducts().catch(() => []),
+          db.getPerfil().catch(() => null),
         ])
+
+        // Clima do pombal via Open-Meteo
+        if (perfil?.pombal_lat && perfil?.pombal_lon) {
+          fetch(`https://api.open-meteo.com/v1/forecast?latitude=${perfil.pombal_lat}&longitude=${perfil.pombal_lon}&current=temperature_2m,weathercode,windspeed_10m,relative_humidity_2m&wind_speed_unit=ms&timezone=auto`)
+            .then(r => r.json())
+            .then(d => {
+              const wc = d.current?.weathercode
+              const icon = wc <= 1 ? '☀️' : wc <= 3 ? '⛅' : wc <= 48 ? '🌫️' : wc <= 67 ? '🌧️' : wc <= 77 ? '❄️' : '⛈️'
+              setClima({ temp: Math.round(d.current?.temperature_2m), wind: Math.round(d.current?.windspeed_10m * 3.6), humidity: d.current?.relative_humidity_2m, icon })
+            }).catch(() => {})
+        }
 
         const ano = new Date().getFullYear()
         const hoje = new Date().toISOString().slice(0, 10)
@@ -44,16 +57,21 @@ export default function Dashboard({ nav }) {
         const pombosAtivos = pombos.filter(p => (!p.estado_ext || p.estado_ext === 'proprio') && p.estado === 'ativo')
 
         const provasProximas = provas.filter(p => p.data_reg >= hoje && p.data_reg <= em7dias).sort((a, b) => a.data_reg.localeCompare(b.data_reg))
+        const provasHoje = provas.filter(p => p.data_reg === hoje)
         const tarefasHojeOuAtraso = tarefas.filter(t => t.estado !== 'concluida' && t.data_prevista && t.data_prevista <= hoje)
         const tarefasProximas = tarefas.filter(t => t.estado !== 'concluida' && t.data_prevista && t.data_prevista > hoje && t.data_prevista <= em7dias)
         const eventosHoje = eventos.filter(e => e.data_evento === hoje)
 
-        // Tratamento de hoje: verifica se há uma aplicação activa esta semana com um item para o dia de hoje
+        // Eclosões próximas (nos próximos 5 dias)
+        const eclosoesProximas = acas.filter(a => {
+          if (!a.data_eclosao_prev) return false
+          const d = Math.round((new Date(a.data_eclosao_prev) - new Date()) / 86400000)
+          return d >= -1 && d <= 5
+        }).sort((a, b) => new Date(a.data_eclosao_prev) - new Date(b.data_eclosao_prev))
+
         const segundaDesta = (() => {
-          const d = new Date()
-          const diff = (d.getDay() + 6) % 7
-          d.setDate(d.getDate() - diff)
-          return d.toISOString().slice(0, 10)
+          const d = new Date(); const diff = (d.getDay() + 6) % 7
+          d.setDate(d.getDate() - diff); return d.toISOString().slice(0, 10)
         })()
         const DIA_KEYS = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado']
         const hojeKey = DIA_KEYS[new Date().getDay()]
@@ -63,35 +81,25 @@ export default function Dashboard({ nav }) {
         const produtoTratamentoHoje = itemTratamentoHoje ? treatmentProducts.find(p => p.id === itemTratamentoHoje.product_id) : null
 
         const alertas = []
-
         const tarefasAtraso = tarefas.filter(t => t.estado !== 'concluida' && t.data_prevista && t.data_prevista < hoje)
-        if (tarefasAtraso.length > 0) {
-          alertas.push({ tipo: 'tarefa', icon: '⏰', texto: `${tarefasAtraso.length} tarefa${tarefasAtraso.length > 1 ? 's' : ''} em atraso no checklist`, cor: '#f87171', page: 'checklist' })
-        }
-
+        if (tarefasAtraso.length > 0) alertas.push({ tipo:'tarefa', icon:'⏰', texto:`${tarefasAtraso.length} tarefa(s) em atraso`, cor:'#f87171', page:'checklist' })
         const stockBaixo = stock.filter(s => s.qtd_minima && s.qtd <= s.qtd_minima)
-        stockBaixo.forEach(s => {
-          alertas.push({ tipo: 'stock', icon: '🌾', texto: `${s.nome} a acabar (${s.qtd}${s.unidade || ''} restantes)`, cor: '#D4AF37', page: 'alimentacao' })
-        })
-
+        stockBaixo.forEach(s => alertas.push({ tipo:'stock', icon:'🌾', texto:`${s.nome} a acabar (${s.qtd}${s.unidade||''})`, cor:'#D4AF37', page:'alimentacao' }))
         const mediaEfectivo = top.length ? top.reduce((s, p) => s + (p.percentil || 0), 0) / top.length : 0
-        const quedaRendimento = pombosAtivos.filter(p => (p.percentil || 0) > 0 && (p.percentil || 0) < mediaEfectivo - 25 && (p.provas || 0) >= 3)
-        quedaRendimento.slice(0, 3).forEach(p => {
-          alertas.push({ tipo: 'desempenho', icon: '📉', texto: `${p.nome} em queda de rendimento (${p.percentil}%)`, cor: '#f87171', page: 'pombos' })
-        })
-
-        const ultimoRegistoSaude = saude[0]?.created_at
-        const diasSemRegistoSaude = ultimoRegistoSaude ? Math.floor((Date.now() - new Date(ultimoRegistoSaude)) / 86400000) : null
-        if (diasSemRegistoSaude !== null && diasSemRegistoSaude > 60) {
-          alertas.push({ tipo: 'saude', icon: '🏥', texto: `Sem registo de saúde há ${diasSemRegistoSaude} dias`, cor: '#D4AF37', page: 'saude' })
-        }
+        pombosAtivos.filter(p => (p.percentil||0) > 0 && (p.percentil||0) < mediaEfectivo - 25 && (p.provas||0) >= 3).slice(0,3)
+          .forEach(p => alertas.push({ tipo:'desempenho', icon:'📉', texto:`${p.nome} em queda (${p.percentil}%)`, cor:'#f87171', page:'pombos' }))
+        const diasSemSaude = saude[0]?.created_at ? Math.floor((Date.now()-new Date(saude[0].created_at))/86400000) : null
+        if (diasSemSaude !== null && diasSemSaude > 60) alertas.push({ tipo:'saude', icon:'🏥', texto:`Sem registo de saúde há ${diasSemSaude} dias`, cor:'#D4AF37', page:'saude' })
+        if (eclosoesProximas.length > 0) alertas.push({ tipo:'eclosao', icon:'🐣', texto:`${eclosoesProximas.length} eclosão(ões) prevista(s) nos próximos 5 dias`, cor:'#c084fc', page:'reproducao' })
+        if (provasHoje.length > 0) alertas.push({ tipo:'prova', icon:'🏆', texto:`${provasHoje.length} prova(s) hoje — verifica resultados`, cor:'#2DD4A7', page:'provas' })
 
         setData({
           pombos, provas, saldo: rec - dep, rec, dep,
           ativos: pombosAtivos.length,
           total: pombos.filter(p => !p.estado_ext || p.estado_ext === 'proprio').length,
-          top, vitorias, treinos, acas, ano,
-          provasProximas, tarefasHojeOuAtraso, tarefasProximas, eventosHoje, alertas,
+          top, vitorias, treinos, acas, ano, perfil,
+          provasProximas, provasHoje, tarefasHojeOuAtraso, tarefasProximas,
+          eventosHoje, alertas, eclosoesProximas,
           itemTratamentoHoje, aplicacaoHoje, hojeKey, produtoTratamentoHoje,
         })
       } catch (e) { toast('Erro: ' + e.message, 'err') }
@@ -126,10 +134,36 @@ export default function Dashboard({ nav }) {
 
   return (
     <div>
-      <div className="section-header">
-        <div>
-          <div className="section-title">Pombal Hoje</div>
-          <div className="section-sub">{saudacao}, {nome} · {new Date().toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
+      {/* Header premium com clima */}
+      <div style={{ background:'linear-gradient(135deg,#050D1A,#0B1830)', border:'1px solid rgba(212,175,55,.15)', borderRadius:14, padding:'14px 16px', marginBottom:14, position:'relative', overflow:'hidden' }}>
+        <div style={{ position:'absolute', top:0, left:0, right:0, height:3, background:'linear-gradient(90deg,#1E5FD9,#D4AF37)' }} />
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+          <div>
+            <div style={{ fontSize:11, color:'#475569', marginBottom:2 }}>{new Date().toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'long'})}</div>
+            <div style={{ fontSize:20, fontWeight:900, color:'#fff', fontFamily:"'Fraunces',serif" }}>{saudacao}, {nome} 🕊️</div>
+            {data.perfil?.pombal_nome && <div style={{ fontSize:11, color:'#7A8699', marginTop:2 }}>🏠 {data.perfil.pombal_nome}</div>}
+          </div>
+          {/* Clima */}
+          {clima && (
+            <div style={{ textAlign:'right' }}>
+              <div style={{ fontSize:28 }}>{clima.icon}</div>
+              <div style={{ fontSize:16, fontWeight:700, color:'#fff' }}>{clima.temp}°C</div>
+              <div style={{ fontSize:10, color:'#7A8699' }}>💨 {clima.wind}km/h · 💧{clima.humidity}%</div>
+            </div>
+          )}
+        </div>
+        {/* Resumo rápido */}
+        <div style={{ display:'flex', gap:8, marginTop:12 }}>
+          {[
+            [data.alertas.filter(a=>a.tipo==='prova').length > 0 ? '🏆' : '🕊️', `${data.ativos} activos`, '#2DD4A7'],
+            data.eclosoesProximas?.length > 0 ? ['🐣',`${data.eclosoesProximas.length} eclosão(ões)`,'#c084fc'] : ['🥚',`${data.acas.length} casais`,'#94a3b8'],
+            data.alertas.length > 0 ? ['⚠️',`${data.alertas.length} alerta(s)`,'#f87171'] : ['✅','Sem alertas','#2DD4A7'],
+          ].map(([icon,txt,cor])=>(
+            <div key={txt} style={{ flex:1, padding:'6px 8px', background:'rgba(255,255,255,.04)', borderRadius:8, textAlign:'center' }}>
+              <div style={{ fontSize:14 }}>{icon}</div>
+              <div style={{ fontSize:10, color:cor, fontWeight:600 }}>{txt}</div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -299,6 +333,50 @@ export default function Dashboard({ nav }) {
                   <div className="progress"><div className="progress-bar" style={{ width: `${p.percentil || 0}%`, background: (p.percentil || 0) >= 60 ? '#2DD4A7' : (p.percentil || 0) >= 35 ? '#D4AF37' : '#f87171' }} /></div>
                 </div>
                 <span style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', width: 32, textAlign: 'right' }}>{p.percentil || 0}%</span>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <div className="grid-2">
+        <div className="card card-p">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 700, color: '#fff', fontSize: 14 }}>💰 Finanças {data.ano}</div>
+            <button className="btn btn-secondary btn-sm" onClick={() => nav('financas')}>Ver →</button>
+          </div>
+          <div style={{ display: 'flex', gap: 16, marginBottom: 12 }}>
+            <div style={{ flex: 1, textAlign: 'center' }}>
+              <div style={{ fontFamily: "'Fraunces',serif", fontSize: 26, fontWeight: 900, color: '#2DD4A7' }}>{data.rec.toFixed(0)}€</div>
+              <div style={{ fontSize: 10.5, color: '#7A8699' }}>RECEITAS</div>
+            </div>
+            <div style={{ width: 1, background: '#1B2D52' }} />
+            <div style={{ flex: 1, textAlign: 'center' }}>
+              <div style={{ fontFamily: "'Fraunces',serif", fontSize: 26, fontWeight: 900, color: '#f87171' }}>{data.dep.toFixed(0)}€</div>
+              <div style={{ fontSize: 10.5, color: '#7A8699' }}>DESPESAS</div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, padding: '8px 12px', background: '#101F40', borderRadius: 8 }}>
+            <span style={{ color: '#94a3b8' }}>Saldo</span>
+            <span style={{ fontWeight: 700, color: data.saldo >= 0 ? '#2DD4A7' : '#f87171' }}>{data.saldo >= 0 ? '+' : ''}{data.saldo.toFixed(2)}€</span>
+          </div>
+        </div>
+
+        <div className="card card-p">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 700, color: '#fff', fontSize: 14 }}>🎯 Treinos Recentes</div>
+            <button className="btn btn-secondary btn-sm" onClick={() => nav('treinos')}>Ver →</button>
+          </div>
+          {data.treinos.length === 0
+            ? <div style={{ textAlign: 'center', color: '#7A8699', fontSize: 13, padding: '10px 0' }}>Sem treinos registados</div>
+            : data.treinos.map(t => (
+              <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', borderBottom: '1px solid #1B2D52' }}>
+                <span style={{ fontSize: 16 }}>🎯</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 500, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.local}</div>
+                  <div style={{ fontSize: 10.5, color: '#7A8699' }}>{t.dist ? t.dist + 'km · ' : ''}{t.pombos_n || '?'} pombos · {t.retorno}</div>
+                </div>
+                <div style={{ fontSize: 10.5, color: '#7A8699' }}>{t.data_reg ? new Date(t.data_reg).toLocaleDateString('pt-PT') : '—'}</div>
               </div>
             ))
           }
