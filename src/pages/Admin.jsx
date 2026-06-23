@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { db, supabase } from '../lib/supabase'
-import { useAuth } from '../hooks/useAuth'
+import { useAuth } from './hooks/useAuth'
 import { useToast, Spinner, Modal, EmptyState, Badge, Field } from '../components/ui'
 
 const planoBadge = { gratuito:'gray', base:'blue', profissional:'yellow', elite:'green' }
@@ -22,16 +22,19 @@ export default function Admin({ nav }) {
   const [formAtivo, setFormAtivo] = useState(true)
   const [modalBeta, setModalBeta] = useState(false)
   const [formBeta, setFormBeta] = useState({ email:'', nome:'' })
+  const [perfis, setPerfis] = useState([])
+  const [buscaBadge, setBuscaBadge] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const [l, f, b] = await Promise.all([
+      const [l, f, b, p] = await Promise.all([
         db.getLicencas(),
         supabase.from('feature_flags').select('*').order('label').then(r=>r.data||[]).catch(()=>[]),
         supabase.from('beta_testers').select('*').order('created_at',{ascending:false}).then(r=>r.data||[]).catch(()=>[]),
+        supabase.from('perfis').select('user_id,nome,slug,org,verificado,tipo_verificado').order('nome').then(r=>r.data||[]).catch(()=>[]),
       ])
-      setLicencas(l); setFlags(f); setBetas(b)
+      setLicencas(l); setFlags(f); setBetas(b); setPerfis(p)
     } catch(e) { toast('Erro: '+e.message,'err') }
     finally { setLoading(false) }
   }, [])
@@ -118,8 +121,8 @@ export default function Admin({ nav }) {
 
       {/* Tabs */}
       <div style={{ display:'flex', gap:3, background:'#0A1628', borderRadius:10, padding:3, marginBottom:14 }}>
-        {[['licencas','👥 Licenças'],['flags','🚩 Módulos'],['beta','🧪 Beta']].map(([t,l])=>(
-          <button key={t} onClick={()=>setTab(t)} style={{ flex:1, padding:'8px', borderRadius:8, fontSize:12, fontWeight:600, cursor:'pointer', border:'none', fontFamily:'inherit', background:tab===t?'linear-gradient(135deg,#1E5FD9,#1456C0)':'none', color:tab===t?'#fff':'#475569', transition:'all .15s' }}>{l}</button>
+        {[['licencas','👥 Licenças'],['flags','🚩 Módulos'],['beta','🧪 Beta'],['badges','✅ Badges']].map(([t,l])=>(
+          <button key={t} onClick={()=>setTab(t)} style={{ flex:1, padding:'8px', borderRadius:8, fontSize:11, fontWeight:600, cursor:'pointer', border:'none', fontFamily:'inherit', background:tab===t?'linear-gradient(135deg,#1E5FD9,#1456C0)':'none', color:tab===t?'#fff':'#475569', transition:'all .15s' }}>{l}</button>
         ))}
       </div>
 
@@ -227,6 +230,58 @@ export default function Admin({ nav }) {
           <Field label="Nome"><input className="input" placeholder="Nome do utilizador" value={formBeta.nome} onChange={e=>setFormBeta(f=>({...f,nome:e.target.value}))} /></Field>
         </div>
       </Modal>
+
+      {/* TAB: BADGES */}
+      {tab==='badges' && (
+        <div>
+          <div style={{ marginBottom:12, padding:'10px 14px', background:'rgba(45,212,167,.06)', border:'1px solid rgba(45,212,167,.15)', borderRadius:8, fontSize:12, color:'#94a3b8' }}>
+            O badge ✅ aparece no perfil público, na Comunidade e nos cards da Marketplace. Atribui com cuidado.
+          </div>
+          <input className="input" placeholder="🔍 Pesquisar perfil..." value={buscaBadge} onChange={e=>setBuscaBadge(e.target.value)} style={{ marginBottom:12 }} />
+          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+            {perfis.filter(p=>!buscaBadge||p.nome?.toLowerCase().includes(buscaBadge.toLowerCase())||p.org?.toLowerCase().includes(buscaBadge.toLowerCase())).map(p => (
+              <div key={p.user_id} className="card card-p">
+                <div style={{ display:'flex', gap:10, alignItems:'center' }}>
+                  <div style={{ width:38, height:38, borderRadius:'50%', background:'linear-gradient(135deg,#1E5FD9,#4C8DFF)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:700, color:'#fff', flexShrink:0 }}>
+                    {p.nome?.[0]?.toUpperCase()||'?'}
+                  </div>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:13, fontWeight:600, color:'#fff' }}>
+                      {p.nome}
+                      {p.verificado && <span style={{ marginLeft:6, fontSize:12, color:'#2DD4A7' }}>✅ {p.tipo_verificado}</span>}
+                    </div>
+                    {p.org && <div style={{ fontSize:11, color:'#7A8699' }}>{p.org}</div>}
+                    {p.slug && <div style={{ fontSize:10, color:'#475569' }}>championsloft.app/p/{p.slug}</div>}
+                  </div>
+                  <div style={{ display:'flex', gap:6, flexShrink:0 }}>
+                    {!p.verificado ? (
+                      <div style={{ display:'flex', gap:4 }}>
+                        {['criador','clube','federacao'].map(tipo => (
+                          <button key={tipo} className="btn btn-secondary btn-sm"
+                            onClick={async () => {
+                              await supabase.from('perfis').update({ verificado:true, tipo_verificado:tipo }).eq('user_id', p.user_id)
+                              toast(`✅ Badge ${tipo} atribuído!`,'ok'); load()
+                            }}>
+                            {tipo}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <button className="btn btn-secondary btn-sm"
+                        onClick={async () => {
+                          await supabase.from('perfis').update({ verificado:false, tipo_verificado:null }).eq('user_id', p.user_id)
+                          toast('Badge removido','ok'); load()
+                        }}>
+                        Remover
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
