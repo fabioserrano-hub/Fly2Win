@@ -19,16 +19,24 @@ export default function Login() {
     try {
       if (mode === 'login') {
         await signIn(form.email, form.password)
+        // O useAuth detecta a sessão e o AppContent mostra o AppLayout automaticamente
       } else {
-        if (!form.nome.trim()) { toast('Nome obrigatório', 'warn'); return }
+        if (!form.nome.trim()) { toast('Nome obrigatório', 'warn'); setLoading(false); return }
         if (!termosAceites) { toast('Deve aceitar os Termos e Política de Privacidade', 'warn'); setLoading(false); return }
         await signUp(form.email, form.password, { nome: form.nome })
-        toast('Conta criada! Verifique o seu email.', 'ok')
-        setMode('login')
+        // Login automático após registo
+        try {
+          await signIn(form.email, form.password)
+        } catch {
+          // Se email confirmação obrigatória, mostrar mensagem
+          toast('Conta criada! Verifique o seu email para activar.', 'ok')
+          setMode('login')
+        }
       }
     } catch (err) {
       const m = err.message?.includes('Invalid login') ? 'Email ou password incorrectos'
         : err.message?.includes('already registered') ? 'Email já registado'
+        : err.message?.includes('Email not confirmed') ? 'Email não confirmado — verifique a caixa de entrada'
         : err.message || 'Erro desconhecido'
       toast(m, 'err')
     } finally { setLoading(false) }
