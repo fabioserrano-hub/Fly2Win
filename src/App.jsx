@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ToastProvider } from './components/ui'
+import { ToastProvider, Spinner } from './components/ui'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { supabase, db } from './lib/supabase'
 
@@ -126,12 +126,11 @@ function useSidebarCollapse() {
 }
 
 // ─── APP LAYOUT ───────────────────────────────────────
-function AppLayout() {
+function AppLayout({ setIdioma }) {
   const { user } = useAuth()
   const { flags, isAdmin, betaTester } = useFeatureFlags()
   const { mostrar: mostrarOnboarding, concluir: concluirOnboarding } = useOnboarding()
-  const { idioma, setIdioma } = useIdiomaState()
-  const { t } = useIdioma()
+  const { idioma, t } = useIdioma()
   const NAV = getNav(t)
   const { pedir: pedirNotif, permissao } = usePushNotificacoes()
   const [page, setPage] = useState('dashboard')
@@ -228,7 +227,6 @@ function AppLayout() {
   }
 
   return (
-    <IdiomaContext.Provider value={idioma}>
     <div className="app">
       <div className={`mobile-overlay${sidebarOpen ? ' show' : ''}`} onClick={() => setSidebarOpen(false)} />
 
@@ -344,30 +342,19 @@ function AppLayout() {
             </div>
           </div>
         </header>
-        <style>{`
-          @media (max-width: 768px) {
-            #menu-btn { display: flex !important; }
-            .tb-search { display: none !important; }
-            .tb-crumb-section { display: none; }
-            .tb-crumb-sep { display: none; }
-            .tb-crumb-current { font-size: 16px !important; font-weight: 700 !important; }
-            .tb-date { display: none; }
-          }
-        `}</style>
+        {/* CSS mobile via index.css */}
         <main className="page">
           {mostrarOnboarding && <Onboarding nav={nav} onConcluir={concluirOnboarding} />}
           {renderPage()}
         </main>
       </div>
     </div>
-    </IdiomaContext.Provider>
   )
 }
 
 // ─── APP CONTENT ──────────────────────────────────────
-import { Spinner } from './components/ui'
 
-function AppContent() {
+function AppContent({ setIdioma }) {
   const { user, loading } = useAuth()
   const [mostrarLanding, setMostrarLanding] = useState(true)
   const [erroApp, setErroApp] = useState(null)
@@ -404,18 +391,21 @@ function AppContent() {
     </div>
   )
 
-  if (user) return <AppLayout onError={setErroApp} />
+  if (user) return <AppLayout onError={setErroApp} setIdioma={setIdioma} />
   if (mostrarLanding) return <Landing onEntrar={() => setMostrarLanding(false)} />
   return <Login />
 }
 
 // ─── ROOT ─────────────────────────────────────────────
 export default function App() {
+  const { idioma, setIdioma } = useIdiomaState()
   return (
-    <ToastProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </ToastProvider>
+    <IdiomaContext.Provider value={idioma}>
+      <ToastProvider>
+        <AuthProvider>
+          <AppContent setIdioma={setIdioma} />
+        </AuthProvider>
+      </ToastProvider>
+    </IdiomaContext.Provider>
   )
 }
