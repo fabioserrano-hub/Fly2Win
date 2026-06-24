@@ -104,6 +104,7 @@ function getNav(t) {
 
 // Secções abertas por padrão
 const SECCOES_ABERTAS_DEFAULT = ['Principal', 'Desporto', 'Gestão', 'Análise']
+const TODAS_SECCOES = ['Principal', 'Desporto', 'Gestão', 'Análise', 'Social', 'Sistema']
 
 function useSidebarCollapse() {
   const [collapsed, setCollapsed] = useState(() => {
@@ -111,7 +112,8 @@ function useSidebarCollapse() {
       const saved = localStorage.getItem('cl_sidebar_collapsed')
       if (saved) return JSON.parse(saved)
     } catch {}
-    return NAV.filter(s => !SECCOES_ABERTAS_DEFAULT.includes(s.section)).map(s => s.section)
+    // Começar com Social e Sistema fechadas
+    return TODAS_SECCOES.filter(s => !SECCOES_ABERTAS_DEFAULT.includes(s))
   })
 
   const toggle = (section) => {
@@ -337,7 +339,7 @@ function AppLayout({ setIdioma }) {
               <button onClick={() => supabase.auth.signOut()} title="Sair da aplicação" style={{ background: 'none', border: '1px solid #1B2D52', cursor: 'pointer', borderRadius: 8, padding: '6px 10px', fontSize: 12, color: '#7A8699', fontFamily: 'inherit', transition: 'all .2s' }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor='#f87171'; e.currentTarget.style.color='#f87171' }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor='#1B2D52'; e.currentTarget.style.color='#7A8699' }}>
-                Sair
+                {t('sair')}
               </button>
             </div>
           </div>
