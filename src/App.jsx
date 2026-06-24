@@ -294,7 +294,8 @@ function AppLayout({ setIdioma }) {
 
       <div className="main">
         <header className="topbar">
-          <button className="btn btn-icon" onClick={() => setSidebarOpen(s => !s)} style={{ display: 'none' }} id="menu-btn">☰</button>
+          <button className="btn btn-icon" id="menu-btn" onClick={() => setSidebarOpen(s => !s)}
+            style={{ display:'none', fontSize:18 }}>☰</button>
           <div className="tb-crumb">
             <span className="tb-crumb-section">{currentSection}</span>
             <span className="tb-crumb-sep">/</span>
