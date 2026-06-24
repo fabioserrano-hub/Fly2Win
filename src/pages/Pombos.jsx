@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase, db } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../components/ui'
+import { useIdioma } from '../hooks/useIdioma'
 
 const anoAtual = new Date().getFullYear()
 const anos = Array.from({ length: 10 }, (_, i) => anoAtual - i)
@@ -79,6 +80,7 @@ function PesoChart({ registos }) {
 
 export default function Pombos({ nav }) {
   const toast = useToast()
+  const { t } = useIdioma()
   const { user } = useAuth()
   const [pombos, setPombos] = useState([])
   const [pombais, setPombais] = useState([])
@@ -114,11 +116,9 @@ export default function Pombos({ nav }) {
   useEffect(() => { load() }, [load])
 
   const efectivo = pombos.filter(p => !p.estado_ext || p.estado_ext === 'proprio')
-  const externos = pombos.filter(p => p.estado_ext && p.estado_ext !== 'proprio')
-  const emprestados = externos.filter(p => p.estado_ext === 'emprestado')
-  const cedidos = externos.filter(p => p.estado_ext === 'cedido')
-  const vendidos = externos.filter(p => p.estado_ext === 'vendido' || p.estado_ext === 'oferecido')
-  const listaActual = tabPrincipal === 'efectivo' ? efectivo : tabPrincipal === 'emprestados' ? emprestados : tabPrincipal === 'cedidos' ? cedidos : vendidos
+  const externos = pombos.filter(p => p.estado_ext && p.estado_ext !== 'proprio' && p.estado_ext !== 'vendido' && p.estado_ext !== 'oferecido' && p.estado_ext !== 'falecido')
+  const vendidos = pombos.filter(p => p.estado_ext === 'vendido' || p.estado_ext === 'oferecido')
+  const listaActual = tabPrincipal === 'efectivo' ? efectivo : tabPrincipal === 'externos' ? externos : vendidos
 
   const filtered = listaActual.filter(p => {
     const ms = !search || p.nome?.toLowerCase().includes(search.toLowerCase()) || p.anilha?.toLowerCase().includes(search.toLowerCase())
@@ -247,7 +247,7 @@ export default function Pombos({ nav }) {
       </div>
 
       <div style={{ display: 'flex', gap: 4, background: '#101F40', borderRadius: 10, padding: 4, marginBottom: 16, overflowX: 'auto' }}>
-        {[['efectivo', `🐦 Efectivo (${efectivo.length})`], ['emprestados', `🔄 Emprestados (${emprestados.length})`], ['cedidos', `🤝 Cedidos (${cedidos.length})`], ['vendidos', `💰 Vendidos/Oferecidos (${vendidos.length})`]].map(([t, l]) => (
+        {[['efectivo', `🐦 ${t('efectivo')} (${efectivo.length})`], ['externos', `🔄 Externos (${externos.length})`], ['vendidos', `💰 ${t('vendidos')||'Vendidos'} (${vendidos.length})`]].map(([tab, l]) => (
           <button key={t} onClick={() => setTabPrincipal(t)} style={{ padding: '8px 14px', borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none', fontFamily: 'inherit', whiteSpace: 'nowrap', background: tabPrincipal === t ? '#1E5FD9' : 'none', color: tabPrincipal === t ? '#fff' : '#94a3b8' }}>{l}</button>
         ))}
       </div>
