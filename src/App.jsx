@@ -43,65 +43,66 @@ import Afiliados from './pages/Afiliados'
 import Exportacao from './pages/Exportacao'
 import PerfilPublico from './pages/PerfilPublico'
 import Onboarding, { useOnboarding } from './components/Onboarding'
-import { IdiomaContext, useIdiomaState, IDIOMAS } from './hooks/useIdioma'
+import { IdiomaContext, useIdiomaState, useIdioma, IDIOMAS } from './hooks/useIdioma'
 import { usePushNotificacoes } from './hooks/useNotificacoes'
 import Perfil       from './pages/Perfil'
 import Documentos   from './pages/Documentos'
 import PaginaSucesso from './pages/PaginaSucesso'
 
 // ─── NAV CONFIG ───────────────────────────────────────
-const NAV = [
-  { section: 'Principal', items: [
-    { id: 'dashboard',   icon: '🕊️', label: 'Pombal Hoje' },
-    { id: 'pombos',      icon: '🐦', label: 'Pombos' },
-    { id: 'pombais',     icon: '🏠', label: 'Pombais' },
+// NAV gerada dinamicamente com traduções
+function getNav(t) {
+  return [
+  { section: t('principal') || 'Principal', items: [
+    { id: 'dashboard',   icon: '🕊️', label: t('dashboard') || 'Dashboard' },
+    { id: 'pombos',      icon: '🐦', label: t('pombos') || 'Pombos' },
+    { id: 'pombais',     icon: '🏠', label: t('pombal') || 'Pombais' },
   ]},
-  { section: 'Desporto', items: [
-    { id: 'provas',      icon: '🏆', label: 'Provas' },
-    { id: 'treinos',     icon: '🎯', label: 'Treinos' },
-    { id: 'calendario',  icon: '📅', label: 'Calendário' },
+  { section: t('desporto') || 'Desporto', items: [
+    { id: 'provas',      icon: '🏆', label: t('provas') || 'Provas' },
+    { id: 'treinos',     icon: '🎯', label: t('treinos') || 'Treinos' },
+    { id: 'calendario',  icon: '📅', label: t('calendario') || 'Calendário' },
     { id: 'checklist',   icon: '✅', label: 'Checklist' },
   ]},
-  { section: 'Gestão', items: [
-    { id: 'saude',       icon: '🏥', label: 'Saúde' },
-    { id: 'reproducao',  icon: '🥚', label: 'Reprodução' },
+  { section: t('gestao') || 'Gestão', items: [
+    { id: 'saude',       icon: '🏥', label: t('saude') || 'Saúde' },
+    { id: 'reproducao',  icon: '🥚', label: t('reproducao') || 'Reprodução' },
     { id: 'pedigree',    icon: '🌳', label: 'Pedigree' },
-    { id: 'casais',      icon: '🧬', label: 'Casais IA' },
-    { id: 'alimentacao', icon: '🌾', label: 'Alimentação' },
-    { id: 'tratamentos', icon: '🧪', label: 'Tratamentos' },
-    { id: 'financas',    icon: '💰', label: 'Finanças' },
+    { id: 'casais',      icon: '🧬', label: t('casais') || 'Casais IA' },
+    { id: 'alimentacao', icon: '🌾', label: t('alimentacao') || 'Alimentação' },
+    { id: 'tratamentos', icon: '🧪', label: t('tratamentos') || 'Tratamentos' },
+    { id: 'financas',    icon: '💰', label: t('financas') || 'Finanças' },
   ]},
-  { section: 'Análise', items: [
-    { id: 'relatorios',  icon: '📊', label: 'Relatórios' },
-    { id: 'analiticas',  icon: '📈', label: 'Analíticas' },
-    { id: 'forma',       icon: '💪', label: 'Rastreio Forma' },
-    { id: 'epoca',       icon: '🏁', label: 'Época' },
-    { id: 'meteorologia',icon: '🌦️', label: 'Meteorologia' },
+  { section: t('analise') || 'Análise', items: [
+    { id: 'relatorios',  icon: '📊', label: t('relatorios') || 'Relatórios' },
+    { id: 'analiticas',  icon: '📈', label: t('analiticas') || 'Analíticas' },
+    { id: 'forma',       icon: '💪', label: t('rastreioForma') || 'Rastreio Forma' },
+    { id: 'epoca',       icon: '🏁', label: t('epoca') || 'Época' },
+    { id: 'meteorologia',icon: '🌦️', label: t('meteorologia') || 'Meteorologia' },
   ]},
-  { section: 'Social', items: [
-    { id: 'comunidade',  icon: '🌐', label: 'Comunidade' },
-    { id: 'mensagens',   icon: '💬', label: 'Mensagens' },
-    { id: 'clubes',      icon: '🏛️', label: 'Clubes' },
-    { id: 'leiloes',     icon: '🔨', label: 'Leilões' },
-    { id: 'marketplace', icon: '🛒', label: 'Marketplace' },
-    { id: 'ligas',       icon: '🏆', label: 'Ligas' },
+  { section: t('social') || 'Social', items: [
+    { id: 'comunidade',  icon: '🌐', label: t('comunidade') || 'Comunidade' },
+    { id: 'mensagens',   icon: '💬', label: t('mensagens') || 'Mensagens' },
+    { id: 'clubes',      icon: '🏛️', label: t('clubes') || 'Clubes' },
+    { id: 'leiloes',     icon: '🔨', label: t('leiloes') || 'Leilões' },
+    { id: 'marketplace', icon: '🛒', label: t('marketplace') || 'Marketplace' },
+    { id: 'ligas',       icon: '🏆', label: t('ligas') || 'Ligas' },
     { id: 'patrocinadores', icon: '🛍️', label: 'Parceiros' },
     { id: 'partilha',       icon: '📤', label: 'Partilhar' },
     { id: 'forum',          icon: '💬', label: 'Fórum' },
     { id: 'dicas',          icon: '💡', label: 'Dicas' },
   ]},
-  { section: 'Sistema', items: [
-    { id: 'precos',      icon: '💳', label: 'Planos' },
-    { id: 'importacao',   icon: '📥', label: 'Importar' },
-    { id: 'exportacao',  icon: '📤', label: 'Exportar' },
+  { section: t('sistema') || 'Sistema', items: [
+    { id: 'precos',      icon: '💳', label: t('planos') || 'Planos' },
+    { id: 'importacao',  icon: '📥', label: t('importar') || 'Importar' },
+    { id: 'exportacao',  icon: '📤', label: t('exportar') || 'Exportar' },
     { id: 'admin',       icon: '👑', label: 'Admin' },
-    { id: 'afiliados',   icon: '🤝', label: 'Afiliados' },
-    { id: 'perfil',      icon: '⚙️', label: 'Perfil' },
-    { id: 'documentos',  icon: '📄', label: 'Documentos' },
+    { id: 'afiliados',   icon: '🤝', label: t('afiliados') || 'Afiliados' },
+    { id: 'perfil',      icon: '⚙️', label: t('perfil') || 'Perfil' },
   ]},
-]
+]}
 
-// Secções abertas por padrão; "Social" e "Sistema" começam fechadas (uso menos frequente)
+// Secções abertas por padrão
 const SECCOES_ABERTAS_DEFAULT = ['Principal', 'Desporto', 'Gestão', 'Análise']
 
 function useSidebarCollapse() {
@@ -130,6 +131,8 @@ function AppLayout() {
   const { flags, isAdmin, betaTester } = useFeatureFlags()
   const { mostrar: mostrarOnboarding, concluir: concluirOnboarding } = useOnboarding()
   const { idioma, setIdioma } = useIdiomaState()
+  const { t } = useIdioma()
+  const NAV = getNav(t)
   const { pedir: pedirNotif, permissao } = usePushNotificacoes()
   const [page, setPage] = useState('dashboard')
   const [navParams, setNavParams] = useState({})
