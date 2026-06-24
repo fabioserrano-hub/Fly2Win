@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, db } from '../lib/supabase'
 import { useToast, Spinner, EmptyState } from '../components/ui'
+import { useIdioma } from '../hooks/useIdioma'
 
 const ESP_COR = { velocidade:'#D4AF37', 'meio-fundo':'#4C8DFF', fundo:'#2DD4A7', 'grande-fundo':'#c084fc' }
 const ESP_ICON = { velocidade:'⚡', 'meio-fundo':'🏃', fundo:'🏔️', 'grande-fundo':'🌍' }
@@ -49,6 +50,7 @@ function MiniChart({ dados, cor, label, sufixo='' }) {
 
 export default function Analiticas({ nav }) {
   const toast = useToast()
+  const { t } = useIdioma()
   const [loading, setLoading] = useState(true)
   const [pombos, setPombos] = useState([])
   const [provas, setProvas] = useState([])
@@ -379,13 +381,13 @@ export default function Analiticas({ nav }) {
 
           {/* Métricas do utilizador vs benchmark */}
           {(() => {
+            const vitoriasPct = provasAno.length ? Math.round((vitorias/provasAno.length)*100) : 0
             const benchmarks = [
               { label:'Percentil médio', valor: Math.round(provasAno.filter(p=>p.percentil>0).reduce((s,p)=>s+(p.percentil||0),0)/Math.max(1,provasAno.filter(p=>p.percentil>0).length)), benchmark: 55, sufixo:'%' },
-              { label:'Taxa de vitória', valor: provasAno.length ? Math.round((vitorias/provasAno.length)*100) : 0, benchmark: 12, sufixo:'%' },
+              { label:'Taxa de vitória', valor: vitoriasPct, benchmark: 12, sufixo:'%' },
               { label:'Provas na época', valor: provasAno.length, benchmark: 8, sufixo:'' },
               { label:'Efectivo activo', valor: efectivo.filter(p=>p.estado==='ativo').length, benchmark: 20, sufixo:' pombos' },
             ]
-            const vitorias = provasAno.filter(p=>p.lugar===1).length
 
             return (
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
