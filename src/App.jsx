@@ -307,11 +307,13 @@ function AppLayout({ setIdioma }) {
             <span className="tb-search-kbd">⌘K</span>
           </div>
           <div className="tb-right">
-            {/* Toggle idioma */}
-            <select value={idioma} onChange={e => setIdioma(e.target.value)}
-              style={{ background:'rgba(255,255,255,.06)', border:'1px solid var(--border)', borderRadius:8, padding:'5px 8px', cursor:'pointer', fontSize:11, fontWeight:700, color:'var(--text3)', fontFamily:'inherit', outline:'none' }}>
-              {IDIOMAS.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
-            </select>
+            {/* Toggle idioma — apenas visível para admin/dev */}
+            {isAdmin && (
+              <select value={idioma} onChange={e => setIdioma(e.target.value)}
+                style={{ background:'rgba(255,255,255,.06)', border:'1px solid var(--border)', borderRadius:8, padding:'5px 8px', cursor:'pointer', fontSize:11, fontWeight:700, color:'var(--text3)', fontFamily:'inherit', outline:'none' }}>
+                {IDIOMAS.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
+              </select>
+            )}
             {/* Notificações */}
             {permissao !== 'granted' && (
               <button onClick={pedirNotif} title="Activar notificações"
