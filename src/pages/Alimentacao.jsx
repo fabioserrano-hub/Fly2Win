@@ -11,6 +11,7 @@ const EMPTY = { tipo: 'Cereal', nome: '', qtd: '', unidade: 'kg', qtd_minima: ''
 
 export default function Alimentacao() {
   const toast = useToast()
+  const { t } = useIdioma()
   const [stock, setStock] = useState([])
   const [pombos, setPombos] = useState([])
   const [loading, setLoading] = useState(true)
@@ -186,7 +187,7 @@ export default function Alimentacao() {
       )}
 
       <Modal open={modal} onClose={close} title={selected ? '✏️ Editar Item' : '🌾 Novo Item de Stock'}
-        footer={<><button className="btn btn-secondary" onClick={close}>Cancelar</button><button className="btn btn-primary" onClick={save} disabled={saving}>{saving ? <Spinner /> : null}{selected ? 'Guardar' : 'Adicionar'}</button></>}>
+        footer={<><button className="btn btn-secondary" onClick={close}>Cancelar</button><button className="btn btn-primary" onClick={save} disabled={saving}>{saving ? <Spinner /> : null}{selected ? t('guardar') : 'Adicionar'}</button></>}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <Field label="Tipo"><select className="input" value={form.tipo} onChange={e => sf('tipo', e.target.value)}>{TIPOS.map(t => <option key={t}>{t}</option>)}</select></Field>
           <Field label="Nome *">
