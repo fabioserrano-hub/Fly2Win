@@ -9,6 +9,10 @@ const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov'
 
 function BarraH({ label, valor, max, cor, sufixo='' }) {
   const pct = max > 0 ? Math.round((valor/max)*100) : 0
+  // Verificar plano
+  const temAcesso = temPro
+  if (!temAcesso) return <BloqueioPlano plano="pro" nav={nav} />
+
   return (
     <div style={{ marginBottom:8 }}>
       <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, marginBottom:3 }}>
@@ -50,6 +54,7 @@ function MiniChart({ dados, cor, label, sufixo='' }) {
 
 export default function Analiticas({ nav }) {
   const toast = useToast()
+  const { temBase, temPro, temElite } = useLicenca()
   const { t } = useIdioma()
   const [loading, setLoading] = useState(true)
   const [pombos, setPombos] = useState([])
@@ -112,7 +117,7 @@ export default function Analiticas({ nav }) {
         </div>
         {/* KPIs rápidos */}
         <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8, marginTop:12 }}>
-          {[[efectivo.length,'🐦','Efectivo','#4C8DFF'],[provasAno.length,'🏆','Provas','#D4AF37'],[vitorias,'🥇','Vitórias','#2DD4A7'],[Math.round(percentilMedioAnual)+'%','📊','Percentil médio','#c084fc']].map(([v,i,l,c])=>(
+          {[[efectivo.length,'🐦','Efectivo','#4C8DFF'],[provasAno.length,'🏆', t('provas'),'#D4AF37'],[vitorias,'🥇','Vitórias','#2DD4A7'],[Math.round(percentilMedioAnual)+'%','📊','Percentil médio','#c084fc']].map(([v,i,l,c])=>(
             <div key={l} style={{ textAlign:'center', padding:'6px', background:'rgba(255,255,255,.04)', borderRadius:8 }}>
               <div style={{ fontSize:16, fontWeight:700, color:c }}>{v}</div>
               <div style={{ fontSize:9, color:'#475569' }}>{i} {l}</div>
