@@ -523,7 +523,7 @@ export default function Ligas({ nav }) {
       const uid = user?.id
       const [{ data: memberships }, { data: oficiais }, provasData] = await Promise.all([
         supabase.from('league_members').select('*, leagues(*)').eq('user_id', uid),
-        supabase.from('leagues').select('*').eq('oficial', true).eq('estado','ativa'),
+        supabase.from('leagues').select('*').eq('oficial', true),
         db.getProvas(),
       ])
       const minhas = (memberships||[]).map(m=>({...m.leagues, meu_role:m.role})).filter(Boolean)
