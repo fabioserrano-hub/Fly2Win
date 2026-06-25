@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react'
 import { supabase, db } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useToast, Spinner, Field } from '../components/ui'
+import { useIdioma } from '../hooks/useIdioma'
 import { BotaoQR } from '../components/QRCode'
 
 export default function Perfil() {
   const { user, signOut } = useAuth()
   const toast = useToast()
+  const { t } = useIdioma()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [exportando, setExportando] = useState(false)
