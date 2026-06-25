@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { db, supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useIdioma } from '../hooks/useIdioma'
 import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../components/ui'
 import { classificarPombo } from './Pombos'
 import { verificarConquistas } from '../components/Conquistas'
@@ -44,6 +45,7 @@ function classificarVento(rumoVoo, direcaoVento) {
 export default function Provas({ nav, params }) {
   const toast = useToast()
   const { user } = useAuth()
+  const { t } = useIdioma()
   const [uploadingAnexo, setUploadingAnexo] = useState(false)
   const [modalImportFPC, setModalImportFPC] = useState(false)
   const [importandoFPC, setImportandoFPC] = useState(false)
@@ -398,7 +400,7 @@ export default function Provas({ nav, params }) {
       }
 
       <Modal open={modal === 'form'} onClose={close} title={selected ? '✏️ Editar Prova' : '🏆 Nova Prova'} wide
-        footer={<><button className="btn btn-secondary" onClick={close}>Cancelar</button><button className="btn btn-primary" onClick={save} disabled={saving}>{saving ? <Spinner /> : null}{selected ? 'Guardar' : 'Criar'}</button></>}>
+        footer={<><button className="btn btn-secondary" onClick={close}>Cancelar</button><button className="btn btn-primary" onClick={save} disabled={saving}>{saving ? <Spinner /> : null}{selected ? t('guardar') : 'Criar'}</button></>}>
         <div className="form-grid">
           <div className="col-2"><Field label="Nome *"><input className="input" placeholder="Ex: Prova de Vendas Novas" value={form.nome} onChange={e => sf('nome', e.target.value)} /></Field></div>
           <Field label="Tipo"><select className="input" value={form.tipo} onChange={e => sf('tipo', e.target.value)}>{TIPOS.map(t => <option key={t}>{t}</option>)}</select></Field>
