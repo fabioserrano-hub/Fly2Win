@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useToast, Spinner, EmptyState } from '../components/ui'
+import { useIdioma } from '../hooks/useIdioma'
 
 // ─── SISTEMA DE CRÉDITOS ──────────────────────────────
 // 1 Crédito CL ≈ 1€ (moeda virtual interna)
@@ -22,6 +23,7 @@ const TIPO_COR  = { compra:'#4C8DFF', conquista:'#D4AF37', liga_premio:'#2DD4A7'
 export default function Carteira({ nav }) {
   const { user } = useAuth()
   const toast = useToast()
+  const { t } = useIdioma()
   const [saldo, setSaldo] = useState({ total:0, comprado:0, ganho:0 })
   const [transacoes, setTransacoes] = useState([])
   const [loading, setLoading] = useState(true)
@@ -73,7 +75,7 @@ export default function Carteira({ nav }) {
 
   const levantar = async () => {
     const val = parseInt(valorLev)
-    if (!val || val < 20) { toast('Mínimo 20 créditos para levantar','warn'); return }
+    if (!val || val < 20) { toast(t('minimoLevantar'),'warn'); return }
     if (val > saldo.ganho) { toast('Só podes levantar créditos ganhos (não comprados)','warn'); return }
     setLevantando(true)
     try {
@@ -171,7 +173,7 @@ export default function Carteira({ nav }) {
                   <div style={{ textAlign:'right' }}>
                     <div style={{ fontFamily:"'Fraunces',serif", fontSize:22, fontWeight:900, color: p.gold?'#D4AF37':p.destaque?'#4C8DFF':'#fff' }}>{p.preco}€</div>
                     <button onClick={() => comprar(p)} disabled={comprando} style={{ marginTop:4, padding:'6px 16px', borderRadius:6, fontSize:12, fontWeight:700, cursor:'pointer', border:'none', fontFamily:'inherit', background: p.gold?'linear-gradient(135deg,#D4AF37,#B8960C)':p.destaque?'#4C8DFF':'#1B2D52', color: p.gold?'#050D1A':p.destaque?'#fff':'#94a3b8' }}>
-                      {comprando?<Spinner/>:'Comprar'}
+                      {comprando?<Spinner/>:t('comprar2')}
                     </button>
                   </div>
                 </div>
