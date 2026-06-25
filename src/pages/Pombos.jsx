@@ -3,6 +3,7 @@ import { supabase, db } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../components/ui'
 import { useIdioma } from '../hooks/useIdioma'
+import { verificarConquistas } from '../components/Conquistas'
 
 const anoAtual = new Date().getFullYear()
 const anos = Array.from({ length: 10 }, (_, i) => anoAtual - i)
@@ -184,6 +185,13 @@ export default function Pombos({ nav }) {
         catch (e) { toast('Foto não guardada', 'warn') }
       }
       toast(selected ? 'Actualizado!' : form.nome + ' adicionado!', 'ok'); close(); load()
+      // Verificar conquistas após criar pombo
+      if (!selected && user?.id) {
+        const { data: todosPombos } = await supabase.from('pigeons').select('id').eq('user_id', user.id)
+        const nPombos = todosPombos?.length || 0
+        const novas = await verificarConquistas(user.id, { nPombos })
+        if (novas.length > 0) toast(`🏅 Nova conquista desbloqueada!`, 'ok')
+      }
     } catch (e) { toast('Erro: ' + e.message, 'err') }
     finally { setSaving(false) }
   }
