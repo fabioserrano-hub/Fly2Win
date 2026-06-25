@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useIdioma } from '../hooks/useIdioma'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { Spinner, EmptyState } from './ui'
@@ -59,12 +60,14 @@ export function ConquistaCard({ c, obtida = true, mini = false }) {
   )
 }
 
+function useT() { return useIdioma().t }
 export default function Conquistas({ userId, mini = false }) {
   const { user } = useAuth()
   const uid = userId || user?.id
   const [obtidas, setObtidas] = useState([])
   const [todas, setTodas] = useState([])
   const [loading, setLoading] = useState(true)
+  const t = useT()
   const [cat, setCat] = useState('todas')
 
   useEffect(() => {
