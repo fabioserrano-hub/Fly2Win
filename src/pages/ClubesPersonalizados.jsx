@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, db } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useLicenca, BloqueioPlano } from '../hooks/useLicenca'
 import { useToast, Spinner, EmptyState } from '../components/ui'
+import { useIdioma } from '../hooks/useIdioma'
 import { BotaoWhatsApp } from '../components/Partilha'
 
 const ESPECIALIDADES = [
@@ -61,6 +63,10 @@ function DetalheClubePersonalizado({ clube, user, onVoltar, toast }) {
 
   const linkConvite = `Junta-te ao clube "${clube.nome}" no ChampionsLoft!\nCódigo: *${clube.invite_code}*\n🔗 ${window.location.origin}`
 
+  // Verificar plano
+  const temAcesso = temPro
+  if (!temAcesso) return <BloqueioPlano plano="pro" nav={nav} />
+
   return (
     <div>
       {/* Header */}
@@ -83,7 +89,7 @@ function DetalheClubePersonalizado({ clube, user, onVoltar, toast }) {
         {/* Stats */}
         <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8, marginTop:14 }}>
           {[
-            [membros.length, '👥', 'Membros', '#4C8DFF'],
+            [membros.length, '👥', t('membros2'), '#4C8DFF'],
             [mediaClube+'%', '📊', 'Média clube', '#D4AF37'],
             [totalVitorias, '🏆', 'Vitórias', '#2DD4A7'],
             [minhaPos > 0 ? minhaPos+'º' : '—', '🎯', 'A minha pos.', '#A855F7'],
@@ -198,6 +204,8 @@ function DetalheClubePersonalizado({ clube, user, onVoltar, toast }) {
 export default function ClubesPersonalizados({ nav }) {
   const { user } = useAuth()
   const toast = useToast()
+  const { t } = useIdioma()
+  const { temBase, temPro, temElite } = useLicenca()
   const [clubes, setClubes] = useState([])
   const [loading, setLoading] = useState(true)
   const [clubeAberto, setClubeAberto] = useState(null)
@@ -279,7 +287,7 @@ export default function ClubesPersonalizados({ nav }) {
           </div>
           <div style={{ display:'flex', gap:6 }}>
             <button className="btn btn-secondary btn-sm" onClick={()=>setModal('entrar')}>🔑 Entrar</button>
-            <button className="btn btn-primary btn-sm" onClick={()=>setModal('criar')}>+ Criar</button>
+            <button className="btn btn-primary btn-sm" onClick={()=>temPro?setModal('criar'):nav('precos')}>{temPro?'+ Criar':'🔒 Pro'}</button>
           </div>
         </div>
       </div>
