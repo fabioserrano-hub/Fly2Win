@@ -9,7 +9,7 @@ const anoAtual = new Date().getFullYear()
 const anos = Array.from({ length: 10 }, (_, i) => anoAtual - i)
 const paises = ['PT', 'ES', 'FR', 'BE', 'NL', 'DE', 'IT', 'GB', 'PL', 'CZ']
 const CORES_POMBO = ['Azul barrado', 'Azul xadrezado', 'Azul sem barras', 'Vermelho barrado', 'Vermelho xadrezado', 'Vermelho sem barras', 'Amarelo', 'Branco', 'Branco com marcas', 'Preto', 'Cinzento', 'Castanho', 'Alazão', 'Meado', 'Tigrado', 'Pied azul', 'Pied vermelho', 'Pied branco', 'Recessivo vermelho', 'Recessivo amarelo']
-const FILTROS = [{ id: 'todos', label: t('todos') }, { id: 'M', label: `♂ ${t('macho')}s` }, { id: 'F', label: `♀ ${t('femea')}s` }, { id: 'ativo', label: 'Voadores' }, { id: 'reproducao', label: 'Reprodução' }, { id: 'lesionado', label: 'Lesionados' }, { id: 'velocidade', label: 'Velocidade' }, { id: 'meio_fundo', label: 'Meio-Fundo' }, { id: 'fundo', label: 'Fundo' }, { id: 'grande_fundo', label: 'G.Fundo' }]
+const FILTROS = [{ id: 'todos', label: 'Todos' }, { id: 'M', label: '♂ Machos' }, { id: 'F', label: '♀ Fêmeas' }]
 const ESTADOS_EXT = ['proprio', 'emprestado', 'cedido', 'vendido', 'oferecido', 'falecido']
 const CORES_COLUMBOFILIA = ['Azul barrado', 'Azul xadrezado', 'Azul sem barras', 'Vermelho barrado', 'Vermelho xadrezado', 'Amarelo', 'Branco', 'Preto', 'Cinzento', 'Castanho', 'Beige', 'Pied azul', 'Pied vermelho', 'Pied branco', 'Recessivo vermelho', 'Recessivo amarelo']
 const ESPS = [['velocidade', 'Velocidade'], ['meio_fundo', 'Meio-Fundo'], ['fundo', 'Fundo'], ['grande_fundo', 'G.Fundo']]
