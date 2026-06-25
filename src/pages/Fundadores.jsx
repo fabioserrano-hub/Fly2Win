@@ -2,13 +2,22 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useToast, Spinner } from '../components/ui'
+import { useIdioma } from '../hooks/useIdioma'
 
 const VAGAS_TOTAL = 100
-const PRECO = 13.99
+// Preço Fundador = melhor entre Elite individual (15,99€) e grupo 13+ (11,19€)
+// Fundador fica sempre com o preço mais baixo disponível
+const PRECO_INDIVIDUAL = 15.99
+const PRECO_GRUPO_3_5  = 14.39
+const PRECO_GRUPO_6_12 = 12.79
+const PRECO_GRUPO_13   = 11.19
+const PRECO = PRECO_GRUPO_13   // 11,19€ — melhor preço disponível para Fundadores
+const PRECO_FUTURO = '~19,99€' // estimativa após revisão de preços
 
 export default function Fundadores({ nav }) {
   const { user } = useAuth()
   const toast = useToast()
+  const { t } = useIdioma()
   const [ocupadas, setOcupadas] = useState(0)
   const [jeFundador, setJaFundador] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -111,7 +120,7 @@ export default function Fundadores({ nav }) {
         <div style={{ fontSize:13, fontWeight:700, color:'#fff', marginBottom:4 }}>O que incluis como Fundador:</div>
         {[
           ['👑', 'Plano Elite AI completo', 'Todas as funcionalidades actuais e futuras incluídas'],
-          ['💰', `${PRECO}€/mês para sempre`, 'Preço garantido. Reajuste máximo de +5% ao ano'],
+          ['💰', `${PRECO}€/mês para sempre`, `O melhor preço disponível na plataforma (grupo 13+). Reajuste máximo de +5% ao ano.`],
           ['🏅', 'Badge Fundador permanente', 'Destaque especial no perfil, leilões e comunidade'],
           ['📜', 'Certificado de Fundador', 'PDF oficial numerado com o teu número de fundador'],
           ['🎯', 'Acesso antecipado', 'Primeiros a testar novas funcionalidades antes de toda a gente'],
@@ -133,8 +142,8 @@ export default function Fundadores({ nav }) {
         <div style={{ fontSize:12, fontWeight:700, color:'#fff', marginBottom:10 }}>Fundador vs Preço Normal</div>
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
           {[
-            { label:'Preço actual', preco:`${PRECO}€`, sub:'/mês', cor:'#D4AF37', dest:true },
-            { label:'Preço futuro', preco:'~19,99€', sub:'/mês estimado', cor:'#475569', dest:false },
+            { label:t('precoGarantido')||'Preço actual', preco:`${PRECO}€`, sub:'/mês', cor:'#D4AF37', dest:true },
+            { label:'Preço futuro estimado', preco:PRECO_FUTURO, sub:'/mês', cor:'#475569', dest:false },
           ].map(({ label, preco, sub, cor, dest }) => (
             <div key={label} style={{ textAlign:'center', padding:'14px 10px', background: dest?'rgba(212,175,55,.08)':'rgba(16,31,64,.5)', border:`1px solid ${dest?'rgba(212,175,55,.3)':'#1B2D52'}`, borderRadius:8 }}>
               <div style={{ fontSize:11, color:'#7A8699', marginBottom:4 }}>{label}</div>
