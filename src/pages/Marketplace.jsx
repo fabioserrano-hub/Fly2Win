@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, db } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useIdioma } from '../hooks/useIdioma'
+import { useLicenca, BloqueioPlano } from '../hooks/useLicenca'
 import { useToast, Spinner, Modal, Field, EmptyState, Badge } from '../components/ui'
 import { BotaoQR } from '../components/QRCode'
 
@@ -13,6 +15,8 @@ const EMPTY = { nome:'', anilha:'', sexo:'M', cor:'', linhagem:'', esp:[], prova
 export default function Marketplace({ nav }) {
   const { user } = useAuth()
   const toast = useToast()
+  const { t } = useIdioma()
+  const { temBase, temPro, temElite } = useLicenca()
   const [anuncios, setAnuncios] = useState([])
   const [meusAnuncios, setMeusAnuncios] = useState([])
   const [pombos, setPombos] = useState([])
@@ -81,6 +85,10 @@ export default function Marketplace({ nav }) {
     (!filtroEsp || a.esp?.includes(filtroEsp)) &&
     (!filtroBusca || a.nome?.toLowerCase().includes(filtroBusca.toLowerCase()) || a.linhagem?.toLowerCase().includes(filtroBusca.toLowerCase()))
   )
+
+  // Verificar plano
+  const temAcesso = temPro
+  if (!temAcesso) return <BloqueioPlano plano="pro" nav={nav} />
 
   return (
     <div>
