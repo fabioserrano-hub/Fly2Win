@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase, db } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useToast, Spinner, EmptyState } from '../components/ui'
+import { verificarConquistas } from '../components/Conquistas'
 
 // ─── CONSTANTES ───────────────────────────────────────
 const SISTEMAS = {
@@ -523,7 +524,7 @@ export default function Ligas({ nav }) {
       const uid = user?.id
       const [{ data: memberships }, { data: oficiais }, provasData] = await Promise.all([
         supabase.from('league_members').select('*, leagues(*)').eq('user_id', uid),
-        supabase.from('leagues').select('*').eq('oficial', true),
+        supabase.from('leagues').select('*').eq('oficial', true).then(r => { console.log('oficiais:', r); return r }),
         db.getProvas(),
       ])
       const minhas = (memberships||[]).map(m=>({...m.leagues, meu_role:m.role})).filter(Boolean)
@@ -553,6 +554,7 @@ export default function Ligas({ nav }) {
       await supabase.from('league_members').insert({ league_id:data.id, user_id:user.id, nome:user?.user_metadata?.nome||'Eu', role:'admin' })
       toast('Liga criada! Código: '+data.invite_code,'ok')
       setWizard(false); load()
+      verificarConquistas(user.id, { temLiga:true }).catch(()=>{})
     } catch(e) { toast('Erro: '+e.message,'err') }
     finally { setSaving(false) }
   }
@@ -565,6 +567,7 @@ export default function Ligas({ nav }) {
       if (!liga) { toast('Código inválido','err'); return }
       await supabase.from('league_members').insert({ league_id:liga.id, user_id:user.id, nome:nomeEntrar.trim(), role:'member' })
       toast('Entrou na liga!','ok'); setModalEntrar(false); load()
+      verificarConquistas(user.id, { temLiga:true }).catch(()=>{})
     } catch(e) { toast(e.message?.includes('23505')?'Já é membro desta liga':'Erro: '+e.message,'err') }
     finally { setSaving(false) }
   }
@@ -573,6 +576,7 @@ export default function Ligas({ nav }) {
     try {
       await supabase.from('league_members').insert({ league_id:liga.id, user_id:user.id, nome:user?.user_metadata?.nome||'Eu', role:'member' })
       toast('Inscrito na liga oficial!','ok'); load()
+      verificarConquistas(user.id, { temLiga:true, temLigaOficial:true }).catch(()=>{})
     } catch(e) { toast(e.message?.includes('23505')?'Já está inscrito nesta liga':'Erro: '+e.message,'err') }
   }
 
