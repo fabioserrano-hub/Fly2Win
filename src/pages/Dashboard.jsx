@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase, db } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useIdioma } from '../hooks/useIdioma'
-import { useToast, Spinner } from '../components/ui'
+import { useToast, Spinner } from '../pages/ui'
 import { BotaoWhatsApp, textoCartaoVisita } from '../components/Partilha'
 import { ConquistaCard } from '../components/Conquistas'
 
