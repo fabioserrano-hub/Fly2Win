@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useLicenca, BloqueioPlano } from '../hooks/useLicenca'
 import { useToast, Spinner, Modal, Field, EmptyState, Badge } from '../components/ui'
+import { useIdioma } from '../hooks/useIdioma'
 import { BotaoQR } from '../components/QRCode'
 
 const ESP_ICON = { velocidade:'⚡', 'meio-fundo':'🏃', fundo:'🏔️', 'grande-fundo':'🌍' }
@@ -11,7 +13,7 @@ function TempoRestante({ fim }) {
   useEffect(() => {
     const calc = () => {
       const diff = new Date(fim) - new Date()
-      if (diff <= 0) { setResto('Terminado'); return }
+      if (diff <= 0) { setResto(t('terminado')); return }
       const d = Math.floor(diff/86400000)
       const h = Math.floor((diff%86400000)/3600000)
       const m = Math.floor((diff%3600000)/60000)
@@ -31,6 +33,8 @@ const EMPTY = { nome:'', anilha:'', sexo:'M', cor:'', esp:[], provas:0, percenti
 export default function Leiloes({ nav }) {
   const { user } = useAuth()
   const toast = useToast()
+  const { t } = useIdioma()
+  const { temBase, temPro, temElite } = useLicenca()
   const [leiloes, setLeiloes] = useState([])
   const [meusLeiloes, setMeusLeiloes] = useState([])
   const [loading, setLoading] = useState(true)
@@ -98,6 +102,10 @@ export default function Leiloes({ nav }) {
     } catch(e) { toast('Erro: '+e.message,'err') }
     finally { setSaving(false) }
   }
+
+  // Verificar plano
+  const temAcesso = temPro
+  if (!temAcesso) return <BloqueioPlano plano="pro" nav={nav} />
 
   return (
     <div>
