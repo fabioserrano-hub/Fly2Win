@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, db } from '../lib/supabase'
 import { useToast, Spinner, EmptyState, Field } from '../components/ui'
+import { useIdioma } from '../hooks/useIdioma'
 
 const COR_FORMA = (v) => v >= 80 ? '#2DD4A7' : v >= 60 ? '#D4AF37' : v >= 40 ? '#4C8DFF' : '#f87171'
 const LABEL_FORMA = (v) => v >= 80 ? 'Excelente' : v >= 60 ? 'Boa' : v >= 40 ? 'Média' : 'Fraca'
@@ -13,6 +14,10 @@ function GaugeForma({ valor }) {
   const cx = 60, cy = 60, r = 45
   const x = cx + r * Math.cos(rad)
   const y = cy + r * Math.sin(rad)
+  // Verificar plano
+  const temAcesso = temPro
+  if (!temAcesso) return <BloqueioPlano plano="pro" nav={nav} />
+
   return (
     <div style={{ textAlign:'center' }}>
       <svg viewBox="0 0 120 70" style={{ width:140, height:82, display:'block', margin:'0 auto' }}>
@@ -30,6 +35,8 @@ function GaugeForma({ valor }) {
 
 export default function RastreioForma({ nav }) {
   const toast = useToast()
+  const { t } = useIdioma()
+  const { temBase, temPro, temElite } = useLicenca()
   const [pombos, setPombos] = useState([])
   const [registos, setRegistos] = useState([])
   const [loading, setLoading] = useState(true)
