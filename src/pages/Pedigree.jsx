@@ -185,6 +185,7 @@ export default function Pedigree({ nav, params }) {
     })
     setModalNode(null)
     toast('Guardado!', 'ok')
+    verificarConquistas(user?.id, { temPedigree:true }).catch(()=>{})
   }
 
   const gerarPDF = async () => {
