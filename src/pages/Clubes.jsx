@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useLicenca, BloqueioPlano } from '../hooks/useLicenca'
 import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../components/ui'
+import { useIdioma } from '../hooks/useIdioma'
 
 const CARGOS = ['socio','presidente','secretario','tesoureiro','vice-presidente','vogal']
 const CARGO_COR = { presidente:'green', secretario:'blue', tesoureiro:'yellow', 'vice-presidente':'blue', vogal:'gray', socio:'gray' }
@@ -15,6 +17,8 @@ const EMPTY_COM = { titulo:'', conteudo:'', tipo:'aviso', fixado:false }
 export default function Clubes({ nav }) {
   const { user } = useAuth()
   const toast = useToast()
+  const { t } = useIdioma()
+  const { temBase, temPro, temElite } = useLicenca()
   const [clube, setClube] = useState(null)
   const [socios, setSocios] = useState([])
   const [quotas, setQuotas] = useState([])
@@ -151,6 +155,10 @@ export default function Clubes({ nav }) {
     </div>
   )
 
+  // Verificar plano
+  const temAcesso = temElite
+  if (!temAcesso) return <BloqueioPlano plano="elite" nav={nav} />
+
   return (
     <div>
       {/* Header */}
@@ -164,7 +172,7 @@ export default function Clubes({ nav }) {
           <button className="btn btn-secondary btn-sm" onClick={abrirEditClube}>✏️</button>
         </div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8, marginTop:12 }}>
-          {[[ativos.length,'👥','Sócios'],[(socios.filter(s=>s.cargo!=='socio').length),'⭐','Direcção'],[`${totalMes.toFixed(0)}€`,'💰','Quotas mês'],[emFalta.length,'⚠️','Em atraso']].map(([v,i,l])=>(
+          {[[ativos.length,'👥', t('socios')],[(socios.filter(s=>s.cargo!=='socio').length),'⭐','Direcção'],[`${totalMes.toFixed(0)}€`,'💰','Quotas mês'],[emFalta.length,'⚠️','Em atraso']].map(([v,i,l])=>(
             <div key={l} style={{ textAlign:'center', padding:'6px', background:'rgba(255,255,255,.04)', borderRadius:8 }}>
               <div style={{ fontSize:16, fontWeight:700, color:'#fff' }}>{v}</div>
               <div style={{ fontSize:9, color:'#7A8699' }}>{i} {l}</div>
