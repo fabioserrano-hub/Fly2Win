@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase, db } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useLicenca, BloqueioPlano } from '../hooks/useLicenca'
 import { useToast, Spinner, EmptyState } from '../components/ui'
+import { useIdioma } from '../hooks/useIdioma'
 import { verificarConquistas } from '../components/Conquistas'
 
 // ─── CONSTANTES ───────────────────────────────────────
@@ -62,6 +64,10 @@ function calcularPontos(sistema, percentil, posicao, campoSize, distancia, ponde
 // ─── FORMA VISUAL ─────────────────────────────────────
 function Forma({ valores = [] }) {
   if (!valores?.length) return <span style={{ color:'#475569', fontSize:11 }}>—</span>
+  // Verificar plano
+  const temAcesso = temBase
+  if (!temAcesso) return <BloqueioPlano plano="base" nav={nav} />
+
   return (
     <div style={{ display:'flex', gap:2, alignItems:'flex-end', height:20 }}>
       {valores.slice(-5).map((v, i) => (
@@ -307,7 +313,7 @@ function WizardCriacaoLiga({ onCriar, onFechar, saving }) {
         {/* Footer */}
         <div style={{ padding:'14px 20px', borderTop:'1px solid #1B2D52', display:'flex', justifyContent:'space-between', gap:10, flexShrink:0, background:'#0B1830' }}>
           <button className="btn btn-secondary" onClick={() => passo > 1 ? setPasso(p=>p-1) : onFechar()}>
-            {passo > 1 ? '← Anterior' : 'Cancelar'}
+            {passo > 1 ? '← Anterior' : t('cancelar')}
           </button>
           {passo < PASSOS
             ? <button className="btn btn-primary" onClick={() => { if(passo===1&&!form.nome.trim()){return} setPasso(p=>p+1) }}>Seguinte →</button>
@@ -506,6 +512,8 @@ function DetalheLiga({ liga, user, onVoltar, provas, toast }) {
 // ─── COMPONENTE PRINCIPAL ─────────────────────────────
 export default function Ligas({ nav }) {
   const toast = useToast()
+  const { t } = useIdioma()
+  const { temBase, temPro, temElite } = useLicenca()
   const { user } = useAuth()
   const [ligas, setLigas] = useState([])
   const [provas, setProvas] = useState([])
@@ -598,7 +606,7 @@ export default function Ligas({ nav }) {
           </div>
           <div style={{ display:'flex', gap:6 }}>
             <button className="btn btn-secondary btn-sm" onClick={() => setModalEntrar(true)}>🔑 Entrar</button>
-            <button className="btn btn-primary btn-sm" onClick={() => setWizard(true)}>+ Criar</button>
+            <button className="btn btn-primary btn-sm" onClick={() => temElite ? setWizard(true) : nav('precos')}>{temElite ? '+ '+t('criarLiga') : '🔒 Elite'}</button>
           </div>
         </div>
       </div>
