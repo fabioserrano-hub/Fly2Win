@@ -5,6 +5,7 @@ import { BloqueioPlano } from '../hooks/useLicenca'
 
 export default function Epoca({ nav }) {
   const toast = useToast()
+  const { t } = useIdioma()
   const [loading, setLoading] = useState(true)
   const [pombos, setPombos] = useState([])
   const [provas, setProvas] = useState([])
@@ -132,7 +133,7 @@ export default function Epoca({ nav }) {
       // KPIs capa
       const kpis = [
         [`${efectivo.length}`, 'Efectivo'],
-        [`${provasAno.length}`, 'Provas'],
+        [`${provasAno.length}`, t('provas')],
         [`${vitorias}`, 'Vitórias'],
         [`${ranking[0]?.percentil||0}%`, 'Melhor Percentil'],
         [`${borrachinhos}`, 'Nascidos'],
