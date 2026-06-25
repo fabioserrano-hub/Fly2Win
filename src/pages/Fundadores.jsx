@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { useToast, Spinner } from '../pages/ui'
+import { useToast, Spinner } from '../components/ui'
 import { useIdioma } from '../hooks/useIdioma'
 
 const VAGAS_TOTAL = 100
