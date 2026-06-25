@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { db } from '../lib/supabase'
 import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../components/ui'
+import { useIdioma } from '../hooks/useIdioma'
 import { classificarPombo } from './Pombos'
 
 const CORES = ['#2DD4A7', '#D94F4F', '#4C8DFF', '#D4AF37', '#6C4FBB', '#E07B39']
@@ -8,6 +9,7 @@ const EMPTY = { nome: '', tipo: 'Misto', cap: '40', loc: '', lat: '', lon: '', c
 
 export default function Pombais({ nav }) {
   const toast = useToast()
+  const { t } = useIdioma()
   const [pombais, setPombais] = useState([])
   const [pombos, setPombos] = useState([])
   const [loading, setLoading] = useState(true)
@@ -140,7 +142,7 @@ export default function Pombais({ nav }) {
       }
 
       <Modal open={modal} onClose={close} title={selected ? '✏️ Editar Pombal' : '🏠 Novo Pombal'}
-        footer={<><button className="btn btn-secondary" onClick={close}>Cancelar</button><button className="btn btn-primary" onClick={save} disabled={saving}>{saving ? <Spinner /> : null}{selected ? 'Guardar' : 'Criar'}</button></>}>
+        footer={<><button className="btn btn-secondary" onClick={close}>Cancelar</button><button className="btn btn-primary" onClick={save} disabled={saving}>{saving ? <Spinner /> : null}{selected ? t('guardar') : 'Criar'}</button></>}>
         <div className="form-grid">
           <div className="col-2"><Field label="Nome *"><input className="input" placeholder="Pombal Principal" value={form.nome} onChange={e => sf('nome', e.target.value)} /></Field></div>
           <Field label="Tipo"><select className="input" value={form.tipo} onChange={e => sf('tipo', e.target.value)}>{['Misto', 'Machos', 'Fêmeas', 'Jovens', 'Reprodutores'].map(t => <option key={t}>{t}</option>)}</select></Field>
