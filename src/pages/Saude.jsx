@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { db, supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useIdioma } from '../hooks/useIdioma'
 import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../components/ui'
 
 const FASES = ['Não Competitivo', 'Pré-Competitivo', 'Competição', 'Muda', 'Repouso']
@@ -90,6 +91,7 @@ function DoencasTab() {
 
 export default function Saude({ nav, params }) {
   const toast = useToast()
+  const { t } = useIdioma()
   const { user } = useAuth()
   const [registos, setRegistos] = useState([])
   const [pombos, setPombos] = useState([])
@@ -215,7 +217,7 @@ export default function Saude({ nav, params }) {
     <div>
       <div className="section-header">
         <div><div className="section-title">Saúde</div><div className="section-sub">{registos.length} registos · {vacinas.length} vacinas</div></div>
-        <button className="btn btn-primary" onClick={tab==='registos' ? openNew : openNewVac}>＋ {tab==='registos'?'Novo Registo':'Nova Vacina'}</button>
+        <button className="btn btn-primary" onClick={tab==='registos' ? openNew : openNewVac}>＋ {tab==='registos'? t('novoRegisto') :'Nova Vacina'}</button>
       </div>
 
       <div style={{ display:'flex', gap:4, background:'#101F40', borderRadius:8, padding:4, marginBottom:16 }}>
@@ -338,7 +340,7 @@ export default function Saude({ nav, params }) {
       {tab==='doencas' && <DoencasTab />}
 
       <Modal open={modal} onClose={close} title={selected?'✏️ Editar Registo':'🏥 Novo Registo de Saúde'}
-        footer={<><button className="btn btn-secondary" onClick={close}>Cancelar</button><button className="btn btn-primary" onClick={save} disabled={saving}>{saving?<Spinner />:null}{selected?'Guardar':'Registar'}</button></>}>
+        footer={<><button className="btn btn-secondary" onClick={close}>Cancelar</button><button className="btn btn-primary" onClick={save} disabled={saving}>{saving?<Spinner />:null}{selected? t('guardar') :'Registar'}</button></>}>
         <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
           <Field label="Pombo *"><select className="input" value={form.pigeon_id} onChange={e => sf('pigeon_id', e.target.value)} disabled={!!selected}><option value="">— Seleccionar —</option>{pombos.map(p => <option key={p.id} value={p.id}>{p.nome} ({p.anilha})</option>)}</select></Field>
           <div className="form-grid" style={{ gridTemplateColumns:'1fr 1fr' }}>
