@@ -111,15 +111,44 @@ export default function Pedigree({ nav, params }) {
   const selecionarPombo = async (id) => {
     setPomboSel(id)
     if (!id) { setArvore(null); return }
-    // Carregar dados manuais guardados (linhagem, desc, conquistas personalizadas)
+
+    // Construir árvore base a partir dos dados da DB
+    const arvoreBase = construirArvore(id, pombos, {})
+    if (!arvoreBase) { setArvore(null); return }
+
+    // Carregar dados manuais do pombo principal
     let manual = {}
-    try { manual = await db.getPedigree(id) || {} } catch(e) {}
+    try { manual = await db.getPedigree(id) || {} } catch {}
     if (!manual || !Object.keys(manual).length) {
-      const local = localStorage.getItem(CHAVE_STORAGE + id)
-      if (local) manual = JSON.parse(local)
+      try { const local = localStorage.getItem(CHAVE_STORAGE + id); if (local) manual = JSON.parse(local) } catch {}
     }
-    // Construir árvore dinâmica a partir da DB
-    const arvore = construirArvore(id, pombos, manual)
+
+    // Para cada nó da árvore que corresponde a um pombo real no efectivo,
+    // carregar os dados manuais guardados para ESSE pombo (ancestrais em cascata)
+    const nodos = ['pai','mae','avo_pp','avo_pm','avo_mp','avo_mm','bis_ppp','bis_ppm','bis_pmp','bis_pmm','bis_mpp','bis_mpm','bis_mmp','bis_mmm']
+    const manuaisAncestral = {}
+
+    await Promise.all(nodos.map(async (key) => {
+      const node = arvoreBase[key]
+      if (!node?.anilha) return
+      // Encontrar o pombo real por anilha
+      const pomboReal = pombos.find(p => p.anilha === node.anilha)
+      if (!pomboReal) return
+      // Carregar o pedigree guardado desse pombo ancestral
+      let dadosAncestral = {}
+      try { dadosAncestral = await db.getPedigree(pomboReal.id) || {} } catch {}
+      if (!dadosAncestral || !Object.keys(dadosAncestral).length) {
+        try { const local = localStorage.getItem(CHAVE_STORAGE + pomboReal.id); if (local) dadosAncestral = JSON.parse(local) } catch {}
+      }
+      // O nó 'pombo' do pedigree do ancestral contém os seus dados enriquecidos
+      if (dadosAncestral.pombo) {
+        manuaisAncestral[key] = { ...dadosAncestral.pombo }
+      }
+    }))
+
+    // Mesclar: dados manuais do pombo principal + dados dos ancestrais
+    const manualFinal = { ...manuaisAncestral, ...manual }
+    const arvore = construirArvore(id, pombos, manualFinal)
     setArvore(arvore)
   }
 
