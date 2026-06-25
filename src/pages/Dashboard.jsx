@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase, db } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useIdioma } from '../hooks/useIdioma'
 import { useToast, Spinner } from '../components/ui'
 import { BotaoWhatsApp, textoCartaoVisita } from '../components/Partilha'
 import { ConquistaCard } from '../components/Conquistas'
@@ -8,12 +9,13 @@ import { ConquistaCard } from '../components/Conquistas'
 export default function Dashboard({ nav }) {
   const { user } = useAuth()
   const toast = useToast()
+  const { t } = useIdioma()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [clima, setClima] = useState(null)
   const nome = user?.user_metadata?.nome?.split(' ')[0] || 'Columbófilo'
   const h = new Date().getHours()
-  const saudacao = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite'
+  const saudacao = h < 12 ? t('bomDia') : h < 18 ? 'Boa tarde' : 'Boa noite'
 
   useEffect(() => {
     async function load() {
@@ -119,10 +121,10 @@ export default function Dashboard({ nav }) {
   const hojeStr = new Date().toISOString().slice(0, 10)
 
   const ACOES_RAPIDAS = [
-    ['🏆', 'Registar Chegada', 'provas'],
-    ['🏥', 'Registo Saúde', 'saude'],
-    ['🎯', 'Novo Treino', 'treinos'],
-    ['✅', 'Checklist', 'checklist'],
+    ['🏆', t('registarChegada'), 'provas'],
+    ['🏥', t('registoSaude'), 'saude'],
+    ['🎯', t('novoTreino'), 'treinos'],
+    ['✅', t('checklist'), 'checklist'],
   ]
 
   const totalHoje = data.tarefasHojeOuAtraso.length + data.eventosHoje.length + data.provasProximas.filter(p => p.data_reg === hojeStr).length + (data.itemTratamentoHoje ? 1 : 0)
@@ -200,7 +202,7 @@ export default function Dashboard({ nav }) {
                   <span style={{ fontSize: 16 }}>✅</span>
                   <div style={{ flex: 1, fontSize: 13, color: '#fff' }}>{t.titulo}</div>
                   <span style={{ fontSize: 11, color: t.data_prevista < hojeStr ? '#f87171' : '#7A8699' }}>
-                    {t.data_prevista < hojeStr ? 'Em atraso' : 'Hoje'}
+                    {t.data_prevista < hojeStr ? t('emAtraso') : t('hoje')}
                   </span>
                 </div>
               ))}
