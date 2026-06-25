@@ -3,6 +3,7 @@ import { db, supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../components/ui'
 import { classificarPombo } from './Pombos'
+import { verificarConquistas } from '../components/Conquistas'
 
 const TIPOS = ['Velocidade', 'Meio-Fundo', 'Fundo', 'Grande Fundo', 'Treino Federado']
 const EMPTY_PROVA = { nome: '', tipo: 'Velocidade', dist: '', data_reg: new Date().toISOString().slice(0, 10), local_solta: '', lat_solta: '', lon_solta: '', hora_solta: '08:00', n_pombos: '', n_socios: '', custo: '', posicao_geral: '' }
@@ -177,6 +178,16 @@ export default function Provas({ nav, params }) {
       const payload = { nome: form.nome.trim(), tipo: form.tipo, dist: parseFloat(form.dist), data_reg: form.data_reg, local_solta: form.local_solta, lat_solta: form.lat_solta ? parseFloat(form.lat_solta) : null, lon_solta: form.lon_solta ? parseFloat(form.lon_solta) : null, hora_solta: form.hora_solta, n_pombos: form.n_pombos ? parseInt(form.n_pombos) : null, n_socios: form.n_socios ? parseInt(form.n_socios) : null, custo: form.custo ? parseFloat(form.custo) : null, posicao_geral: form.posicao_geral ? parseInt(form.posicao_geral) : null }
       selected ? await db.updateProva(selected.id, payload) : await db.createProva(payload)
       toast(selected ? 'Actualizada!' : 'Prova criada!', 'ok'); close(); load()
+      // Verificar conquistas após criar prova
+      if (!selected && user?.id) {
+        const { data: todasProvas } = await supabase.from('races').select('posicao_geral,tipo,dist').eq('user_id', user.id)
+        const nProvas = todasProvas?.length || 0
+        const vitorias = todasProvas?.filter(p => p.posicao_geral === 1).length || 0
+        const maxPercentil = 0 // sem percentil ainda nesta prova
+        const temGrandeFundo = todasProvas?.some(p => (p.dist||0) > 700) || false
+        const novas = await verificarConquistas(user.id, { nProvas, vitorias, maxPercentil, temGrandeFundo })
+        if (novas.length > 0) toast(`🏅 Nova conquista desbloqueada!`, 'ok')
+      }
     } catch (e) { toast('Erro: ' + e.message, 'err') }
     finally { setSaving(false) }
   }
