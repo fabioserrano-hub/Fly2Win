@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { db, supabase } from '../lib/supabase'
 import { useToast, Spinner } from '../components/ui'
+import { useIdioma } from '../hooks/useIdioma'
 
 const MODULOS = [
   { id:'pombos', label:'🐦 Pombos (efectivo)', fn: () => db.getPombos() },
@@ -35,6 +36,8 @@ function downloadCSV(csv, nome) {
 
 export default function Exportacao({ nav }) {
   const toast = useToast()
+  const { t } = useIdioma()
+  const { temBase, temPro, temElite } = useLicenca()
   const [exportando, setExportando] = useState({})
   const [exportandoTudo, setExportandoTudo] = useState(false)
 
@@ -64,6 +67,10 @@ export default function Exportacao({ nav }) {
     } catch(e) { toast('Erro: '+e.message,'err') }
     finally { setExportandoTudo(false) }
   }
+
+  // Verificar plano
+  const temAcesso = temPro
+  if (!temAcesso) return <BloqueioPlano plano="pro" nav={nav} />
 
   return (
     <div>
