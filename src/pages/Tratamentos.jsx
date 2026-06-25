@@ -38,6 +38,7 @@ const PRODUTO_VAZIO = { nome: '', modo: 'agua', dosagem_valor: '', dosagem_unida
 
 export default function Tratamentos({ nav }) {
   const toast = useToast()
+  const { t } = useIdioma()
   const [planos, setPlanos] = useState([])
   const [aplicacoes, setAplicacoes] = useState([])
   const [produtos, setProdutos] = useState([])
@@ -389,7 +390,7 @@ export default function Tratamentos({ nav }) {
       )}
 
       <Modal open={modal === 'plano'} onClose={closePlano} title={selected ? '✏️ Editar Plano' : '🧪 Novo Plano de Tratamento'} wide
-        footer={<><button className="btn btn-secondary" onClick={closePlano}>Cancelar</button><button className="btn btn-primary" onClick={savePlano} disabled={saving}>{saving ? <Spinner /> : null}{selected ? 'Guardar' : 'Criar Plano'}</button></>}>
+        footer={<><button className="btn btn-secondary" onClick={closePlano}>Cancelar</button><button className="btn btn-primary" onClick={savePlano} disabled={saving}>{saving ? <Spinner /> : null}{selected ? t('guardar') : 'Criar Plano'}</button></>}>
         <div className="form-grid">
           <div className="col-2"><Field label="Nome do Plano *"><input className="input" placeholder="Ex: Plano Velocidade" value={form.nome} onChange={e => sf('nome', e.target.value)} /></Field></div>
           <Field label="Especialidade"><select className="input" value={form.especialidade} onChange={e => sf('especialidade', e.target.value)}>{ESPECIALIDADES.map(e => <option key={e} value={e}>{espLabel[e]}</option>)}</select></Field>
@@ -445,7 +446,7 @@ export default function Tratamentos({ nav }) {
       </Modal>
 
       <Modal open={modal === 'produto'} onClose={closeProduto} title={selected ? '✏️ Editar Produto' : '💊 Novo Produto'}
-        footer={<><button className="btn btn-secondary" onClick={closeProduto}>Cancelar</button><button className="btn btn-primary" onClick={saveProduto} disabled={saving}>{saving ? <Spinner /> : null}{selected ? 'Guardar' : 'Criar Produto'}</button></>}>
+        footer={<><button className="btn btn-secondary" onClick={closeProduto}>Cancelar</button><button className="btn btn-primary" onClick={saveProduto} disabled={saving}>{saving ? <Spinner /> : null}{selected ? t('guardar') : 'Criar Produto'}</button></>}>
         <Field label="Nome do Produto *"><input className="input" placeholder="Ex: Eletrólitos" value={formProduto.nome} onChange={e => sfp('nome', e.target.value)} /></Field>
         <div style={{ fontSize: 11, color: '#7A8699', margin: '4px 0 12px' }}>💡 Se tiver um item de Stock com o mesmo nome exacto, a app verifica automaticamente se o stock é suficiente ao aplicar o plano.</div>
         <Field label="Modo de Administração">
