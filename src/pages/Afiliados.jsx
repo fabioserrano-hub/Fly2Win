@@ -1,12 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
+import { useLicenca, BloqueioPlano } from '../hooks/useLicenca'
 import { useToast, Spinner, EmptyState } from '../components/ui'
+import { useIdioma } from '../hooks/useIdioma'
 import { BotaoQR } from '../components/QRCode'
 
 export default function Afiliados({ nav }) {
   const { user } = useAuth()
   const toast = useToast()
+  const { t } = useIdioma()
+  const { temBase, temPro, temElite } = useLicenca()
   const [afiliado, setAfiliado] = useState(null)
   const [referidos, setReferidos] = useState([])
   const [loading, setLoading] = useState(true)
@@ -77,6 +81,10 @@ export default function Afiliados({ nav }) {
     </div>
   )
 
+  // Verificar plano
+  const temAcesso = temPro
+  if (!temAcesso) return <BloqueioPlano plano="pro" nav={nav} />
+
   return (
     <div>
       {/* Header com stats */}
@@ -84,7 +92,7 @@ export default function Afiliados({ nav }) {
         <div style={{ position:'absolute', top:0, left:0, right:0, height:3, background:'linear-gradient(90deg,#B8960C,#D4AF37,#B8960C)' }} />
         <div style={{ fontSize:16, fontWeight:900, color:'#D4AF37', fontFamily:"'Fraunces',serif", marginBottom:12 }}>🤝 Os teus resultados</div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8 }}>
-          {[[referidos.length,'👥','Referidos'],[`${totalGanho.toFixed(0)}€`,'💰','Total ganho'],[`${pendente.toFixed(0)}€`,'⏳','Pendente']].map(([v,i,l])=>(
+          {[[referidos.length,'👥', t('referidos')],[`${totalGanho.toFixed(0)}€`,'💰', t('totalGanho')],[`${pendente.toFixed(0)}€`,'⏳', t('pendente3')]].map(([v,i,l])=>(
             <div key={l} style={{ textAlign:'center', padding:'8px', background:'rgba(255,255,255,.04)', borderRadius:8 }}>
               <div style={{ fontSize:18, fontWeight:700, color:'#D4AF37' }}>{v}</div>
               <div style={{ fontSize:9, color:'#7A8699' }}>{i} {l}</div>
@@ -145,7 +153,7 @@ export default function Afiliados({ nav }) {
                   </div>
                   <div style={{ textAlign:'right' }}>
                     <div style={{ fontSize:14, fontWeight:700, color:'#D4AF37' }}>{(r.comissao||0).toFixed(2)}€</div>
-                    <div style={{ fontSize:10, color:r.pago?'#2DD4A7':'#f87171' }}>{r.pago?'✓ Pago':'Pendente'}</div>
+                    <div style={{ fontSize:10, color:r.pago?'#2DD4A7':'#f87171' }}>{r.pago?'✓ Pago':t('pendente3')}</div>
                   </div>
                 </div>
               ))}
