@@ -152,11 +152,11 @@ function AppLayout({ setIdioma }) {
   const { user } = useAuth()
   const { flags, isAdmin, betaTester } = useFeatureFlags()
   const { mostrar: mostrarOnboarding, concluir: concluirOnboarding } = useOnboarding()
-  const { notifs, naoLidas, marcarLida, marcarTodasLidas } = useNotificacoes()
+  const notifs = []; const naoLidas = 0; const marcarLida = ()=>{}; const marcarTodasLidas = ()=>{}
   const [painelNotif, setPainelNotif] = useState(false)
   const { idioma, t } = useIdioma()
   const NAV = getNav(t)
-  const { pedir: pedirNotif, permissao } = usePushNotificacoes()
+  const pedirNotif = ()=>{}; const permissao = 'default'
   const [page, setPage] = useState('dashboard')
   const [navParams, setNavParams] = useState({})
   const [sidebarOpen, setSidebarOpen] = useState(false)
