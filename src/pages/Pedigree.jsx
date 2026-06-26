@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { db } from '../lib/supabase'
+import { useIdioma } from '../hooks/useIdioma'
 import { useToast, Spinner, Modal, Field, EmptyState } from '../components/ui'
 import { BotaoQR } from '../components/QRCode'
 
