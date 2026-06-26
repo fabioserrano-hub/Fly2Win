@@ -1,11 +1,12 @@
 import { ToastProvider } from './components/ui'
 import { IdiomaContext, useIdiomaState } from './hooks/useIdioma'
 import { AuthProvider, useAuth } from './hooks/useAuth'
+import { useNotificacoes, PainelNotificacoes } from './components/Notificacoes'
 
 function Conteudo() {
-  const { user, loading } = useAuth()
-  if (loading) return <div style={{ color:'#fff', fontSize:20 }}>A carregar auth...</div>
-  return <div style={{ color:'#fff', fontSize:20 }}>✅ Teste 2 OK — Auth: {user ? user.email : 'sem sessão'}</div>
+  const { user } = useAuth()
+  const { naoLidas } = useNotificacoes()
+  return <div style={{ color:'#fff', fontSize:20 }}>✅ Teste 3 OK — Notificacoes: {naoLidas} não lidas</div>
 }
 
 export default function App() {
