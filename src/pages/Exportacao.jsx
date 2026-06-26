@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { db, supabase } from '../lib/supabase'
 import { useToast, Spinner } from '../components/ui'
 import { useIdioma } from '../hooks/useIdioma'
+import { useLicenca, BloqueioPlano } from '../hooks/useLicenca'
 
 const MODULOS = [
   { id:'pombos', label:'🐦 Pombos (efectivo)', fn: () => db.getPombos() },
