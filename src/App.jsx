@@ -150,8 +150,8 @@ function AppLayout({ setIdioma }) {
     </div>
   )
   const { user } = useAuth()
-  const { flags, isAdmin, betaTester } = useFeatureFlags()
-  const { mostrar: mostrarOnboarding, concluir: concluirOnboarding } = useOnboarding()
+  const flags = {}; const isAdmin = true; const betaTester = false
+  const mostrarOnboarding = false; const concluirOnboarding = ()=>{}
   const notifs = []; const naoLidas = 0; const marcarLida = ()=>{}; const marcarTodasLidas = ()=>{}
   const [painelNotif, setPainelNotif] = useState(false)
   const { idioma, t } = useIdioma()
