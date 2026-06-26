@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase, db } from '../lib/supabase'
 import { useToast, Spinner, EmptyState, Field } from '../components/ui'
 import { useIdioma } from '../hooks/useIdioma'
+import { useLicenca, BloqueioPlano } from '../hooks/useLicenca'
 
 const COR_FORMA = (v) => v >= 80 ? '#2DD4A7' : v >= 60 ? '#D4AF37' : v >= 40 ? '#4C8DFF' : '#f87171'
 const LABEL_FORMA = (v) => v >= 80 ? 'Excelente' : v >= 60 ? 'Boa' : v >= 40 ? 'Média' : 'Fraca'
