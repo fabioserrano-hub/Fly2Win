@@ -160,7 +160,7 @@ function AppLayout({ setIdioma }) {
   const [page, setPage] = useState('dashboard')
   const [navParams, setNavParams] = useState({})
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { collapsed, toggle } = useSidebarCollapse()
+  const collapsed = []; const toggle = ()=>{}
 
   const nav = (p, params = {}) => { setPage(p); setNavParams(params); setSidebarOpen(false) }
 
