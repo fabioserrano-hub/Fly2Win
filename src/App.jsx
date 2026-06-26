@@ -258,6 +258,11 @@ function AppLayout({ setIdioma }) {
   }
 
   return (
+    <div style={{minHeight:'100vh',background:'#050D1A',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center'}}>
+      ✅ AppLayout render OK — user: {user?.email}
+    </div>
+  )
+  return (
     <div className="app">
       <div className={`mobile-overlay${sidebarOpen ? ' show' : ''}`} onClick={() => setSidebarOpen(false)} />
 
