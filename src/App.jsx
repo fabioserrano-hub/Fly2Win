@@ -140,6 +140,15 @@ function useSidebarCollapse() {
 
 // ─── APP LAYOUT ───────────────────────────────────────
 function AppLayout({ setIdioma }) {
+  // Error boundary via state
+  const [renderErro, setRenderErro] = useState(null)
+  if (renderErro) return (
+    <div style={{position:'fixed',inset:0,background:'#050D1A',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:12,padding:20,fontFamily:'sans-serif'}}>
+      <div style={{fontSize:32}}>⚠️</div>
+      <div style={{color:'#f87171',fontSize:12,background:'#101F40',padding:8,borderRadius:6,maxWidth:320,wordBreak:'break-all'}}>{renderErro}</div>
+      <button onClick={()=>{localStorage.clear();location.reload()}} style={{background:'#1E5FD9',color:'#fff',border:'none',padding:'10px 20px',borderRadius:6,cursor:'pointer'}}>Limpar e recarregar</button>
+    </div>
+  )
   const { user } = useAuth()
   const { flags, isAdmin, betaTester } = useFeatureFlags()
   const { mostrar: mostrarOnboarding, concluir: concluirOnboarding } = useOnboarding()
@@ -199,6 +208,7 @@ function AppLayout({ setIdioma }) {
   const currentSection = NAV.find(s => s.items.some(i => i.id === page))?.section || ''
 
   const renderPage = () => {
+    try {
     switch (page) {
       case 'dashboard':    return <Dashboard nav={nav} />
       case 'pombos':       return <Pombos nav={nav} params={navParams} />
@@ -244,6 +254,7 @@ function AppLayout({ setIdioma }) {
       case 'documentos':   return <Documentos nav={nav} />
       default:             return <Dashboard nav={nav} />
     }
+    } catch(e) { setRenderErro(e.message); return null }
   }
 
   return (
@@ -445,4 +456,3 @@ export default function App() {
     </IdiomaContext.Provider>
   )
 }
-
