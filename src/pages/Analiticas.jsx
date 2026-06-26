@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase, db } from '../lib/supabase'
 import { useToast, Spinner, EmptyState } from '../components/ui'
 import { useIdioma } from '../hooks/useIdioma'
+import { useLicenca, BloqueioPlano } from '../hooks/useLicenca'
 
 const ESP_COR = { velocidade:'#D4AF37', 'meio-fundo':'#4C8DFF', fundo:'#2DD4A7', 'grande-fundo':'#c084fc' }
 const ESP_ICON = { velocidade:'⚡', 'meio-fundo':'🏃', fundo:'🏔️', 'grande-fundo':'🌍' }
