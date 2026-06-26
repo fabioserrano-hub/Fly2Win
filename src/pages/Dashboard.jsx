@@ -3,8 +3,9 @@ import { supabase, db } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useIdioma } from '../hooks/useIdioma'
 import { useToast, Spinner } from '../components/ui'
-import { BotaoWhatsApp, textoCartaoVisita } from '../components/Partilha'
-import { ConquistaCard } from '../components/Conquistas'
+const BotaoWhatsApp = () => null
+const textoCartaoVisita = () => ''
+const ConquistaCard = () => null
 
 export default function Dashboard({ nav }) {
   const { user } = useAuth()
