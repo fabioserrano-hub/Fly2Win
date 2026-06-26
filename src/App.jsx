@@ -1,12 +1,15 @@
 import { ToastProvider } from './components/ui'
 import { IdiomaContext, useIdiomaState } from './hooks/useIdioma'
 import { AuthProvider, useAuth } from './hooks/useAuth'
-import { useNotificacoes, PainelNotificacoes } from './components/Notificacoes'
+import { useNotificacoes } from './components/Notificacoes'
+import ConquistasPage from './components/Conquistas'
+import { useLicenca } from './hooks/useLicenca'
 
 function Conteudo() {
   const { user } = useAuth()
   const { naoLidas } = useNotificacoes()
-  return <div style={{ color:'#fff', fontSize:20 }}>✅ Teste 3 OK — Notificacoes: {naoLidas} não lidas</div>
+  const { plano, temElite } = useLicenca()
+  return <div style={{ color:'#fff', fontSize:20 }}>✅ Teste 4 OK — Plano: {plano} | Elite: {temElite?'sim':'não'}</div>
 }
 
 export default function App() {
