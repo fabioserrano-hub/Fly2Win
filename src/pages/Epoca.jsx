@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { db } from '../lib/supabase'
+import { useIdioma } from '../hooks/useIdioma'
 import { useToast, Spinner, Modal, EmptyState, Badge } from '../components/ui'
 import { BloqueioPlano } from '../hooks/useLicenca'
 
