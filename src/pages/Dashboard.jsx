@@ -22,7 +22,7 @@ export default function Dashboard({ nav }) {
     async function load() {
       setLoading(true)
       try {
-        const [pombos, provas, fin, saude, treinos, tarefas, acas, stock, eventos, treatmentPlans, treatmentApps, treatmentProducts, perfil, conquistasRecentes] = await Promise.all([
+        const [pombos, provas, fin, saude, treinos, tarefas, acas, stock, eventos, treatmentPlans, treatmentApps, treatmentProducts, perfil] = await Promise.all([
           db.getPombos(),
           db.getProvas(),
           db.getFinancas(),
@@ -36,7 +36,6 @@ export default function Dashboard({ nav }) {
           db.getTreatmentApplications().catch(() => []),
           db.getTreatmentProducts().catch(() => []),
           db.getPerfil().catch(() => null),
-          supabase.from('conquistas').select('*').eq('user_id', (await supabase.auth.getUser()).data.user?.id).order('created_at', { ascending:false }).limit(3).then(r => r.data || []),
         ])
 
         // Clima do pombal via Open-Meteo
@@ -107,7 +106,6 @@ export default function Dashboard({ nav }) {
           provasProximas, provasHoje, tarefasHojeOuAtraso, tarefasProximas,
           eventosHoje, alertas, eclosoesProximas,
           itemTratamentoHoje, aplicacaoHoje, hojeKey, produtoTratamentoHoje,
-          conquistasRecentes,
         })
       } catch (e) { toast('Erro: ' + e.message, 'err') }
       finally { setLoading(false) }
