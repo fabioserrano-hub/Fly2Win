@@ -52,14 +52,50 @@
       }
     </script>
     <script>
-      // Botão de escape — aparece se a app não carregar em 8 segundos
+      // Capturar erros globais
+      window.__erros = []
+      window.onerror = function(msg, src, line, col, err) {
+        window.__erros.push({msg, src, line, col, stack: err?.stack})
+        mostrarDiagnostico()
+      }
+      window.addEventListener('unhandledrejection', function(e) {
+        window.__erros.push({msg: String(e.reason), tipo: 'promise'})
+        mostrarDiagnostico()
+      })
+
+      function limparESair() {
+        try {
+          // Limpar tokens Supabase
+          Object.keys(localStorage).forEach(function(k) {
+            if (k.includes('supabase') || k.includes('sb-') || k.includes('auth')) {
+              localStorage.removeItem(k)
+            }
+          })
+          localStorage.removeItem('cl_tema')
+          sessionStorage.clear()
+        } catch(e) {}
+        location.reload()
+      }
+
+      function mostrarDiagnostico() {
+        if (document.getElementById('cl-diagnostico')) return
+        var div = document.createElement('div')
+        div.id = 'cl-diagnostico'
+        div.style.cssText = 'position:fixed;inset:0;background:#050D1A;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;font-family:sans-serif'
+        var erros = window.__erros.map(function(e){ return e.msg }).join('\n').slice(0,200)
+        div.innerHTML = '<div style="font-size:36px">🕊️</div>'
+          + '<div style="color:#fff;font-size:15px;font-weight:600;text-align:center">ChampionsLoft — Erro ao carregar</div>'
+          + (erros ? '<div style="color:#f87171;font-size:11px;background:#101F40;padding:8px 12px;border-radius:8px;max-width:320px;word-break:break-all;text-align:left">' + erros + '</div>' : '')
+          + '<button onclick="limparESair()" style="background:#1E5FD9;color:#fff;border:none;padding:12px 28px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600">🔄 Limpar sessão e recarregar</button>'
+          + '<div style="color:#475569;font-size:11px;text-align:center">Se o problema persistir,<br>tenta noutro browser ou em modo privado</div>'
+        document.body.appendChild(div)
+      }
+
+      // Mostrar diagnóstico se app não carregar em 6 segundos
       setTimeout(function() {
-        if (!document.getElementById('root').hasChildNodes()) {
-          var btn = document.createElement('div')
-          btn.innerHTML = '<div style="position:fixed;inset:0;background:#050D1A;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:9999"><div style="font-size:40px">🕊️</div><div style="color:#fff;font-size:16px;font-family:sans-serif">A app não carregou correctamente.</div><button onclick="localStorage.clear();sessionStorage.clear();location.reload()" style="background:#1E5FD9;color:#fff;border:none;padding:12px 24px;border-radius:8px;font-size:14px;cursor:pointer;font-family:sans-serif">🔄 Limpar e recarregar</button><button onclick="fetch('https://tgqnbheetpgnpjsjphoj.supabase.co/auth/v1/logout',{method:'POST'}).catch(()=>{}).finally(()=>{localStorage.clear();location.reload()})" style="background:transparent;color:#7A8699;border:1px solid #1B2D52;padding:10px 20px;border-radius:8px;font-size:12px;cursor:pointer;font-family:sans-serif">Fazer logout e tentar</button></div>'
-          document.body.appendChild(btn)
-        }
-      }, 8000)
+        var root = document.getElementById('root')
+        if (!root || !root.firstChild) mostrarDiagnostico()
+      }, 6000)
     </script>
   </body>
 </html>
