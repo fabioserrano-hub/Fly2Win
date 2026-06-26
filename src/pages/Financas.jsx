@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { db } from '../lib/supabase'
+import { useIdioma } from '../hooks/useIdioma'
 import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../components/ui'
 
 const CATS_DESPESA = ['Alimentação', 'Veterinário/Medicamentos', 'Provas/Inscrições', 'Transporte', 'Equipamento', 'Manutenção Pombal', 'Aquisição de Pombos', 'Outros']
