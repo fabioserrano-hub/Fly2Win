@@ -806,3 +806,4 @@ export default function Pedigree({ nav, params }) {
     </div>
   )
 }
+
