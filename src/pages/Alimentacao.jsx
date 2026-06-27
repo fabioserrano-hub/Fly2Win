@@ -94,7 +94,15 @@ function imprimirPlano(plano, produtos, nPombos) {
 
 // ── valores iniciais ──────────────────────────────────────────────────────────
 const ITEM_VAZIO = (per='manha') => ({ periodo:per, dia_semana:'quarta', product_id:'', racao_g:'', tipo_racao:'', voo_min:'', outros:'', notas:'' })
-const PLANO_VAZIO = { nome:'', especialidade:'velocidade', dia_prova:'domingo', itens:[], obs:'' }
+// Gera itens pré-preenchidos para os 7 dias × manhã e tarde
+function gerarItensSemana() {
+  const dias = ['segunda','terca','quarta','quinta','sexta','sabado','domingo']
+  return dias.flatMap(dia => [
+    { periodo:'manha', dia_semana:dia, product_id:'', racao_g:'', tipo_racao:'', voo_min:'', outros:'', notas:'' },
+    { periodo:'tarde', dia_semana:dia, product_id:'', racao_g:'', tipo_racao:'', voo_min:'', outros:'', notas:'' },
+  ])
+}
+const PLANO_VAZIO = { nome:'', especialidade:'velocidade', dia_prova:'domingo', itens:gerarItensSemana(), obs:'' }
 
 // produto unificado (armazém)
 const PROD_VAZIO = {
@@ -444,7 +452,7 @@ export default function Alimentacao({ nav }) {
   }
 
   // ── plano CRUD ────────────────────────────────────────────────────────────
-  const openNewPlano  = () => { setFormPlano(PLANO_VAZIO); setSelected(null); setModal('plano') }
+  const openNewPlano  = () => { setFormPlano({...PLANO_VAZIO, itens:gerarItensSemana()}); setSelected(null); setModal('plano') }
   const openEditPlano = p  => { setSelected(p); setFormPlano({nome:p.nome,especialidade:p.especialidade||'geral',dia_prova:p.dia_prova||'domingo',itens:JSON.parse(JSON.stringify(p.itens||[])),obs:p.obs||''}); setModal('plano') }
   const addItem = per => setFormPlano(f=>({...f,itens:[...f.itens,ITEM_VAZIO(per)]}))
   const updItem = (i,k,v) => setFormPlano(f=>({...f,itens:f.itens.map((it,idx)=>idx===i?{...it,[k]:v}:it)}))
@@ -913,7 +921,9 @@ export default function Alimentacao({ nav }) {
           </div>
           <div>
             <div style={{ fontSize:11,color:'#7A8699',marginBottom:4 }}>Unidade</div>
-            <input className="input" placeholder="ml, g…" value={formProd.dosagem_unidade} onChange={e=>sfpr('dosagem_unidade',e.target.value)} />
+            <select className="input" value={formProd.dosagem_unidade} onChange={e=>sfpr('dosagem_unidade',e.target.value)}>
+              {['ml','L','g','kg','comprimidos','medidas','gotas','unidades'].map(u=><option key={u}>{u}</option>)}
+            </select>
           </div>
           <div style={{ gridColumn:'1/3' }}>
             <div style={{ fontSize:11,color:'#7A8699',marginBottom:4 }}>Por</div>
@@ -973,7 +983,7 @@ export default function Alimentacao({ nav }) {
         <div style={{ display:'flex',gap:8,marginBottom:16,flexWrap:'wrap' }}>
           <div style={{ flex:2,minWidth:180 }}>
             <div style={{ fontSize:11,color:'#7A8699',marginBottom:4 }}>Nome *</div>
-            <input className="input" placeholder="Ex: Velocidade — Semana de Prova" value={formPlano.nome} onChange={e=>sfp('nome',e.target.value)} />
+            <input className="input" placeholder="Nome do plano" value={formPlano.nome} onChange={e=>sfp('nome',e.target.value)} />
           </div>
           <div style={{ flex:1,minWidth:120 }}>
             <div style={{ fontSize:11,color:'#7A8699',marginBottom:4 }}>Especialidade</div>
