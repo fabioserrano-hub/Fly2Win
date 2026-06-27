@@ -10,11 +10,6 @@ const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov'
 
 function BarraH({ label, valor, max, cor, sufixo='' }) {
   const pct = max > 0 ? Math.round((valor/max)*100) : 0
-  // Verificar plano
-  const { temBase, temPro, temElite } = useLicenca()
-  const temAcesso = temPro
-  if (!temAcesso) return <BloqueioPlano plano="pro" nav={nav} />
-
   return (
     <div style={{ marginBottom:8 }}>
       <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, marginBottom:3 }}>
