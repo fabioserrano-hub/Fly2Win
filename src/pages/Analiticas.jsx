@@ -11,6 +11,7 @@ const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov'
 function BarraH({ label, valor, max, cor, sufixo='' }) {
   const pct = max > 0 ? Math.round((valor/max)*100) : 0
   // Verificar plano
+  const { temBase, temPro, temElite } = useLicenca()
   const temAcesso = temPro
   if (!temAcesso) return <BloqueioPlano plano="pro" nav={nav} />
 
@@ -55,7 +56,6 @@ function MiniChart({ dados, cor, label, sufixo='' }) {
 
 export default function Analiticas({ nav }) {
   const toast = useToast()
-  const { temBase, temPro, temElite } = useLicenca()
   const { t } = useIdioma()
   const [loading, setLoading] = useState(true)
   const [pombos, setPombos] = useState([])
