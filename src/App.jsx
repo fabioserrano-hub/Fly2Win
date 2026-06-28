@@ -78,7 +78,6 @@ function getNav(t) {
     { id: 'financas',    icon: '💰', label: t('financas') || 'Finanças' },
   ]},
   { section: t('analise') || 'Análise', items: [
-    { id: 'relatorios',  icon: '📊', label: t('relatorios') || 'Relatórios' },
     { id: 'analiticas',  icon: '📈', label: t('analiticas') || 'Analíticas' },
     { id: 'forma',       icon: '💪', label: t('rastreioForma') || 'Rastreio Forma' },
     { id: 'epoca',       icon: '🏁', label: t('epoca') || 'Época' },
