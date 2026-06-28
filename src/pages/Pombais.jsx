@@ -85,8 +85,8 @@ export default function Pombais({ nav }) {
   const totalOcupacao = pombais.reduce((s,pb)=>s+pombos.filter(p=>p.pombal===pb.nome).length,0)
   const sobreOcupados = pombais.filter(pb=>pombos.filter(p=>p.pombal===pb.nome).length>pb.cap)
 
-  const pombosDoPombal = pb => pombos.filter(p=>p.pombal===pb.nome)
-  const acasalDoPombal = pb => acasalamentos.filter(a=>a.estado==='em_progresso')
+  const pombosDoPombal = pb => pb ? pombos.filter(p=>p.pombal===pb.nome) : []
+  const acasalDoPombal = pb => pb ? acasalamentos.filter(a=>a.estado==='em_progresso') : []
   // acasalamentos por cacifo de um pombal (tipo Reprodutores)
   const acasalAtivos = acasalamentos.filter(a=>a.estado==='em_progresso')
   const eclosoesProximas = acasalAtivos.filter(a=>{
@@ -124,8 +124,8 @@ export default function Pombais({ nav }) {
                   <div style={{ fontSize:9, color:aca?'#2DD4A7':conc?'#4C8DFF':'#334155', fontWeight:700 }}>#{n}</div>
                   {aca ? (
                     <>
-                      <div style={{ fontSize:10, color:'#fff', fontWeight:600, lineHeight:1.2, marginTop:2 }}>{aca.pai_nome?.split(' ')[0]}</div>
-                      <div style={{ fontSize:9, color:'#94a3b8' }}>♀ {aca.mae_nome?.split(' ')[0]}</div>
+                      <div style={{ fontSize:10, color:'#fff', fontWeight:600, lineHeight:1.2, marginTop:2 }}>{aca.pai_nome?.split(' ')?.[0]||'?'}</div>
+                      <div style={{ fontSize:9, color:'#94a3b8' }}>♀ {aca.mae_nome?.split(' ')?.[0]||'?'}</div>
                       <div style={{ fontSize:9, color:fase?.cor, fontWeight:600, marginTop:2 }}>{fase?.label}</div>
                     </>
                   ) : conc ? (
@@ -149,15 +149,15 @@ export default function Pombais({ nav }) {
                     <div style={{ fontSize:18, fontWeight:900, color:aca?'#D4AF37':conc?'#4C8DFF':'#2a3a5a', lineHeight:1 }}>#{n}</div>
                   </div>
                   {aca && <>
-                    <div style={{ fontSize:12, color:'#fff', fontWeight:700, lineHeight:1.3, marginBottom:1 }}>{aca.pai_nome?.split('(')[0].trim()}</div>
-                    <div style={{ fontSize:11, color:'#94a3b8', marginBottom:6 }}>♀ {aca.mae_nome?.split('(')[0].trim()}</div>
+                    <div style={{ fontSize:12, color:'#fff', fontWeight:700, lineHeight:1.3, marginBottom:1 }}>{aca.pai_nome?.split('(')?.[0]?.trim()||'?'}</div>
+                    <div style={{ fontSize:11, color:'#94a3b8', marginBottom:6 }}>♀ {aca.mae_nome?.split('(')?.[0]?.trim()||'?'}</div>
                     <div style={{ display:'inline-flex', alignItems:'center', gap:4, background:'rgba(0,0,0,.2)', borderRadius:6, padding:'3px 7px' }}>
                       <span style={{ fontSize:11, color:fase?.cor, fontWeight:600 }}>{fase?.label}</span>
                     </div>
                     {aca.n_nascidos>0&&<div style={{ fontSize:11, color:'#D4AF37', marginTop:4, fontWeight:600 }}>🐣 {aca.n_nascidos} nascido(s)</div>}
                     {aca.data_eclosao_prev&&<div style={{ fontSize:10, color:'#7A8699', marginTop:2 }}>Eclosão: {fmtData(aca.data_eclosao_prev)}</div>}
                   </>}
-                  {conc&&<><div style={{ fontSize:11, color:'#4C8DFF', fontWeight:600, marginTop:4 }}>🏁 Concluído</div>{conc.n_nascidos>0&&<div style={{ fontSize:10, color:'#D4AF37' }}>🐣 {conc.n_nascidos}</div>}</>}
+                  {conc&&<><div style={{ fontSize:11, color:'#4C8DFF', fontWeight:600, marginTop:4 }}>🏁 Concluído</div>{(conc.n_nascidos||0)>0&&<div style={{ fontSize:10, color:'#D4AF37' }}>🐣 {conc.n_nascidos}</div>}</>}
                   {!aca&&!conc&&<div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:40, fontSize:22, color:'#1B2D52' }}>＋</div>}
                 </div>
                 {/* popup expandido */}
@@ -186,6 +186,7 @@ export default function Pombais({ nav }) {
 
   // ── render card de pombal ─────────────────────────────────────────────────
   const renderCard = (pb) => {
+    if (!pb || !pb.nome) return null
     const moradores = pombosDoPombal(pb)
     const n = moradores.length
     const pct = Math.round(n/Math.max(pb.cap,1)*100)
@@ -303,7 +304,7 @@ export default function Pombais({ nav }) {
             const aptos = moradores.filter(p=>classificarPombo(p).prioridade>=3).length
             const emProva = moradores.filter(p=>p.estado_ext==='em_prova').length
             const percentilMedio = moradores.filter(p=>p.percentil>0).length>0
-              ? Math.round(moradores.filter(p=>p.percentil>0).reduce((s,p)=>s+(p.percentil||0),0)/moradores.filter(p=>p.percentil>0).length)
+              ? Math.round(moradores.filter(p=>p.percentil>0).reduce((s,p)=>s+(p.percentil||0),0)/Math.max(moradores.filter(p=>p.percentil>0).length,1))
               : null
             return (
               <div style={{ display:'flex', gap:12, marginTop:10, paddingTop:10, borderTop:'1px solid #1B2D52', flexWrap:'wrap' }}>
@@ -399,24 +400,24 @@ export default function Pombais({ nav }) {
       </Modal>
 
       {/* ══ MODAL DETALHE POMBAL ══════════════════════════════════════════════ */}
-      <Modal open={!!pombalDetalhe} onClose={()=>{setPombalDetalhe(null);setPomboDetalhe(null);setExpandidoCacifo(null)}} title={`${TIPO_ICON[pombalDetalhe?.tipo]||'🏠'} ${pombalDetalhe?.nome}`} wide>
+      <Modal open={!!pombalDetalhe} onClose={()=>{setPombalDetalhe(null);setPomboDetalhe(null);setExpandidoCacifo(null)}} title={`${TIPO_ICON[pombalDetalhe?.tipo]||'🏠'} ${pombalDetalhe?.nome||'Pombal'}`} wide>
         {pomboDetalhe ? (
           // detalhe de um pombo específico
           <div>
             <button className="btn btn-secondary btn-sm" style={{ marginBottom:14 }} onClick={()=>setPomboDetalhe(null)}>← Voltar</button>
             <div style={{ display:'flex', gap:16, marginBottom:16 }}>
               <div style={{ width:80, height:80, borderRadius:14, background:'#1a2840', display:'flex', alignItems:'center', justifyContent:'center', fontSize:40, overflow:'hidden', flexShrink:0, border:'1px solid #1B2D52' }}>
-                {pomboDetalhe.foto_url?<img src={pomboDetalhe.foto_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />:pomboDetalhe.emoji||'🐦'}
+                {pomboDetalhe?.foto_url?<img src={pomboDetalhe.foto_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />:pomboDetalhe?.emoji||'🐦'}
               </div>
               <div style={{ flex:1 }}>
-                <div style={{ fontSize:18, fontWeight:700, color:'#fff' }}>{pomboDetalhe.nome}</div>
-                <div style={{ fontFamily:"'Space Mono',monospace", fontSize:12, color:'#2DD4A7', marginTop:2 }}>{pomboDetalhe.anilha}</div>
-                <div style={{ fontSize:13, color:'#94a3b8', marginTop:4 }}>{pomboDetalhe.sexo==='M'?'♂ Macho':'♀ Fêmea'} · {pomboDetalhe.cor||'—'}</div>
-                {pomboDetalhe.cacifo&&<div style={{ fontSize:11, color:'#D4AF37', marginTop:3 }}>Cacifo #{pomboDetalhe.cacifo}</div>}
+                <div style={{ fontSize:18, fontWeight:700, color:'#fff' }}>{pomboDetalhe?.nome||"—"}</div>
+                <div style={{ fontFamily:"'Space Mono',monospace", fontSize:12, color:'#2DD4A7', marginTop:2 }}>{pomboDetalhe?.anilha||"—"}</div>
+                <div style={{ fontSize:13, color:'#94a3b8', marginTop:4 }}>{pomboDetalhe?.sexo==='M'?'♂ Macho':'♀ Fêmea'} · {pomboDetalhe?.cor||'—'}</div>
+                {pomboDetalhe?.cacifo&&<div style={{ fontSize:11, color:'#D4AF37', marginTop:3 }}>Cacifo #{pomboDetalhe.cacifo}</div>}
               </div>
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:14 }}>
-              {[['Provas',pomboDetalhe.provas||0,'#D4AF37'],['Percentil',(pomboDetalhe.percentil||0)+'%','#2DD4A7'],['Forma',(pomboDetalhe.forma||50)+'%','#4C8DFF']].map(([l,v,c])=>(
+              {[['Provas',pomboDetalhe?.provas||0,'#D4AF37'],['Percentil',(pomboDetalhe?.percentil||0)+'%','#2DD4A7'],['Forma',(pomboDetalhe?.forma||50)+'%','#4C8DFF']].map(([l,v,c])=>(
                 <div key={l} style={{ textAlign:'center', background:'#101F40', borderRadius:10, padding:10 }}>
                   <div style={{ fontFamily:"'Fraunces',serif", fontSize:22, fontWeight:900, color:c }}>{v}</div>
                   <div style={{ fontSize:10, color:'#7A8699' }}>{l}</div>
@@ -424,13 +425,13 @@ export default function Pombais({ nav }) {
               ))}
             </div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-              <div><div style={{ fontSize:10, color:'#7A8699', marginBottom:3 }}>Pai</div><div style={{ fontFamily:"'Space Mono',monospace", fontSize:11, color:'#2DD4A7' }}>{pomboDetalhe.pai||'—'}</div></div>
-              <div><div style={{ fontSize:10, color:'#7A8699', marginBottom:3 }}>Mãe</div><div style={{ fontFamily:"'Space Mono',monospace", fontSize:11, color:'#2DD4A7' }}>{pomboDetalhe.mae||'—'}</div></div>
+              <div><div style={{ fontSize:10, color:'#7A8699', marginBottom:3 }}>Pai</div><div style={{ fontFamily:"'Space Mono',monospace", fontSize:11, color:'#2DD4A7' }}>{pomboDetalhe?.pai||'—'}</div></div>
+              <div><div style={{ fontSize:10, color:'#7A8699', marginBottom:3 }}>Mãe</div><div style={{ fontFamily:"'Space Mono',monospace", fontSize:11, color:'#2DD4A7' }}>{pomboDetalhe?.mae||'—'}</div></div>
             </div>
-            {pomboDetalhe.obs&&<div style={{ marginTop:12 }}><div style={{ fontSize:10, color:'#7A8699', marginBottom:3 }}>Observações</div><div style={{ fontSize:13, color:'#cbd5e1' }}>{pomboDetalhe.obs}</div></div>}
+            {pomboDetalhe.obs&&<div style={{ marginTop:12 }}><div style={{ fontSize:10, color:'#7A8699', marginBottom:3 }}>Observações</div><div style={{ fontSize:13, color:'#cbd5e1' }}>{pomboDetalhe?.obs}</div></div>}
             <div style={{ display:'flex', gap:8, marginTop:16 }}>
               <button className="btn btn-secondary btn-sm" onClick={()=>nav?.('pombos')}>Ver em Pombos →</button>
-              <button className="btn btn-secondary btn-sm" onClick={()=>nav?.('pedigree',{pomboId:pomboDetalhe.id})}>🌳 Pedigree</button>
+              <button className="btn btn-secondary btn-sm" onClick={()=>nav?.('pedigree',{pomboId:pomboDetalhe?.id})}>🌳 Pedigree</button>
             </div>
           </div>
         ) : pombalDetalhe?.tipo==='Reprodutores' ? (
