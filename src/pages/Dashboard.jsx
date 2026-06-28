@@ -114,6 +114,10 @@ export default function Dashboard({ nav }) {
         const proximaProva = provasFuturas[0] || null
         const diasParaProva = proximaProva ? Math.ceil((new Date(proximaProva.data_reg) - agora) / 86400000) : null
         const provasRecentes = [...provas].sort((a, b) => new Date(b.data_reg) - new Date(a.data_reg)).slice(0, 4)
+          const amanha = new Date(agora.getTime()+86400000).toISOString().slice(0,10)
+          const provasEmCurso = provas.filter(p => p.estado_encestamento === 'encestado' && p.data_reg >= hojeISO)
+          const provaHoje = provas.find(p => p.data_reg === hojeISO) || null
+          const provaEncestamentoHoje = provas.find(p => p.data_reg === amanha && p.estado_encestamento !== 'encestado') || null
         const vitorias = provas.filter(p => p.posicao_geral === 1).length
 
         // finanças
@@ -152,7 +156,7 @@ export default function Dashboard({ nav }) {
 
         setData({
           pombosAtivos, pombosComProblema, top5, mediaPercentil,
-          proximaProva, diasParaProva, provasRecentes, vitorias,
+          proximaProva, diasParaProva, provasRecentes, vitorias, provasEmCurso, provaHoje, provaEncestamentoHoje,
           rec, dep, tarefasAtraso,
           planoAtivo, aplicacaoAtiva, nPombosPlano, itensManha, itensTarde,
           produtosArmazem, alertasStockHoje,
@@ -256,6 +260,69 @@ export default function Dashboard({ nav }) {
               <span style={{ color:'#475569', fontSize:12 }}>→</span>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── BANNER POMBOS EM PROVA ─────────────────────────────────────────── */}
+      {data.provasEmCurso && data.provasEmCurso.length > 0 && (
+        <div style={{ background:'linear-gradient(135deg,rgba(45,212,167,.12),rgba(11,24,48,.9))', border:'1px solid rgba(45,212,167,.3)', borderRadius:14, padding:'14px 16px', position:'relative', overflow:'hidden' }}>
+          <div style={{ position:'absolute', top:0, left:0, bottom:0, width:3, background:'#2DD4A7' }} />
+          <div style={{ paddingLeft:8 }}>
+            <div style={{ fontSize:10, color:'#2DD4A7', fontWeight:700, textTransform:'uppercase', letterSpacing:.5, marginBottom:8 }}>🏁 Pombos em Prova</div>
+            {data.provasEmCurso.map(p => (
+              <div key={p.id} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6, flexWrap:'wrap', gap:8 }}>
+                <div>
+                  <div style={{ fontSize:14, fontWeight:700, color:'#fff' }}>{p.nome}</div>
+                  <div style={{ fontSize:11, color:'#7A8699' }}>
+                    {(p.pombos_encestados||[]).length} pombos · {p.dist}km
+                    {p.cesto ? ' · 🧺 '+p.cesto : ''}
+                    {p.hora_encestamento ? ' · 🕐 '+p.hora_encestamento : ''}
+                  </div>
+                </div>
+                <button onClick={() => nav('provas')} style={{ background:'rgba(45,212,167,.15)', border:'1px solid rgba(45,212,167,.3)', borderRadius:8, padding:'6px 12px', cursor:'pointer', fontSize:12, color:'#2DD4A7', fontFamily:'inherit', fontWeight:600 }}>
+                  Registar Chegadas →
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── BANNER ENCESTAMENTO AMANHÃ ───────────────────────────────────── */}
+      {data.provaEncestamentoHoje && !(data.provasEmCurso && data.provasEmCurso.length > 0) && (
+        <div onClick={() => nav('provas')} style={{ background:'linear-gradient(135deg,rgba(212,175,55,.1),rgba(11,24,48,.9))', border:'1px solid rgba(212,175,55,.3)', borderRadius:14, padding:'14px 16px', cursor:'pointer', position:'relative', overflow:'hidden' }}>
+          <div style={{ position:'absolute', top:0, left:0, bottom:0, width:3, background:'#D4AF37' }} />
+          <div style={{ paddingLeft:8 }}>
+            <div style={{ fontSize:10, color:'#D4AF37', fontWeight:700, textTransform:'uppercase', letterSpacing:.5, marginBottom:6 }}>📦 Dia de Encestamento — Prova Amanhã</div>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
+              <div>
+                <div style={{ fontSize:14, fontWeight:700, color:'#fff' }}>{data.provaEncestamentoHoje.nome}</div>
+                <div style={{ fontSize:11, color:'#7A8699' }}>{data.provaEncestamentoHoje.tipo} · {data.provaEncestamentoHoje.dist}km · solta amanhã</div>
+              </div>
+              <div style={{ background:'rgba(212,175,55,.15)', border:'1px solid rgba(212,175,55,.3)', borderRadius:8, padding:'8px 14px', textAlign:'center', flexShrink:0 }}>
+                <div style={{ fontSize:11, color:'#D4AF37', fontWeight:700 }}>📦 Encestar agora</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── BANNER PROVA HOJE ────────────────────────────────────────────── */}
+      {data.provaHoje && !(data.provasEmCurso || []).some(p => p.id === data.provaHoje.id) && (
+        <div onClick={() => nav('provas')} style={{ background:'linear-gradient(135deg,rgba(248,113,113,.1),rgba(11,24,48,.9))', border:'1px solid rgba(248,113,113,.3)', borderRadius:14, padding:'14px 16px', cursor:'pointer', position:'relative', overflow:'hidden' }}>
+          <div style={{ position:'absolute', top:0, left:0, bottom:0, width:3, background:'#f87171' }} />
+          <div style={{ paddingLeft:8 }}>
+            <div style={{ fontSize:10, color:'#f87171', fontWeight:700, textTransform:'uppercase', letterSpacing:.5, marginBottom:6 }}>🚨 Prova Hoje</div>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
+              <div>
+                <div style={{ fontSize:14, fontWeight:700, color:'#fff' }}>{data.provaHoje.nome}</div>
+                <div style={{ fontSize:11, color:'#7A8699' }}>{data.provaHoje.tipo} · {data.provaHoje.dist}km</div>
+              </div>
+              <button onClick={e => { e.stopPropagation(); nav('provas') }} style={{ background:'rgba(248,113,113,.15)', border:'1px solid rgba(248,113,113,.3)', borderRadius:8, padding:'8px 14px', cursor:'pointer', fontFamily:'inherit', textAlign:'center', flexShrink:0 }}>
+                <div style={{ fontSize:11, color:'#f87171', fontWeight:700 }}>🏆 Registar Chegadas</div>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
