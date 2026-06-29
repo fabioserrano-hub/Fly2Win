@@ -421,7 +421,9 @@ export default function Pombos({ nav, params }) {
               <button className="btn btn-primary" onClick={()=>{
                 setModalPartilha(false)
                 const esp = (pomboPartilha.esp||[]).map(e=>ESP_ICON[e]+' '+e).join(' ')
-                const conteudo = `${pomboPartilha.emoji||'🐦'} ${pomboPartilha.nome} — ${pomboPartilha.anilha}\n\n📊 Percentil: ${pomboPartilha.percentil||0}%\n💪 Forma: ${pomboPartilha.forma||50}%\n🏆 Provas: ${pomboPartilha.provas||0}\n${esp?`\n${esp}`:''}\n${pomboPartilha.obs?`\n"${pomboPartilha.obs}"`:''}`
+                const espStr = esp ? '\n' + esp : ''
+                const obsStr = pomboPartilha.obs ? '\n"' + pomboPartilha.obs + '"' : ''
+                const conteudo = (pomboPartilha.emoji||'🐦') + ' ' + pomboPartilha.nome + ' — ' + pomboPartilha.anilha + '\n\n📊 Percentil: ' + (pomboPartilha.percentil||0) + '%\n💪 Forma: ' + (pomboPartilha.forma||50) + '%\n🏆 Provas: ' + (pomboPartilha.provas||0) + espStr + obsStr
                 nav?.('comunidade', { prefillPost: { tipo:'Geral', conteudo, pomboId: pomboPartilha.id } })
               }}>🌐 Publicar na LoftSocial →</button>
             </div>
@@ -488,7 +490,7 @@ export default function Pombos({ nav, params }) {
         </Modal>
       )}
 
-      {/* ══ MODAL FORM ════════════════════════════════════════════════════════ */}}
+      {/* ══ MODAL FORM ════════════════════════════════════════════════════════ */}
       <Modal open={modal==='form'} onClose={close} title={selected?`✏️ ${selected.nome}`:'🐦 Novo Pombo'} wide
         footer={<><button className="btn btn-secondary" onClick={close}>Cancelar</button><button className="btn btn-primary" onClick={save} disabled={saving}>{saving?<Spinner/>:null}{selected?t('guardar'):'Adicionar'}</button></>}>
         <div className="form-grid">
