@@ -107,7 +107,6 @@ function getNav(t) {
   ]
 }
 
-// Secções abertas por padrão
 const SECCOES_DEFAULT = ['Principal','Desporto','Gestão','Análise']
 const TODAS_SECCOES   = ['Principal','Desporto','Gestão','Análise','Social','Competição','Mercado','Sistema']
 
@@ -170,7 +169,6 @@ function AppLayout({ setIdioma }) {
   const initials = user?.user_metadata?.nome?.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase()
     || user?.email?.[0]?.toUpperCase() || 'U'
 
-  // PWA Install
   const [installPrompt, setInstallPrompt] = useState(null)
   useEffect(() => {
     if (window.matchMedia('(display-mode: standalone)').matches) return
@@ -249,14 +247,12 @@ function AppLayout({ setIdioma }) {
       <div className={`mobile-overlay${sidebarOpen?' show':''}`} onClick={()=>setSidebarOpen(false)} />
 
       <aside className={`sidebar${sidebarOpen?' open':''}`} style={{ overflowY:'auto' }}>
-        <div className="logo" style={{ cursor:'pointer' }} onClick={()=>nav('dashboard')}>
-          <img src="/logo.png" alt="ChampionsLoft" style={{ width:52,height:52,objectFit:'contain',borderRadius:8,flexShrink:0 }}
-            onError={e=>{ e.target.style.display='none'; e.target.nextSibling.style.display='flex' }} />
-          <div className="logo-icon" style={{ display:'none',background:'linear-gradient(135deg,#1E5FD9,#D4AF37)',fontSize:14,fontWeight:900,color:'#fff',width:52,height:52,borderRadius:8,alignItems:'center',justifyContent:'center',flexShrink:0 }}>CL</div>
-          <div>
-            <div className="logo-text">ChampionsLoft</div>
-            <div className="logo-sub">Gestão Columbófila</div>
-          </div>
+
+        {/* ── LOGO: só imagem, sem texto ── */}
+        <div style={{ cursor:'pointer', padding:'16px 12px 8px', textAlign:'center' }} onClick={()=>nav('dashboard')}>
+          <img src="/logo.png" alt="ChampionsLoft"
+            style={{ width:160, height:'auto', objectFit:'contain', display:'block', margin:'0 auto' }}
+            onError={e=>{ e.target.style.display='none'; e.target.insertAdjacentHTML('afterend','<div style="width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#1E5FD9,#D4AF37);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;margin:0 auto">CL</div>') }} />
         </div>
 
         <nav className="nav">
