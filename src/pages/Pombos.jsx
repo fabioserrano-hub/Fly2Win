@@ -618,7 +618,7 @@ export default function Pombos({ nav, params }) {
                 </div>
                 {/* Botão partilhar */}
                 <div style={{ padding:'8px 16px', display:'flex', gap:8, justifyContent:'flex-end' }}>
-                  <button onClick={()=>{ setPomboPartilha(selected); setModalPartilha(true) }} style={{ background:'rgba(45,212,167,.08)', border:'1px solid rgba(45,212,167,.2)', borderRadius:8, padding:'6px 14px', fontSize:11, fontWeight:600, color:'#2DD4A7', cursor:'pointer', fontFamily:'inherit' }}>
+                  <button onClick={(e)=>{ e.stopPropagation(); const p=selected; setPomboPartilha(p); setModal(null); setTimeout(()=>setModalPartilha(true),50) }} style={{ background:'rgba(45,212,167,.08)', border:'1px solid rgba(45,212,167,.2)', borderRadius:8, padding:'6px 14px', fontSize:11, fontWeight:600, color:'#2DD4A7', cursor:'pointer', fontFamily:'inherit' }}>
                     🌐 Partilhar na Comunidade
                   </button>
                   <button onClick={()=>{ nav?.('pedigree',{pomboId:selected.id}) }} style={{ background:'rgba(212,175,55,.08)', border:'1px solid rgba(212,175,55,.2)', borderRadius:8, padding:'6px 14px', fontSize:11, fontWeight:600, color:'#D4AF37', cursor:'pointer', fontFamily:'inherit' }}>
