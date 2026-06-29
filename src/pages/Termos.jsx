@@ -138,6 +138,29 @@ A responsabilidade total do ChampionsLoft, em qualquer circunstância, não exce
 15.4. Na impossibilidade de resolução amigável, é competente o tribunal da comarca da sede do prestador do serviço.
 
 Última actualização: Junho de 2026` },
+,
+  { id:'16', titulo:'16. Licenças Institucionais (Coletividades)',
+    corpo:`16.1. O ChampionsLoft disponibiliza um modelo de licenciamento institucional para coletividades columbófilas, clubes e associações federadas.
+
+16.2. A coletividade adquire licenças para os seus sócios e paga centralmente ao ChampionsLoft. O número total de licenças (independentemente do plano) determina o desconto:
+• 3 a 5 licenças: -10%
+• 6 a 12 licenças: -20%
+• 13 ou mais licenças: -30%
+
+16.3. O plano anual corresponde a 10 meses (2 meses gratuitos), calculado sobre o preço com desconto de coletividade.
+
+16.4. O administrador é responsável pela gestão das licenças e pagamento centralizado. Para aderir: suporte@championsloft.pt` },
+
+  { id:'17', titulo:'17. Plano Fundadores — Garantia de Preço Permanente',
+    corpo:`17.1. Os utilizadores do Plano Fundadores beneficiam de garantia de preço permanente.
+
+17.2. O preço fixado no momento da adesão não sofrerá qualquer aumento futuro, independentemente de revisões de preços aplicadas aos restantes planos.
+
+17.3. O preço Fundador corresponde ao valor mais baixo disponível: preço individual de adesão ou valor de licença de coletividade se inferior.
+
+17.4. A garantia mantém-se enquanto a subscrição estiver activa sem interrupções. Cancelamento implica perda do estatuto Fundador.
+
+17.5. Limitado a 100 lugares, atribuídos por ordem cronológica de adesão.` }
 ]
 
 export default function Termos({ onVoltar }) {
