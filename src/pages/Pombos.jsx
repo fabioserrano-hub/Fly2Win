@@ -415,71 +415,62 @@ export default function Pombos({ nav, params }) {
               <button className="btn btn-secondary" onClick={()=>setModalPartilha(false)}>Cancelar</button>
               <div style={{ flex:1 }}/>
               <button className="btn btn-secondary btn-sm" onClick={()=>{
-                const txt = `${pomboPartilha.nome} (${pomboPartilha.anilha})\n🏆 ${pomboPartilha.provas||0} provas · 📊 ${pomboPartilha.percentil||0}% percentil · 💪 ${pomboPartilha.forma||50}% forma\n#columbofilia #pomboscorreio`
+                const txt = pomboPartilha.nome + ' (' + pomboPartilha.anilha + ')\n🏆 ' + (pomboPartilha.provas||0) + ' provas · 📊 ' + (pomboPartilha.percentil||0) + '% percentil · 💪 ' + (pomboPartilha.forma||50) + '% forma\n#columbofilia #pomboscorreio'
                 navigator.clipboard?.writeText(txt).then(()=>toast('Copiado!','ok'))
               }}>📋 Copiar</button>
               <button className="btn btn-primary" onClick={()=>{
                 setModalPartilha(false)
                 const esp = (pomboPartilha.esp||[]).map(e=>ESP_ICON[e]+' '+e).join(' ')
-                const espStr = esp ? '\n' + esp : ''
                 const obsStr = pomboPartilha.obs ? '\n"' + pomboPartilha.obs + '"' : ''
-                const conteudo = (pomboPartilha.emoji||'🐦') + ' ' + pomboPartilha.nome + ' — ' + pomboPartilha.anilha + '\n\n📊 Percentil: ' + (pomboPartilha.percentil||0) + '%\n💪 Forma: ' + (pomboPartilha.forma||50) + '%\n🏆 Provas: ' + (pomboPartilha.provas||0) + espStr + obsStr
+                const conteudo = (pomboPartilha.emoji||'🐦') + ' ' + pomboPartilha.nome + ' — ' + pomboPartilha.anilha + '\n\n📊 Percentil: ' + (pomboPartilha.percentil||0) + '%\n💪 Forma: ' + (pomboPartilha.forma||50) + '%\n🏆 Provas: ' + (pomboPartilha.provas||0) + (esp?'\n'+esp:'') + obsStr
                 nav?.('comunidade', { prefillPost: { tipo:'Geral', conteudo, pomboId: pomboPartilha.id } })
               }}>🌐 Publicar na LoftSocial →</button>
             </div>
           }>
-          {/* Card visual do pombo */}
+          {/* Card visual */}
           <div style={{ background:'linear-gradient(135deg,#050D1A,#0B1830)', border:'1px solid rgba(212,175,55,.25)', borderRadius:16, overflow:'hidden', marginBottom:12 }}>
             <div style={{ height:3, background:'linear-gradient(90deg,#B8960C,#D4AF37,#B8960C)' }}/>
-            <div style={{ display:'flex', minHeight:180 }}>
-              {/* Foto — lado esquerdo */}
-              <div style={{ width:'45%', position:'relative', background:'#101F40', flexShrink:0 }}>
+            <div style={{ display:'flex', height:200 }}>
+              {/* FOTO esquerda — altura fixa, objectFit cover */}
+              <div style={{ width:'45%', height:200, flexShrink:0, position:'relative', overflow:'hidden', background:'#0A1628' }}>
                 {pomboPartilha.foto_url
-                  ? <img src={pomboPartilha.foto_url} alt={pomboPartilha.nome} style={{ width:'100%', height:'100%', objectFit:'contain', display:'block' }}/>
-                  : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:64 }}>{pomboPartilha.emoji||'🐦'}</div>
+                  ? <img src={pomboPartilha.foto_url} alt={pomboPartilha.nome}
+                      style={{ position:'absolute', top:0, left:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center' }}/>
+                  : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:72 }}>{pomboPartilha.emoji||'🐦'}</div>
                 }
-                {/* especialidade */}
                 {(pomboPartilha.esp||[])[0]&&(
-                  <div style={{ position:'absolute', bottom:8, left:8, background:`${ESP_COR[(pomboPartilha.esp||[])[0]]}22`, border:`1px solid ${ESP_COR[(pomboPartilha.esp||[])[0]]}60`, borderRadius:6, padding:'2px 8px', fontSize:10, fontWeight:700, color:ESP_COR[(pomboPartilha.esp||[])[0]] }}>
+                  <div style={{ position:'absolute', bottom:8, left:8, background:ESP_COR[(pomboPartilha.esp||[])[0]]+'22', border:'1px solid '+ESP_COR[(pomboPartilha.esp||[])[0]]+'60', borderRadius:6, padding:'2px 8px', fontSize:10, fontWeight:700, color:ESP_COR[(pomboPartilha.esp||[])[0]] }}>
                     {ESP_ICON[(pomboPartilha.esp||[])[0]]} {(pomboPartilha.esp||[])[0]}
                   </div>
                 )}
               </div>
-              {/* Stats — lado direito */}
-              <div style={{ flex:1, padding:'16px 14px', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
+              {/* STATS direita */}
+              <div style={{ flex:1, padding:'14px 12px', display:'flex', flexDirection:'column', justifyContent:'space-between', overflow:'hidden' }}>
                 <div>
-                  <div style={{ fontFamily:"'Fraunces',serif", fontSize:20, fontWeight:900, color:'#fff', lineHeight:1.1, marginBottom:4 }}>{pomboPartilha.nome}</div>
-                  <div style={{ fontFamily:"'Space Mono',monospace", fontSize:10, color:'#D4AF37', marginBottom:10 }}>{pomboPartilha.anilha}</div>
-                  <div style={{ display:'flex', gap:4, flexWrap:'wrap', marginBottom:10 }}>
-                    <span style={{ fontSize:10, color:'#94a3b8' }}>{pomboPartilha.sexo==='M'?'♂':'♀'}</span>
-                    {pomboPartilha.cor&&<span style={{ fontSize:10, color:'#94a3b8' }}>· {pomboPartilha.cor}</span>}
-                    {idadeDoPombo(pomboPartilha.anilha)!==null&&<span style={{ fontSize:10, color:'#94a3b8' }}>· {idadeDoPombo(pomboPartilha.anilha)}a</span>}
+                  <div style={{ fontFamily:"'Fraunces',serif", fontSize:20, fontWeight:900, color:'#fff', lineHeight:1.1, marginBottom:3 }}>{pomboPartilha.nome}</div>
+                  <div style={{ fontFamily:"'Space Mono',monospace", fontSize:9, color:'#D4AF37', marginBottom:8 }}>{pomboPartilha.anilha}</div>
+                  <div style={{ fontSize:10, color:'#94a3b8', marginBottom:8 }}>
+                    {pomboPartilha.sexo==='M'?'♂':'♀'}{pomboPartilha.cor?' · '+pomboPartilha.cor:''}{idadeDoPombo(pomboPartilha.anilha)!==null?' · '+idadeDoPombo(pomboPartilha.anilha)+'a':''}
                   </div>
                 </div>
-                {/* KPIs */}
-                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                <div style={{ display:'flex', flexDirection:'column', gap:7 }}>
                   {[
-                    { label:'Percentil', value:(pomboPartilha.percentil||0)+'%', cor:(pomboPartilha.percentil||0)>=70?'#2DD4A7':'#D4AF37' },
-                    { label:'Forma', value:(pomboPartilha.forma||50)+'%', cor:(pomboPartilha.forma||50)>=60?'#4C8DFF':'#94a3b8' },
-                    { label:'Provas', value:String(pomboPartilha.provas||0), cor:'#D4AF37' },
-                  ].map(({label,value,cor})=>(
-                    <div key={label} style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                      <span style={{ fontSize:10, color:'#475569', textTransform:'uppercase', letterSpacing:'.05em' }}>{label}</span>
-                      <span style={{ fontFamily:"'Fraunces',serif", fontSize:18, fontWeight:900, color:cor }}>{value}</span>
+                    { l:'PERCENTIL', v:(pomboPartilha.percentil||0)+'%', c:(pomboPartilha.percentil||0)>=70?'#2DD4A7':'#D4AF37' },
+                    { l:'FORMA',     v:(pomboPartilha.forma||50)+'%',    c:(pomboPartilha.forma||50)>=60?'#4C8DFF':'#94a3b8' },
+                    { l:'PROVAS',    v:String(pomboPartilha.provas||0),  c:'#D4AF37' },
+                  ].map(({l,v,c})=>(
+                    <div key={l} style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <span style={{ fontSize:9, color:'#475569', letterSpacing:'.08em' }}>{l}</span>
+                      <span style={{ fontFamily:"'Fraunces',serif", fontSize:18, fontWeight:900, color:c }}>{v}</span>
                     </div>
                   ))}
                 </div>
-                {/* Pombal */}
-                {pomboPartilha.pombal&&(
-                  <div style={{ fontSize:10, color:'#7A8699', marginTop:8, borderTop:'1px solid #1B2D52', paddingTop:8 }}>
-                    🏠 {pomboPartilha.pombal}
-                  </div>
-                )}
-                {/* Marca d'água */}
-                <div style={{ fontSize:9, color:'#334155', marginTop:6, fontFamily:"'Space Mono',monospace" }}>championsloft.pt</div>
+                <div>
+                  {pomboPartilha.pombal&&<div style={{ fontSize:10, color:'#7A8699', marginTop:6 }}>🏠 {pomboPartilha.pombal}</div>}
+                  <div style={{ fontSize:8, color:'#334155', marginTop:4, fontFamily:"'Space Mono',monospace" }}>championsloft.pt</div>
+                </div>
               </div>
             </div>
-            {/* Observações se existirem */}
             {pomboPartilha.obs&&(
               <div style={{ padding:'8px 14px', borderTop:'1px solid #1B2D52', fontSize:11, color:'#7A8699', fontStyle:'italic' }}>
                 "{pomboPartilha.obs}"
