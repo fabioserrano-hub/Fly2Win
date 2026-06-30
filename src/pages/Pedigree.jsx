@@ -21,21 +21,32 @@ function findPombo(pombos, ref) {
 }
 
 function buildNode(pombo, manual = {}) {
-  if (!pombo) return { ...NODE_VAZIO, ...manual }
-  return {
+  if (!pombo) {
+    return { ...NODE_VAZIO, ...manual }
+  }
+  const base = {
     anilha: pombo.anilha || '',
     nome: pombo.nome || '',
     cor: pombo.cor || '',
     sexo: pombo.sexo || '',
     foto_url: pombo.foto_url || '',
     conquistas: `${pombo.provas || 0} provas · percentil ${pombo.percentil || 0}%`,
-    linhagem: manual.linhagem || '',
-    desc: manual.desc || '',
-    externo: manual.externo || false,
-    criador: manual.criador || '',
-    ...(manual.conquistas ? { conquistas: manual.conquistas } : {}),
-    ...(manual.foto_url ? { foto_url: manual.foto_url } : {}),
+    linhagem: '',
+    desc: '',
+    externo: false,
+    criador: '',
   }
+  // Apenas aplica campos manuais que tenham valor significativo
+  const manualFiltrado = {}
+  if (manual.linhagem) manualFiltrado.linhagem = manual.linhagem
+  if (manual.desc) manualFiltrado.desc = manual.desc
+  if (manual.conquistas) manualFiltrado.conquistas = manual.conquistas
+  if (manual.foto_url) manualFiltrado.foto_url = manual.foto_url
+  if (manual.externo !== undefined) manualFiltrado.externo = manual.externo
+  if (manual.criador) manualFiltrado.criador = manual.criador
+  if (manual.anilha) manualFiltrado.anilha = manual.anilha
+  if (manual.nome) manualFiltrado.nome = manual.nome
+  return { ...base, ...manualFiltrado }
 }
 
 function construirArvore(pomboId, pombos, manual = {}) {
@@ -67,6 +78,7 @@ function construirArvore(pomboId, pombos, manual = {}) {
     bis_mmm: buildNode(avo_mm ? findPombo(pombos, avo_mm.mae) : null, manual.bis_mmm || {}),
   }
 
+  // Deteção de consanguinidade
   const contagem = {}
   Object.values(raw).forEach(node => {
     if (node.anilha) contagem[node.anilha] = (contagem[node.anilha] || 0) + 1
@@ -125,7 +137,6 @@ export default function Pedigree({ nav, params }) {
       setPombos(p)
       setPerfil(pf)
 
-      // CORREÇÃO: ler tema com tratamento de erro
       let temaGuardado = null
       try { temaGuardado = JSON.parse(localStorage.getItem('cl_tema')) } catch {}
       if (temaGuardado) setTema(temaGuardado)
@@ -160,10 +171,12 @@ export default function Pedigree({ nav, params }) {
 
   const selecionarPombo = useCallback(async (id) => {
     setPomboSel(id)
-    if (!id) { setArvore(null); setEstatisticas(null); return }
+    setArvore(null)        // limpar antes
+    setEstatisticas(null)  // limpar antes
+    if (!id) { return }
 
     const arvoreBase = construirArvore(id, pombos, {})
-    if (!arvoreBase) { setArvore(null); setEstatisticas(null); return }
+    if (!arvoreBase) { return }
 
     let manual = {}
     try { manual = await db.getPedigree(id) || {} } catch {}
@@ -249,35 +262,55 @@ export default function Pedigree({ nav, params }) {
     db.updatePerfil({ tema: novoTema }).catch(() => {})
   }
 
-  const exportarCSV = () => {
+  // ── Exportar Excel (premium) ──
+  const gerarExcel = async () => {
     if (!arvore) return
-    const linhas = []
-    Object.entries(arvore).forEach(([key, node]) => {
-      if (node.anilha || node.nome) {
-        linhas.push([
-          key,
-          node.anilha || '',
-          node.nome || '',
-          node.sexo || '',
-          node.cor || '',
-          node.linhagem || '',
-          node.conquistas || '',
-          node.desc || '',
-          node.foto_url || '',
-          node.externo ? 'Sim' : 'Não',
-          node.repetido || 0
-        ].join(','))
-      }
-    })
-    const csv = ['Posição,Anilha,Nome,Sexo,Cor,Linhagem,Conquistas,Descrição,Foto,Externo,Repetições', ...linhas].join('\n')
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `pedigree_${arvore.pombo.nome || 'pombo'}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
-    toast('CSV exportado!', 'ok')
+    toast('A gerar Excel...', 'ok')
+    try {
+      await new Promise((res, rej) => {
+        if (window.XLSX) return res()
+        const s = document.createElement('script')
+        s.src = 'https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js'
+        s.onload = res; s.onerror = rej; document.head.appendChild(s)
+      })
+      const XLSX = window.XLSX
+
+      const dados = []
+      const cabecalho = ['Posição', 'Anilha', 'Nome', 'Sexo', 'Cor', 'Linhagem', 'Conquistas', 'Descrição', 'Foto', 'Externo', 'Repetições']
+      dados.push(cabecalho)
+
+      const ordem = ['pombo', 'pai', 'mae', 'avo_pp', 'avo_pm', 'avo_mp', 'avo_mm', 'bis_ppp', 'bis_ppm', 'bis_pmp', 'bis_pmm', 'bis_mpp', 'bis_mpm', 'bis_mmp', 'bis_mmm']
+      ordem.forEach(key => {
+        const node = arvore[key]
+        if (node && (node.anilha || node.nome)) {
+          dados.push([
+            key,
+            node.anilha || '',
+            node.nome || '',
+            node.sexo || '',
+            node.cor || '',
+            node.linhagem || '',
+            node.conquistas || '',
+            node.desc || '',
+            node.foto_url || '',
+            node.externo ? 'Sim' : 'Não',
+            node.repetido || 0
+          ])
+        }
+      })
+
+      const wb = XLSX.utils.book_new()
+      const ws = XLSX.utils.aoa_to_sheet(dados)
+      ws['!cols'] = [
+        { wch: 12 }, { wch: 18 }, { wch: 20 }, { wch: 6 }, { wch: 18 },
+        { wch: 18 }, { wch: 35 }, { wch: 40 }, { wch: 50 }, { wch: 10 }, { wch: 12 }
+      ]
+      XLSX.utils.book_append_sheet(wb, ws, 'Pedigree')
+      XLSX.writeFile(wb, `pedigree_${arvore.pombo.nome || 'pombo'}.xlsx`)
+      toast('Excel gerado!', 'ok')
+    } catch (e) {
+      toast('Erro: ' + e.message, 'err')
+    }
   }
 
   const adicionarLinhagem = () => {
@@ -420,7 +453,7 @@ export default function Pedigree({ nav, params }) {
     )
   }
 
-  // ==================== FUNÇÃO GERAR PDF ====================
+  // ==================== GERAR PDF ====================
   const gerarPDF = async () => {
     if (!arvore) return
     toast('A gerar PDF...', 'ok')
@@ -615,7 +648,12 @@ export default function Pedigree({ nav, params }) {
             const scale = Math.max(boxW / iw, boxH / ih)
             const dw = iw * scale, dh = ih * scale
             const dx = x + 1.5 + (boxW - dw) / 2, dy = ty + (boxH - dh) / 2
+            // Aplica clip para a imagem não sair da caixa
+            doc.save()
+            doc.rect(x + 1.5, ty, boxW, boxH)
+            doc.clip()
             doc.addImage(imgData.dataUrl, 'JPEG', dx, dy, dw, dh)
+            doc.restore()
             ty += fh + 1.5
           }
         }
@@ -700,7 +738,7 @@ export default function Pedigree({ nav, params }) {
     }
   }
 
-  // ==================== RENDER ====================
+  // ── RENDER ──
   if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}><Spinner lg /></div>
 
   return (
@@ -719,7 +757,7 @@ export default function Pedigree({ nav, params }) {
           {arvore && (
             <>
               <button className="btn btn-primary btn-sm" onClick={gerarPDF}>📥 PDF</button>
-              <button className="btn btn-secondary btn-sm" onClick={exportarCSV}>📊 CSV</button>
+              <button className="btn btn-secondary btn-sm" onClick={gerarExcel}>📊 Excel</button>
             </>
           )}
           {arvore && pomboSel && (
