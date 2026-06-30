@@ -282,6 +282,7 @@ export default function Pedigree({ nav, params }) {
         const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16)
         return [r,g,b]
       }
+      const S = (v) => (v === null || v === undefined) ? '' : String(v)
       const GOLD = hexToRgb(tema.primaria), GOLD_L = hexToRgb(tema.primariaClara)
       const NAVY=[15,30,65], WHITE=[255,255,255]
       const LGREY=[210,218,228], GREEN=[0,105,65], BLUE_L=[40,80,175], RED_D=[130,20,20]
@@ -327,20 +328,20 @@ export default function Pedigree({ nav, params }) {
       const infoX = fx+6
       const midY = HY + FOTO_SZ/2
       doc.setFontSize(8.5); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255)
-      doc.text(perfil?.nome||'', infoX, midY-4)
+      doc.text(S(perfil?.nome), infoX, midY-4)
       doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
-      if (perfil?.pombal_nome) doc.text(perfil.pombal_nome+(perfil?.pombal_morada?' - '+perfil.pombal_morada:''), infoX, midY+2)
-      if (perfil?.org) doc.text(perfil.org+(perfil?.fed?' - '+perfil.fed:''), infoX, midY+8)
+      if (perfil?.pombal_nome) doc.text(S(perfil.pombal_nome)+(perfil?.pombal_morada?' - '+S(perfil.pombal_morada):''), infoX, midY+2)
+      if (perfil?.org) doc.text(S(perfil.org)+(perfil?.fed?' - '+S(perfil.fed):''), infoX, midY+8)
       const pedigreeX = infoX + 85
       doc.setFontSize(26); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
       doc.text('PEDIGREE', pedigreeX, midY+5)
       doc.setFontSize(5.5); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
       doc.text('DATA DE EMISSAO', W-8, HY+5, {align:'right'})
       doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255)
-      doc.text(new Date().toLocaleDateString('pt-PT'), W-8, HY+13, {align:'right'})
+      doc.text(S(new Date().toLocaleDateString('pt-PT')), W-8, HY+13, {align:'right'})
       doc.setFontSize(5); doc.setFont('helvetica','normal'); doc.setTextColor(71,85,105)
       doc.text('Documento oficial', W-8, HY+19, {align:'right'})
-      doc.text('ChampionsLoft (c) '+new Date().getFullYear(), W-8, HY+24, {align:'right'})
+      doc.text('ChampionsLoft (c) '+S(new Date().getFullYear()), W-8, HY+24, {align:'right'})
 
       const ORG_W = 207
       const PALM_X = 213
@@ -364,9 +365,9 @@ export default function Pedigree({ nav, params }) {
         const cor=i===0?GOLD:i<3?NAVY:[110,118,145]
         const pos=['1.','2.','3.','4.']
         doc.setFontSize(5.5); doc.setFont('helvetica',i===0?'bold':'normal'); doc.setTextColor(...cor)
-        doc.text(pos[i]+' '+p.nome, PALM_X+1, PY+17+i*7)
+        doc.text(S(pos[i])+' '+S(p.nome), PALM_X+1, PY+17+i*7)
         doc.setFontSize(4.5); doc.setFont('helvetica','normal'); doc.setTextColor(140,148,170)
-        doc.text(String(p.percentil||0)+'% percentil  |  '+String(p.provas||0)+' provas', PALM_X+4, PY+20.5+i*7)
+        doc.text(S(p.percentil||0)+'% percentil  |  '+S(p.provas||0)+' provas', PALM_X+4, PY+20.5+i*7)
       })
 
       const sepY = PY+46
@@ -379,7 +380,7 @@ export default function Pedigree({ nav, params }) {
       if (conquistas.length>0) {
         conquistas.slice(0,9).forEach((c,i)=>{
           doc.setFontSize(5); doc.setFont('helvetica','normal'); doc.setTextColor(...NAVY)
-          doc.text('- '+String(c).substring(0,30), PALM_X+1, sepY+11+i*7)
+          doc.text('- '+S(c).substring(0,30), PALM_X+1, sepY+11+i*7)
         })
       } else {
         for(let i=0;i<9;i++){
@@ -434,11 +435,11 @@ export default function Pedigree({ nav, params }) {
             ty+=fh+1.5
           }
         }
-        if(node.anilha){ doc.setFontSize(tipo==='main'?6:4.8); doc.setFont('courier','bold'); doc.setTextColor(...GOLD); doc.text(node.anilha.substring(0,20),x+2.5,ty); ty+=3.2 }
-        if(node.nome){ const fs=tipo==='main'?8.5:bh>20?7:6; doc.setFontSize(fs); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY); doc.text(node.nome.substring(0,17),x+2.5,ty); ty+=fs*0.42+1.8 }
-        if(node.cor&&ty<by+bh-3){ doc.setFontSize(5); doc.setFont('helvetica','normal'); doc.setTextColor(95,108,138); doc.text(node.cor.substring(0,20),x+2.5,ty); ty+=3.2 }
-        if(node.linhagem&&ty<by+bh-3){ doc.setFontSize(4.8); doc.setTextColor(...BLUE_L); doc.text(node.linhagem.substring(0,20),x+2.5,ty); ty+=3 }
-        if(node.conquistas&&ty<by+bh-2){ doc.setFontSize(4.5); doc.setTextColor(...GREEN); doc.text(node.conquistas.substring(0,34),x+2.5,ty,{maxWidth:w-4}) }
+        if(node.anilha){ doc.setFontSize(tipo==='main'?6:4.8); doc.setFont('courier','bold'); doc.setTextColor(...GOLD); doc.text(S(node.anilha).substring(0,20),x+2.5,ty); ty+=3.2 }
+        if(node.nome){ const fs=tipo==='main'?8.5:bh>20?7:6; doc.setFontSize(fs); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY); doc.text(S(node.nome).substring(0,17),x+2.5,ty); ty+=fs*0.42+1.8 }
+        if(node.cor&&ty<by+bh-3){ doc.setFontSize(5); doc.setFont('helvetica','normal'); doc.setTextColor(95,108,138); doc.text(S(node.cor).substring(0,20),x+2.5,ty); ty+=3.2 }
+        if(node.linhagem&&ty<by+bh-3){ doc.setFontSize(4.8); doc.setTextColor(...BLUE_L); doc.text(S(node.linhagem).substring(0,20),x+2.5,ty); ty+=3 }
+        if(node.conquistas&&ty<by+bh-2){ doc.setFontSize(4.5); doc.setTextColor(...GREEN); doc.text(S(node.conquistas).substring(0,34),x+2.5,ty,{maxWidth:w-4}) }
         if(node.externo){ doc.setFontSize(4); doc.setTextColor(165,75,25); doc.text('Ext.',x+w-3,by+bh-2) }
       }
 
@@ -488,9 +489,9 @@ export default function Pedigree({ nav, params }) {
           doc.text(lbl,C3X+C3W/2,by2+3.2,{align:'center'})
           if(!isEmpty){
             let ty=by2+5.5
-            if(node.anilha){ doc.setFontSize(4.5); doc.setFont('courier','bold'); doc.setTextColor(...GOLD); doc.text(node.anilha.substring(0,16),C3X+1.5,ty); ty+=2.8 }
-            if(node.nome){ doc.setFontSize(5.5); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY); doc.text(node.nome.substring(0,13),C3X+1.5,ty); ty+=3.2 }
-            if(node.cor&&ty<by2+bh2-1){ doc.setFontSize(4.2); doc.setFont('helvetica','normal'); doc.setTextColor(95,108,138); doc.text(node.cor.substring(0,14),C3X+1.5,ty) }
+            if(node.anilha){ doc.setFontSize(4.5); doc.setFont('courier','bold'); doc.setTextColor(...GOLD); doc.text(S(node.anilha).substring(0,16),C3X+1.5,ty); ty+=2.8 }
+            if(node.nome){ doc.setFontSize(5.5); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY); doc.text(S(node.nome).substring(0,13),C3X+1.5,ty); ty+=3.2 }
+            if(node.cor&&ty<by2+bh2-1){ doc.setFontSize(4.2); doc.setFont('helvetica','normal'); doc.setTextColor(95,108,138); doc.text(S(node.cor).substring(0,14),C3X+1.5,ty) }
           } else { doc.setFontSize(4.5); doc.setTextColor(185,192,210); doc.text('—',C3X+C3W/2,by2+bh2/2+1,{align:'center'}) }
           conn(C2X+C2W,TOP+(avoP[i]+0.5)*AVAIL/4,C3X,TOP+(i+0.5)*AVAIL/8,avoP[i]<2?[100,130,200]:[180,60,60])
         })
@@ -501,9 +502,9 @@ export default function Pedigree({ nav, params }) {
       doc.setFontSize(5); doc.setFont('helvetica','normal'); doc.setTextColor(150,165,200)
       doc.text('Documento gerado pela ChampionsLoft - championsloft.app', 8, H-3.5)
       doc.setTextColor(...GOLD)
-      doc.text('(c) '+new Date().getFullYear()+' '+(perfil?.nome||''), W-8, H-3.5, {align:'right'})
+      doc.text('(c) '+S(new Date().getFullYear())+' '+S(perfil?.nome), W-8, H-3.5, {align:'right'})
 
-      doc.save('pedigree-'+(arvore.pombo.nome||'pombo')+'.pdf')
+      doc.save('pedigree-'+S(arvore.pombo.nome||'pombo').replace(/[^a-zA-Z0-9-_]/g,'')+'.pdf')
       toast('PDF gerado!', 'ok')
     } catch(e) {
       toast('Erro: '+e.message, 'err')
