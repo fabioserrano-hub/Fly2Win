@@ -298,9 +298,9 @@ export default function Pedigree({ nav, params }) {
 
       doc.setFillColor(...GOLD); doc.rect(0,0,W,10,'F')
       doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY)
-      doc.text('CHAMPIONSLOFT', 8, 7)
+      doc.text(S('CHAMPIONSLOFT'), 8, 7)
       doc.setFontSize(6); doc.setFont('helvetica','normal')
-      doc.text('PEDIGREE PREMIUM  |  championsloft.app', W-8, 7, {align:'right'})
+      doc.text(S('PEDIGREE PREMIUM  |  championsloft.app'), W-8, 7, {align:'right'})
 
       const HDR_H = 29
       doc.setFillColor(...NAVY); doc.rect(0,10,W,HDR_H,'F')
@@ -310,19 +310,23 @@ export default function Pedigree({ nav, params }) {
       const FOTO_SZ = 18
       const HY = 10 + (HDR_H - FOTO_SZ) / 2
       let fx = 10
-      if (fotoPerfilB64) {
-        doc.setDrawColor(...GOLD); doc.setLineWidth(0.8)
-        doc.roundedRect(fx,HY,FOTO_SZ,FOTO_SZ,1.5,1.5,'S')
-        doc.addImage(fotoPerfilB64,'JPEG',fx+0.5,HY+0.5,FOTO_SZ-1,FOTO_SZ-1)
-        doc.setFontSize(4); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
-        doc.text('Columbofilo', fx+FOTO_SZ/2, HY+FOTO_SZ+2.5, {align:'center'}); fx+=FOTO_SZ+5
+      if (fotoPerfilB64?.data) {
+        try {
+          doc.setDrawColor(...GOLD); doc.setLineWidth(0.8)
+          doc.roundedRect(fx,HY,FOTO_SZ,FOTO_SZ,1.5,1.5,'S')
+          doc.addImage(fotoPerfilB64.data,'JPEG',fx+0.5,HY+0.5,FOTO_SZ-1,FOTO_SZ-1)
+          doc.setFontSize(4); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
+          doc.text(S('Columbofilo'), fx+FOTO_SZ/2, HY+FOTO_SZ+2.5, {align:'center'}); fx+=FOTO_SZ+5
+        } catch(e) { console.warn('Erro foto perfil PDF:', e) }
       }
-      if (fotoPombalB64) {
-        doc.setDrawColor(60,90,140); doc.setLineWidth(0.5)
-        doc.roundedRect(fx,HY,FOTO_SZ,FOTO_SZ,1.5,1.5,'S')
-        doc.addImage(fotoPombalB64,'JPEG',fx+0.4,HY+0.4,FOTO_SZ-0.8,FOTO_SZ-0.8)
-        doc.setFontSize(4); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
-        doc.text('Pombal', fx+FOTO_SZ/2, HY+FOTO_SZ+2.5, {align:'center'}); fx+=FOTO_SZ+5
+      if (fotoPombalB64?.data) {
+        try {
+          doc.setDrawColor(60,90,140); doc.setLineWidth(0.5)
+          doc.roundedRect(fx,HY,FOTO_SZ,FOTO_SZ,1.5,1.5,'S')
+          doc.addImage(fotoPombalB64.data,'JPEG',fx+0.4,HY+0.4,FOTO_SZ-0.8,FOTO_SZ-0.8)
+          doc.setFontSize(4); doc.setFont('helvetica','normal'); doc.setTextColor(148,163,184)
+          doc.text(S('Pombal'), fx+FOTO_SZ/2, HY+FOTO_SZ+2.5, {align:'center'}); fx+=FOTO_SZ+5
+        } catch(e) { console.warn('Erro foto pombal PDF:', e) }
       }
       doc.setFillColor(...GOLD); doc.rect(fx+2,HY,0.7,FOTO_SZ,'F')
       const infoX = fx+6
@@ -334,13 +338,13 @@ export default function Pedigree({ nav, params }) {
       if (perfil?.org) doc.text(S(perfil.org)+(perfil?.fed?' - '+S(perfil.fed):''), infoX, midY+8)
       const pedigreeX = infoX + 85
       doc.setFontSize(26); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
-      doc.text('PEDIGREE', pedigreeX, midY+5)
+      doc.text(S('PEDIGREE'), pedigreeX, midY+5)
       doc.setFontSize(5.5); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
-      doc.text('DATA DE EMISSAO', W-8, HY+5, {align:'right'})
+      doc.text(S('DATA DE EMISSAO'), W-8, HY+5, {align:'right'})
       doc.setFontSize(13); doc.setFont('helvetica','bold'); doc.setTextColor(255,255,255)
       doc.text(S(new Date().toLocaleDateString('pt-PT')), W-8, HY+13, {align:'right'})
       doc.setFontSize(5); doc.setFont('helvetica','normal'); doc.setTextColor(71,85,105)
-      doc.text('Documento oficial', W-8, HY+19, {align:'right'})
+      doc.text(S('Documento oficial'), W-8, HY+19, {align:'right'})
       doc.text('ChampionsLoft (c) '+S(new Date().getFullYear()), W-8, HY+24, {align:'right'})
 
       const ORG_W = 207
@@ -355,11 +359,11 @@ export default function Pedigree({ nav, params }) {
       doc.setFillColor(...NAVY); doc.roundedRect(PALM_X,PY,PALM_W,7,1,1,'F')
       doc.setDrawColor(...GOLD); doc.setLineWidth(0.5); doc.roundedRect(PALM_X,PY,PALM_W,7,1,1,'S')
       doc.setFontSize(6); doc.setFont('helvetica','bold'); doc.setTextColor(...GOLD)
-      doc.text('PALMARES', PALM_X+PALM_W/2, PY+5, {align:'center'})
+      doc.text(S('PALMARES'), PALM_X+PALM_W/2, PY+5, {align:'center'})
 
       const topPombos = (pombos||[]).slice().sort((a,b)=>(b.percentil||0)-(a.percentil||0)).slice(0,4)
       doc.setFontSize(5); doc.setFont('helvetica','bold'); doc.setTextColor(100,108,135)
-      doc.text('TOP POMBOS DO EFECTIVO', PALM_X+1, PY+12)
+      doc.text(S('TOP POMBOS DO EFECTIVO'), PALM_X+1, PY+12)
       doc.setDrawColor(...LGREY); doc.setLineWidth(0.15); doc.line(PALM_X+1,PY+13.5,PALM_X+PALM_W-1,PY+13.5)
       topPombos.forEach((p,i)=>{
         const cor=i===0?GOLD:i<3?NAVY:[110,118,145]
@@ -373,7 +377,7 @@ export default function Pedigree({ nav, params }) {
       const sepY = PY+46
       doc.setDrawColor(...GOLD); doc.setLineWidth(0.3); doc.line(PALM_X+1,sepY,PALM_X+PALM_W-1,sepY)
       doc.setFontSize(5); doc.setFont('helvetica','bold'); doc.setTextColor(100,108,135)
-      doc.text('CONQUISTAS PESSOAIS', PALM_X+1, sepY+5)
+      doc.text(S('CONQUISTAS PESSOAIS'), PALM_X+1, sepY+5)
       doc.setDrawColor(...LGREY); doc.setLineWidth(0.15); doc.line(PALM_X+1,sepY+6.5,PALM_X+PALM_W-1,sepY+6.5)
 
       const conquistas = perfil?.conquistas||[]
@@ -388,7 +392,7 @@ export default function Pedigree({ nav, params }) {
           doc.line(PALM_X+1,sepY+11+i*7,PALM_X+PALM_W-1,sepY+11+i*7)
         }
         doc.setFontSize(4); doc.setTextColor(175,182,200)
-        doc.text('Adicione conquistas em Perfil > Palmares', PALM_X+PALM_W/2, BOTTOM-4, {align:'center'})
+        doc.text(S('Adicione conquistas em Perfil > Palmares'), PALM_X+PALM_W/2, BOTTOM-4, {align:'center'})
       }
 
       const C0W=36, GAP=2, COL_GAP=5
@@ -398,7 +402,7 @@ export default function Pedigree({ nav, params }) {
       const C2W = geracoes>=3 ? Math.round(rest*0.24) : rest - C1W
       const C0X=7, C1X=C0X+C0W+GAP+6, C2X=C1X+C1W+GAP+COL_GAP, C3X=geracoes>=3?C2X+C2W+GAP+COL_GAP:0
 
-      const gL=(t,x)=>{ doc.setFontSize(4.8); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY); doc.text(t,x,TOP-1) }
+      const gL=(lbl,x)=>{ doc.setFontSize(4.8); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY); doc.text(S(lbl),x,TOP-1) }
       gL('POMBO',C0X); gL('PAIS',C1X)
       if(geracoes>=2) gL('AVOS',C2X)
       if(geracoes>=3) gL('BISAVOS',C3X)
@@ -421,18 +425,20 @@ export default function Pedigree({ nav, params }) {
         doc.setFillColor(...bc)
         doc.roundedRect(x+0.2,by+0.2,w-0.4,5,1.3,1.3,'F')
         doc.rect(x+0.2,by+3,w-0.4,2.4,'F')
-        if(isEmpty){ doc.setFontSize(5); doc.setTextColor(185,192,210); doc.text('—',x+w/2,by+bh/2+2,{align:'center'}); return }
+        if(isEmpty){ doc.setFontSize(5); doc.setTextColor(185,192,210); doc.text(S('—'),x+w/2,by+bh/2+2,{align:'center'}); return }
         let ty=by+7
         if(showFoto && imgs[nodeKey]) {
           const fh=Math.min(18,bh-18)
-          if(fh>6){
-            const maxW=w-3
-            const img=imgs[nodeKey]
-            let dw=maxW, dh=fh
-            if(img.ratio){ if(maxW/fh > img.ratio){ dw=fh*img.ratio } else { dh=maxW/img.ratio } }
-            const ox=x+1.5+(maxW-dw)/2, oy=ty+(fh-dh)/2
-            doc.addImage(img.data,'JPEG',ox,oy,dw,dh)
-            ty+=fh+1.5
+          if(fh>6 && imgs[nodeKey]?.data){
+            try {
+              const maxW=w-3
+              const img=imgs[nodeKey]
+              let dw=maxW, dh=fh
+              if(img.ratio){ if(maxW/fh > img.ratio){ dw=fh*img.ratio } else { dh=maxW/img.ratio } }
+              const ox=x+1.5+(maxW-dw)/2, oy=ty+(fh-dh)/2
+              doc.addImage(img.data,'JPEG',ox,oy,dw,dh)
+              ty+=fh+1.5
+            } catch(e) { console.warn('Erro foto nó PDF:', e) }
           }
         }
         if(node.anilha){ doc.setFontSize(tipo==='main'?6:4.8); doc.setFont('courier','bold'); doc.setTextColor(...GOLD); doc.text(S(node.anilha).substring(0,20),x+2.5,ty); ty+=3.2 }
@@ -440,7 +446,7 @@ export default function Pedigree({ nav, params }) {
         if(node.cor&&ty<by+bh-3){ doc.setFontSize(5); doc.setFont('helvetica','normal'); doc.setTextColor(95,108,138); doc.text(S(node.cor).substring(0,20),x+2.5,ty); ty+=3.2 }
         if(node.linhagem&&ty<by+bh-3){ doc.setFontSize(4.8); doc.setTextColor(...BLUE_L); doc.text(S(node.linhagem).substring(0,20),x+2.5,ty); ty+=3 }
         if(node.conquistas&&ty<by+bh-2){ doc.setFontSize(4.5); doc.setTextColor(...GREEN); doc.text(S(node.conquistas).substring(0,34),x+2.5,ty,{maxWidth:w-4}) }
-        if(node.externo){ doc.setFontSize(4); doc.setTextColor(165,75,25); doc.text('Ext.',x+w-3,by+bh-2) }
+        if(node.externo){ doc.setFontSize(4); doc.setTextColor(165,75,25); doc.text(S('Ext.'),x+w-3,by+bh-2) }
       }
 
       const conn=(x1,y1,x2,y2,col=LGREY)=>{
@@ -486,13 +492,13 @@ export default function Pedigree({ nav, params }) {
           doc.roundedRect(C3X+0.2,by2+0.2,C3W-0.4,4,1,1,'F')
           doc.rect(C3X+0.2,by2+2.5,C3W-0.4,1.9,'F')
           doc.setFontSize(4); doc.setFont('helvetica','bold'); doc.setTextColor(...WHITE)
-          doc.text(lbl,C3X+C3W/2,by2+3.2,{align:'center'})
+          doc.text(S(lbl),C3X+C3W/2,by2+3.2,{align:'center'})
           if(!isEmpty){
             let ty=by2+5.5
             if(node.anilha){ doc.setFontSize(4.5); doc.setFont('courier','bold'); doc.setTextColor(...GOLD); doc.text(S(node.anilha).substring(0,16),C3X+1.5,ty); ty+=2.8 }
             if(node.nome){ doc.setFontSize(5.5); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY); doc.text(S(node.nome).substring(0,13),C3X+1.5,ty); ty+=3.2 }
             if(node.cor&&ty<by2+bh2-1){ doc.setFontSize(4.2); doc.setFont('helvetica','normal'); doc.setTextColor(95,108,138); doc.text(S(node.cor).substring(0,14),C3X+1.5,ty) }
-          } else { doc.setFontSize(4.5); doc.setTextColor(185,192,210); doc.text('—',C3X+C3W/2,by2+bh2/2+1,{align:'center'}) }
+          } else { doc.setFontSize(4.5); doc.setTextColor(185,192,210); doc.text(S('—'),C3X+C3W/2,by2+bh2/2+1,{align:'center'}) }
           conn(C2X+C2W,TOP+(avoP[i]+0.5)*AVAIL/4,C3X,TOP+(i+0.5)*AVAIL/8,avoP[i]<2?[100,130,200]:[180,60,60])
         })
       }
@@ -500,13 +506,14 @@ export default function Pedigree({ nav, params }) {
       doc.setFillColor(...NAVY); doc.rect(0,H-9,W,9,'F')
       doc.setFillColor(...GOLD); doc.rect(0,H-9,W,0.6,'F')
       doc.setFontSize(5); doc.setFont('helvetica','normal'); doc.setTextColor(150,165,200)
-      doc.text('Documento gerado pela ChampionsLoft - championsloft.app', 8, H-3.5)
+      doc.text(S('Documento gerado pela ChampionsLoft - championsloft.app'), 8, H-3.5)
       doc.setTextColor(...GOLD)
       doc.text('(c) '+S(new Date().getFullYear())+' '+S(perfil?.nome), W-8, H-3.5, {align:'right'})
 
       doc.save('pedigree-'+S(arvore.pombo.nome||'pombo').replace(/[^a-zA-Z0-9-_]/g,'')+'.pdf')
       toast('PDF gerado!', 'ok')
     } catch(e) {
+      console.error('Erro completo gerarPDF:', e)
       toast('Erro: '+e.message, 'err')
     }
   }
