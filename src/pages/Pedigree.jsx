@@ -4,7 +4,6 @@ import { useAuth } from '../hooks/useAuth'
 import { useToast, Spinner, Modal, Field, EmptyState, Badge } from '../components/ui'
 import { BotaoQR } from '../components/QRCode'
 
-// ── constantes ──────────────────────────────────────────────────────────────
 const LINHAS_GENETICAS_DEFAULT = [
   'Janssen', 'Koopman', 'Gaby Vandenabeele', 'Leo Heremans', 'Schellens',
   'Aarden', 'Wittenbuik', 'Van Loon', 'Staf Aarden', 'Hofkens', 'Bricoux',
@@ -16,7 +15,6 @@ const NODE_VAZIO = {
   desc: '', foto_url: '', sexo: '', externo: false, criador: ''
 }
 
-// ── helpers ──────────────────────────────────────────────────────────────────
 function findPombo(pombos, ref) {
   if (!ref) return null
   return pombos.find(p => p.anilha === ref) || pombos.find(p => p.nome === ref) || null
@@ -69,7 +67,6 @@ function construirArvore(pomboId, pombos, manual = {}) {
     bis_mmm: buildNode(avo_mm ? findPombo(pombos, avo_mm.mae) : null, manual.bis_mmm || {}),
   }
 
-  // Deteção de consanguinidade
   const contagem = {}
   Object.values(raw).forEach(node => {
     if (node.anilha) contagem[node.anilha] = (contagem[node.anilha] || 0) + 1
@@ -101,7 +98,6 @@ export default function Pedigree({ nav, params }) {
   const [mostrarConquistas, setMostrarConquistas] = useState(true)
   const [mostrarFotos, setMostrarFotos] = useState(true)
 
-  // Tema
   const [tema, setTema] = useState({
     primaria: '#D4AF37',
     secundaria: '#1E5FD9',
@@ -109,35 +105,33 @@ export default function Pedigree({ nav, params }) {
     texto: '#FFFFFF',
   })
 
-  // Filtros
   const [filtroPombal, setFiltroPombal] = useState('')
   const [filtroSexo, setFiltroSexo] = useState('')
   const [pesquisaRapida, setPesquisaRapida] = useState('')
-
-  // Linhagens dinâmicas
   const [linhagens, setLinhagens] = useState(LINHAS_GENETICAS_DEFAULT)
   const [novaLinhagem, setNovaLinhagem] = useState('')
-
-  // Estatísticas
   const [estatisticas, setEstatisticas] = useState(null)
 
-  // ── Computed ──────────────────────────────────────────────────────────────
   const pombalsList = [...new Set(pombos.map(p => p.pombal).filter(Boolean))]
   const pombosFiltrados = pombos.filter(p =>
     (!filtroPombal || p.pombal === filtroPombal) &&
     (!filtroSexo || p.sexo === filtroSexo)
   )
 
-  // ── load ──────────────────────────────────────────────────────────────────
   const load = useCallback(async () => {
     setLoading(true)
     try {
       const [p, pf] = await Promise.all([db.getPombos(), db.getPerfil()])
       setPombos(p)
       setPerfil(pf)
-      const temaGuardado = pf?.tema || JSON.parse(localStorage.getItem('cl_tema') || 'null')
+
+      // CORREÇÃO: ler tema com tratamento de erro
+      let temaGuardado = null
+      try { temaGuardado = JSON.parse(localStorage.getItem('cl_tema')) } catch {}
       if (temaGuardado) setTema(temaGuardado)
-      const linhagensGuardadas = pf?.linhagens || JSON.parse(localStorage.getItem('cl_linhagens') || 'null')
+
+      let linhagensGuardadas = null
+      try { linhagensGuardadas = JSON.parse(localStorage.getItem('cl_linhagens')) } catch {}
       if (linhagensGuardadas) setLinhagens(linhagensGuardadas)
     } catch (e) { toast('Erro: ' + e.message, 'err') }
     finally { setLoading(false) }
@@ -145,7 +139,6 @@ export default function Pedigree({ nav, params }) {
 
   useEffect(() => { load() }, [load])
 
-  // Realtime
   useEffect(() => {
     const subscription = supabase
       .channel('pedigree_updates')
@@ -165,7 +158,6 @@ export default function Pedigree({ nav, params }) {
     if (params?.pomboId && pombos.length) selecionarPombo(params.pomboId)
   }, [params?.pomboId, pombos.length])
 
-  // ── selecionarPombo ──────────────────────────────────────────────────────
   const selecionarPombo = useCallback(async (id) => {
     setPomboSel(id)
     if (!id) { setArvore(null); setEstatisticas(null); return }
@@ -212,7 +204,6 @@ export default function Pedigree({ nav, params }) {
     })
   }, [pombos, geracoes])
 
-  // ── guardar / editar ────────────────────────────────────────────────────
   const abrirEditor = (key) => {
     setFormNode({ ...arvore[key] })
     setModalNode(key)
@@ -243,7 +234,6 @@ export default function Pedigree({ nav, params }) {
     toast('Guardado!', 'ok')
   }
 
-  // ── upload de foto ──────────────────────────────────────────────────────
   const uploadFotoNode = async (file) => {
     if (!user?.id) return toast('Faça login primeiro', 'warn')
     try {
@@ -253,14 +243,12 @@ export default function Pedigree({ nav, params }) {
     } catch (e) { toast('Erro: ' + e.message, 'err') }
   }
 
-  // ── temas ──────────────────────────────────────────────────────────────
   const guardarTema = (novoTema) => {
     setTema(novoTema)
     localStorage.setItem('cl_tema', JSON.stringify(novoTema))
     db.updatePerfil({ tema: novoTema }).catch(() => {})
   }
 
-  // ── exportar CSV ────────────────────────────────────────────────────────
   const exportarCSV = () => {
     if (!arvore) return
     const linhas = []
@@ -292,7 +280,6 @@ export default function Pedigree({ nav, params }) {
     toast('CSV exportado!', 'ok')
   }
 
-  // ── adicionar linhagem ──────────────────────────────────────────────────
   const adicionarLinhagem = () => {
     if (!novaLinhagem.trim()) return toast('Insira um nome', 'warn')
     const novas = [...linhagens, novaLinhagem.trim()]
@@ -303,7 +290,6 @@ export default function Pedigree({ nav, params }) {
     toast('Linhagem adicionada!', 'ok')
   }
 
-  // ── trocar pai/mãe ──────────────────────────────────────────────────────
   const trocarPai = (novoPaiId) => {
     const novoPai = pombos.find(p => p.id === novoPaiId)
     if (!novoPai) return
@@ -356,7 +342,6 @@ export default function Pedigree({ nav, params }) {
     toast('Mãe atualizada!', 'ok')
   }
 
-  // ── componente NodeCard ──────────────────────────────────────────────────
   const NodeCard = ({ nodeKey, label, destaque, mini }) => {
     if (!arvore) return null
     const node = arvore[nodeKey]
@@ -435,7 +420,287 @@ export default function Pedigree({ nav, params }) {
     )
   }
 
-  // ── render ──────────────────────────────────────────────────────────────
+  // ==================== FUNÇÃO GERAR PDF ====================
+  const gerarPDF = async () => {
+    if (!arvore) return
+    toast('A gerar PDF...', 'ok')
+    try {
+      await new Promise((res, rej) => {
+        if (window.jspdf) return res()
+        const s = document.createElement('script')
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+        s.onload = res; s.onerror = rej; document.head.appendChild(s)
+      })
+      const { jsPDF } = window.jspdf
+      const doc = new jsPDF({ orientation: 'l', unit: 'mm', format: [297, 210], putOnlyUsedFonts: true, compress: true })
+      const W = doc.internal.pageSize.getWidth()
+      const H = doc.internal.pageSize.getHeight()
+
+      const carregarImagem = (url) => new Promise(res => {
+        if (!url) return res(null)
+        const img = new Image()
+        img.crossOrigin = 'anonymous'
+        img.onload = () => {
+          const c = document.createElement('canvas')
+          c.width = img.width; c.height = img.height
+          c.getContext('2d').drawImage(img, 0, 0)
+          try {
+            const dataUrl = c.toDataURL('image/jpeg', 0.85)
+            res({ dataUrl, width: img.width, height: img.height })
+          } catch { res(null) }
+        }
+        img.onerror = () => res(null)
+        img.src = url
+      })
+
+      const imgs = {}
+      for (const k of ['pombo', 'pai', 'mae']) {
+        if (arvore[k]?.foto_url) {
+          const imgData = await carregarImagem(arvore[k].foto_url)
+          if (imgData) imgs[k] = imgData
+        }
+      }
+      const fotoPerfil = perfil?.foto_perfil_url ? await carregarImagem(perfil.foto_perfil_url) : null
+      const fotoPombal = perfil?.foto_pombal_url ? await carregarImagem(perfil.foto_pombal_url) : null
+
+      const GOLD = [180, 134, 11], NAVY = [15, 30, 65], WHITE = [255, 255, 255]
+      const LGREY = [210, 218, 228], GREEN = [0, 105, 65], BLUE_L = [40, 80, 175], RED_D = [130, 20, 20]
+
+      doc.setFillColor(...WHITE); doc.rect(0, 0, W, H, 'F')
+      doc.setFillColor(...GOLD); doc.rect(0, 0, W, 10, 'F')
+      doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(...NAVY)
+      doc.text('CHAMPIONSLOFT', 8, 7)
+      doc.setFontSize(6); doc.setFont('helvetica', 'normal')
+      doc.text('PEDIGREE PREMIUM  |  championsloft.app', W - 8, 7, { align: 'right' })
+
+      const HDR_H = 29
+      doc.setFillColor(...NAVY); doc.rect(0, 10, W, HDR_H, 'F')
+      doc.setDrawColor(...GOLD); doc.setLineWidth(0.8); doc.rect(0, 10, W, HDR_H)
+      doc.setFillColor(...GOLD); doc.rect(0, 10 + HDR_H, W, 1, 'F')
+
+      const FOTO_SZ = 18
+      const HY = 10 + (HDR_H - FOTO_SZ) / 2
+      let fx = 10
+      if (fotoPerfil) {
+        doc.setDrawColor(...GOLD); doc.setLineWidth(0.8)
+        doc.roundedRect(fx, HY, FOTO_SZ, FOTO_SZ, 1.5, 1.5, 'S')
+        const iw = fotoPerfil.width, ih = fotoPerfil.height
+        const scale = Math.max(FOTO_SZ / iw, FOTO_SZ / ih)
+        const dw = iw * scale, dh = ih * scale
+        const dx = fx + (FOTO_SZ - dw) / 2, dy = HY + (FOTO_SZ - dh) / 2
+        doc.addImage(fotoPerfil.dataUrl, 'JPEG', dx, dy, dw, dh)
+        doc.setFontSize(4); doc.setFont('helvetica', 'normal'); doc.setTextColor(148, 163, 184)
+        doc.text('Columbofilo', fx + FOTO_SZ / 2, HY + FOTO_SZ + 2.5, { align: 'center' }); fx += FOTO_SZ + 5
+      }
+      if (fotoPombal) {
+        doc.setDrawColor(60, 90, 140); doc.setLineWidth(0.5)
+        doc.roundedRect(fx, HY, FOTO_SZ, FOTO_SZ, 1.5, 1.5, 'S')
+        const iw = fotoPombal.width, ih = fotoPombal.height
+        const scale = Math.max(FOTO_SZ / iw, FOTO_SZ / ih)
+        const dw = iw * scale, dh = ih * scale
+        const dx = fx + (FOTO_SZ - dw) / 2, dy = HY + (FOTO_SZ - dh) / 2
+        doc.addImage(fotoPombal.dataUrl, 'JPEG', dx, dy, dw, dh)
+        doc.setFontSize(4); doc.setFont('helvetica', 'normal'); doc.setTextColor(148, 163, 184)
+        doc.text('Pombal', fx + FOTO_SZ / 2, HY + FOTO_SZ + 2.5, { align: 'center' }); fx += FOTO_SZ + 5
+      }
+      doc.setFillColor(...GOLD); doc.rect(fx + 2, HY, 0.7, FOTO_SZ, 'F')
+      const infoX = fx + 6
+      const midY = HY + FOTO_SZ / 2
+      doc.setFontSize(8.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255)
+      doc.text(perfil?.nome || '', infoX, midY - 4)
+      doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(148, 163, 184)
+      if (perfil?.pombal_nome) doc.text(perfil.pombal_nome + (perfil?.pombal_morada ? ' - ' + perfil.pombal_morada : ''), infoX, midY + 2)
+      if (perfil?.org) doc.text(perfil.org + (perfil?.fed ? ' - ' + perfil.fed : ''), infoX, midY + 8)
+      const pedigreeX = infoX + 85
+      doc.setFontSize(26); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GOLD)
+      doc.text('PEDIGREE', pedigreeX, midY + 5)
+      doc.setFontSize(5.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GOLD)
+      doc.text('DATA DE EMISSAO', W - 8, HY + 5, { align: 'right' })
+      doc.setFontSize(13); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255)
+      doc.text(new Date().toLocaleDateString('pt-PT'), W - 8, HY + 13, { align: 'right' })
+      doc.setFontSize(5); doc.setFont('helvetica', 'normal'); doc.setTextColor(71, 85, 105)
+      doc.text('Documento oficial', W - 8, HY + 19, { align: 'right' })
+      doc.text('ChampionsLoft (c) ' + new Date().getFullYear(), W - 8, HY + 24, { align: 'right' })
+
+      const ORG_W = 207
+      const PALM_X = 213
+      const PALM_W = W - PALM_X - 5
+      const TOP = 46, BOTTOM = H - 9, AVAIL = BOTTOM - TOP, VPAD = 0.5
+
+      doc.setDrawColor(...GOLD); doc.setLineWidth(0.4)
+      doc.line(PALM_X - 3, TOP - 4, PALM_X - 3, BOTTOM)
+
+      const PY = TOP
+      doc.setFillColor(...NAVY); doc.roundedRect(PALM_X, PY, PALM_W, 7, 1, 1, 'F')
+      doc.setDrawColor(...GOLD); doc.setLineWidth(0.5); doc.roundedRect(PALM_X, PY, PALM_W, 7, 1, 1, 'S')
+      doc.setFontSize(6); doc.setFont('helvetica', 'bold'); doc.setTextColor(...GOLD)
+      doc.text('PALMARES', PALM_X + PALM_W / 2, PY + 5, { align: 'center' })
+
+      const topPombos = (pombos || []).slice().sort((a, b) => (b.percentil || 0) - (a.percentil || 0)).slice(0, 4)
+      doc.setFontSize(5); doc.setFont('helvetica', 'bold'); doc.setTextColor(100, 108, 135)
+      doc.text('TOP POMBOS DO EFECTIVO', PALM_X + 1, PY + 12)
+      doc.setDrawColor(...LGREY); doc.setLineWidth(0.15); doc.line(PALM_X + 1, PY + 13.5, PALM_X + PALM_W - 1, PY + 13.5)
+      topPombos.forEach((p, i) => {
+        const cor = i === 0 ? GOLD : i < 3 ? NAVY : [110, 118, 145]
+        const pos = ['1.', '2.', '3.', '4.']
+        doc.setFontSize(5.5); doc.setFont('helvetica', i === 0 ? 'bold' : 'normal'); doc.setTextColor(...cor)
+        doc.text(pos[i] + ' ' + p.nome, PALM_X + 1, PY + 17 + i * 7)
+        doc.setFontSize(4.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(140, 148, 170)
+        doc.text(String(p.percentil || 0) + '% percentil  |  ' + String(p.provas || 0) + ' provas', PALM_X + 4, PY + 20.5 + i * 7)
+      })
+
+      const sepY = PY + 46
+      doc.setDrawColor(...GOLD); doc.setLineWidth(0.3); doc.line(PALM_X + 1, sepY, PALM_X + PALM_W - 1, sepY)
+      doc.setFontSize(5); doc.setFont('helvetica', 'bold'); doc.setTextColor(100, 108, 135)
+      doc.text('CONQUISTAS PESSOAIS', PALM_X + 1, sepY + 5)
+      doc.setDrawColor(...LGREY); doc.setLineWidth(0.15); doc.line(PALM_X + 1, sepY + 6.5, PALM_X + PALM_W - 1, sepY + 6.5)
+
+      const conquistas = perfil?.conquistas || []
+      if (conquistas.length > 0) {
+        conquistas.slice(0, 9).forEach((c, i) => {
+          doc.setFontSize(5); doc.setFont('helvetica', 'normal'); doc.setTextColor(...NAVY)
+          doc.text('- ' + String(c).substring(0, 30), PALM_X + 1, sepY + 11 + i * 7)
+        })
+      } else {
+        for (let i = 0; i < 9; i++) {
+          doc.setDrawColor(190, 200, 215); doc.setLineWidth(0.2)
+          doc.line(PALM_X + 1, sepY + 11 + i * 7, PALM_X + PALM_W - 1, sepY + 11 + i * 7)
+        }
+        doc.setFontSize(4); doc.setTextColor(175, 182, 200)
+        doc.text('Adicione conquistas em Perfil > Palmares', PALM_X + PALM_W / 2, BOTTOM - 4, { align: 'center' })
+      }
+
+      const C0W = 36, GAP = 2, COL_GAP = 5
+      const rest = ORG_W - C0W - GAP * 3 - COL_GAP * 2 - 8
+      const C3W = geracoes >= 3 ? Math.round(rest * 0.22) : 0
+      const C1W = geracoes >= 3 ? Math.round(rest * 0.36) : Math.round(rest * 0.47)
+      const C2W = geracoes >= 3 ? Math.round(rest * 0.24) : rest - C1W
+      const C0X = 7, C1X = C0X + C0W + GAP + 6, C2X = C1X + C1W + GAP + COL_GAP, C3X = geracoes >= 3 ? C2X + C2W + GAP + COL_GAP : 0
+
+      const gL = (t, x) => { doc.setFontSize(4.8); doc.setFont('helvetica', 'bold'); doc.setTextColor(...NAVY); doc.text(t, x, TOP - 1) }
+      gL('POMBO', C0X); gL('PAIS', C1X)
+      if (geracoes >= 2) gL('AVOS', C2X)
+      if (geracoes >= 3) gL('BISAVOS', C3X)
+
+      doc.setDrawColor(220, 226, 235); doc.setLineWidth(0.15)
+      ;[C1X, C2X, C3X].filter(Boolean).forEach(x => doc.line(x - 1.5, TOP - 2, x - 1.5, BOTTOM))
+
+      const drawBox = (nodeKey, x, y, w, h, tipo, showFoto = false) => {
+        const node = typeof nodeKey === 'string' ? arvore[nodeKey] : null
+        if (!node) return
+        const isEmpty = !node.nome && !node.anilha
+        const bh = h - VPAD * 2, by = y + VPAD
+        const bc = tipo === 'main' ? GOLD : tipo === 'pai_p' ? [35, 70, 165] : tipo === 'pai_m' ? [130, 20, 20] :
+          tipo === 'avo_pp' || tipo === 'avo_pm' ? [60, 105, 195] : tipo === 'avo_mp' || tipo === 'avo_mm' ? [155, 35, 35] : [140, 150, 175]
+        const bgCol = tipo === 'main' ? [255, 252, 235] : tipo === 'pai_p' ? [235, 242, 255] : tipo === 'pai_m' ? [255, 238, 238] :
+          tipo === 'avo_pp' || tipo === 'avo_pm' ? [238, 244, 255] : tipo === 'avo_mp' || tipo === 'avo_mm' ? [255, 240, 240] : [244, 245, 248]
+        doc.setFillColor(...bgCol); doc.setDrawColor(...bc)
+        doc.setLineWidth(tipo === 'main' ? 0.7 : 0.4)
+        doc.roundedRect(x, by, w, bh, 1.5, 1.5, 'FD')
+        doc.setFillColor(...bc)
+        doc.roundedRect(x + 0.2, by + 0.2, w - 0.4, 5, 1.3, 1.3, 'F')
+        doc.rect(x + 0.2, by + 3, w - 0.4, 2.4, 'F')
+        if (isEmpty) {
+          doc.setFontSize(5); doc.setTextColor(185, 192, 210)
+          doc.text('—', x + w / 2, by + bh / 2 + 2, { align: 'center' })
+          return
+        }
+        let ty = by + 7
+        if (showFoto && imgs[nodeKey]) {
+          const fh = Math.min(18, bh - 18)
+          if (fh > 6) {
+            const boxW = w - 3, boxH = fh
+            const imgData = imgs[nodeKey]
+            const iw = imgData.width, ih = imgData.height
+            const scale = Math.max(boxW / iw, boxH / ih)
+            const dw = iw * scale, dh = ih * scale
+            const dx = x + 1.5 + (boxW - dw) / 2, dy = ty + (boxH - dh) / 2
+            doc.addImage(imgData.dataUrl, 'JPEG', dx, dy, dw, dh)
+            ty += fh + 1.5
+          }
+        }
+        if (node.anilha) { doc.setFontSize(tipo === 'main' ? 6 : 4.8); doc.setFont('courier', 'bold'); doc.setTextColor(...GOLD); doc.text(node.anilha.substring(0, 20), x + 2.5, ty); ty += 3.2 }
+        if (node.nome) { const fs = tipo === 'main' ? 8.5 : (bh > 20 ? 7 : 6); doc.setFontSize(fs); doc.setFont('helvetica', 'bold'); doc.setTextColor(...NAVY); doc.text(node.nome.substring(0, 17), x + 2.5, ty); ty += fs * 0.42 + 1.8 }
+        if (node.cor && ty < by + bh - 3) { doc.setFontSize(5); doc.setFont('helvetica', 'normal'); doc.setTextColor(95, 108, 138); doc.text(node.cor.substring(0, 20), x + 2.5, ty); ty += 3.2 }
+        if (node.linhagem && ty < by + bh - 3) { doc.setFontSize(4.8); doc.setTextColor(...BLUE_L); doc.text(node.linhagem.substring(0, 20), x + 2.5, ty); ty += 3 }
+        if (node.conquistas && ty < by + bh - 2) { doc.setFontSize(4.5); doc.setTextColor(...GREEN); doc.text(node.conquistas.substring(0, 34), x + 2.5, ty, { maxWidth: w - 4 }) }
+        if (node.externo) { doc.setFontSize(4); doc.setTextColor(165, 75, 25); doc.text('Ext.', x + w - 3, by + bh - 2) }
+      }
+
+      const conn = (x1, y1, x2, y2, col = LGREY) => {
+        doc.setDrawColor(...col); doc.setLineWidth(0.3)
+        const mx = x1 + (x2 - x1) * 0.55
+        doc.lines([[mx - x1, 0], [0, y2 - y1], [x2 - mx, 0]], x1, y1)
+      }
+
+      const mainCY = (TOP + BOTTOM) / 2
+      const mainH = Math.min(55, AVAIL * 0.75)
+      drawBox('pombo', C0X, mainCY - mainH / 2, C0W, mainH, 'main', true)
+      const midX0 = C0X + C0W
+
+      drawBox('pai', C1X, TOP, C1W, AVAIL / 2, 'pai_p', true)
+      conn(midX0, mainCY, C1X, TOP + AVAIL / 4, [...BLUE_L])
+      drawBox('mae', C1X, TOP + AVAIL / 2, C1W, AVAIL / 2, 'pai_m', true)
+      conn(midX0, mainCY, C1X, TOP + 3 * AVAIL / 4, [...RED_D])
+
+      if (geracoes >= 2) {
+        const avos = [['avo_pp', 'avo_pp'], ['avo_pm', 'avo_pm'], ['avo_mp', 'avo_mp'], ['avo_mm', 'avo_mm']]
+        avos.forEach(([k, tipo], i) => {
+          drawBox(k, C2X, TOP + i * AVAIL / 4, C2W, AVAIL / 4, tipo, false)
+          conn(C1X + C1W, i < 2 ? TOP + AVAIL / 4 : TOP + 3 * AVAIL / 4, C2X, TOP + (i + 0.5) * AVAIL / 4, i < 2 ? [...BLUE_L] : [...RED_D])
+        })
+      }
+
+      if (geracoes >= 3) {
+        const bisData = [
+          ['bis_ppp', 'PP-P', [50, 90, 190]], ['bis_ppm', 'PP-M', [50, 90, 190]],
+          ['bis_pmp', 'PM-P', [80, 130, 215]], ['bis_pmm', 'PM-M', [80, 130, 215]],
+          ['bis_mpp', 'MP-P', [150, 30, 30]], ['bis_mpm', 'MP-M', [150, 30, 30]],
+          ['bis_mmp', 'MM-P', [185, 55, 85]], ['bis_mmm', 'MM-M', [185, 55, 85]]
+        ]
+        const avoP = [0, 0, 1, 1, 2, 2, 3, 3]
+        bisData.forEach(([k, lbl, bc], i) => {
+          const bisH = AVAIL / 8
+          const by2 = TOP + i * bisH + VPAD
+          const bh2 = bisH - VPAD * 2
+          const node = arvore[k]
+          const isEmpty = !node?.nome && !node?.anilha
+          const bisBg = i < 4 ? [242, 246, 255] : [255, 244, 244]
+          doc.setFillColor(...bisBg); doc.setDrawColor(...bc); doc.setLineWidth(0.35)
+          doc.roundedRect(C3X, by2, C3W, bh2, 1.2, 1.2, 'FD')
+          doc.setFillColor(...bc)
+          doc.roundedRect(C3X + 0.2, by2 + 0.2, C3W - 0.4, 4, 1, 1, 'F')
+          doc.rect(C3X + 0.2, by2 + 2.5, C3W - 0.4, 1.9, 'F')
+          doc.setFontSize(4); doc.setFont('helvetica', 'bold'); doc.setTextColor(...WHITE)
+          doc.text(lbl, C3X + C3W / 2, by2 + 3.2, { align: 'center' })
+          if (!isEmpty) {
+            let ty = by2 + 5.5
+            if (node.anilha) { doc.setFontSize(4.5); doc.setFont('courier', 'bold'); doc.setTextColor(...GOLD); doc.text(node.anilha.substring(0, 16), C3X + 1.5, ty); ty += 2.8 }
+            if (node.nome) { doc.setFontSize(5.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(...NAVY); doc.text(node.nome.substring(0, 13), C3X + 1.5, ty); ty += 3.2 }
+            if (node.cor && ty < by2 + bh2 - 1) { doc.setFontSize(4.2); doc.setFont('helvetica', 'normal'); doc.setTextColor(95, 108, 138); doc.text(node.cor.substring(0, 14), C3X + 1.5, ty) }
+          } else {
+            doc.setFontSize(4.5); doc.setTextColor(185, 192, 210)
+            doc.text('—', C3X + C3W / 2, by2 + bh2 / 2 + 1, { align: 'center' })
+          }
+          conn(C2X + C2W, TOP + (avoP[i] + 0.5) * AVAIL / 4, C3X, TOP + (i + 0.5) * AVAIL / 8, avoP[i] < 2 ? [100, 130, 200] : [180, 60, 60])
+        })
+      }
+
+      doc.setFillColor(...NAVY); doc.rect(0, H - 9, W, 9, 'F')
+      doc.setFillColor(...GOLD); doc.rect(0, H - 9, W, 0.6, 'F')
+      doc.setFontSize(5); doc.setFont('helvetica', 'normal'); doc.setTextColor(150, 165, 200)
+      doc.text('Documento gerado pela ChampionsLoft - championsloft.app', 8, H - 3.5)
+      doc.setTextColor(...GOLD)
+      doc.text('(c) ' + new Date().getFullYear() + ' ' + (perfil?.nome || ''), W - 8, H - 3.5, { align: 'right' })
+
+      doc.save('pedigree-' + (arvore.pombo.nome || 'pombo') + '.pdf')
+      toast('PDF gerado!', 'ok')
+    } catch (e) {
+      toast('Erro: ' + e.message, 'err')
+    }
+  }
+
+  // ==================== RENDER ====================
   if (loading) return <div style={{ display: 'flex', justifyContent: 'center', padding: 60 }}><Spinner lg /></div>
 
   return (
@@ -467,7 +732,6 @@ export default function Pedigree({ nav, params }) {
         </div>
       </div>
 
-      {/* Configuração */}
       <div className="card card-p no-print" id="pedigree-config-card" style={{ marginBottom: 16 }}>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div style={{ flex: 2, minWidth: 200 }}>
@@ -535,7 +799,6 @@ export default function Pedigree({ nav, params }) {
           </div>
         </div>
 
-        {/* Temas e linhagens */}
         <div style={{ display: 'flex', gap: 16, marginTop: 12, flexWrap: 'wrap', borderTop: '1px solid #1B2D52', paddingTop: 12 }}>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <span style={{ fontSize: 11, color: '#7A8699' }}>Tema:</span>
@@ -559,7 +822,6 @@ export default function Pedigree({ nav, params }) {
         <EmptyState icon="🌳" title="Seleccione um pombo" desc="Escolha o pombo principal para gerar o pedigree premium" />
       ) : (
         <div ref={printRef}>
-          {/* Estatísticas */}
           {estatisticas && (
             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 16, padding: '8px 14px', background: 'rgba(0,0,0,0.2)', borderRadius: 8 }}>
               <span>🧬 Ancestrais únicos: <strong>{estatisticas.unicos}</strong></span>
@@ -569,7 +831,6 @@ export default function Pedigree({ nav, params }) {
             </div>
           )}
 
-          {/* Pombo principal */}
           <div style={{ display: 'flex', gap: 16, marginBottom: 20, alignItems: 'flex-start', flexWrap: 'wrap' }}>
             <div style={{ width: 180, flexShrink: 0 }}>
               <div onClick={() => abrirEditor('pombo')} style={{ cursor: 'pointer', background: '#0B1830', border: `2px solid ${tema.primaria}`, borderRadius: 12, overflow: 'hidden' }}>
@@ -589,9 +850,7 @@ export default function Pedigree({ nav, params }) {
               {mostrarConquistas && arvore.pombo.conquistas && <div style={{ fontSize: 11, color: '#2DD4A7', marginTop: 4, lineHeight: 1.5 }}>🏆 {arvore.pombo.conquistas}</div>}
             </div>
 
-            {/* Árvore genealógica */}
             <div style={{ flex: 1, overflowX: 'auto' }}>
-              {/* Pais */}
               <div style={{ marginBottom: 12 }}>
                 <div style={{ fontSize: 10, color: '#7A8699', fontWeight: 700, letterSpacing: 1, marginBottom: 6 }}>PAIS</div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -614,7 +873,6 @@ export default function Pedigree({ nav, params }) {
                 </div>
               </div>
 
-              {/* Avós */}
               {geracoes >= 2 && (
                 <div style={{ marginBottom: 12 }}>
                   <div style={{ fontSize: 10, color: '#7A8699', fontWeight: 700, letterSpacing: 1, marginBottom: 6 }}>AVÓS</div>
@@ -629,7 +887,6 @@ export default function Pedigree({ nav, params }) {
                 </div>
               )}
 
-              {/* Bisavós */}
               {geracoes >= 3 && (
                 <div>
                   <div style={{ fontSize: 10, color: '#7A8699', fontWeight: 700, letterSpacing: 1, marginBottom: 6 }}>BISAVÓS</div>
@@ -663,7 +920,6 @@ export default function Pedigree({ nav, params }) {
         </div>
       )}
 
-      {/* Modal editor de nó com upload de foto */}
       {modalNode && (
         <Modal open onClose={() => setModalNode(null)} title={`✏️ Editar ${modalNode}`} wide
           footer={
@@ -673,7 +929,6 @@ export default function Pedigree({ nav, params }) {
             </>
           }>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {/* Upload de foto */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               {formNode.foto_url && <img src={formNode.foto_url} alt="" style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 8 }} />}
               <div>
@@ -718,7 +973,3 @@ export default function Pedigree({ nav, params }) {
     </div>
   )
 }
-
-// ─── FUNÇÃO GERAR PDF (MANTIDA DO CÓDIGO ANTERIOR) ──────────────────────────
-// (A função gerarPDF é longa e está aqui omitida para poupar espaço.
-//  Se precisares dela, avisa e eu envio-a completa.)
