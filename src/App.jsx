@@ -51,6 +51,8 @@ import { IdiomaContext, useIdiomaState, useIdioma, IDIOMAS } from './hooks/useId
 import Perfil       from './pages/Perfil'
 import Documentos   from './pages/Documentos'
 import PaginaSucesso from './pages/PaginaSucesso'
+import Termos       from './pages/Termos'
+import Privacidade  from './pages/Privacidade'
 
 // ─── NAV CONFIG ───────────────────────────────────────
 function getNav(t) {
@@ -237,6 +239,8 @@ function AppLayout({ setIdioma }) {
         case 'forum':         return <Forum nav={nav} />
         case 'dicas':         return <Dicas nav={nav} />
         case 'documentos':    return <Documentos nav={nav} />
+        case 'termos':        return <Termos nav={nav} />
+        case 'privacidade':   return <Privacidade nav={nav} />
         default:              return <Dashboard nav={nav} />
       }
     } catch(e) { setRenderErro(e.message); return null }
@@ -248,11 +252,11 @@ function AppLayout({ setIdioma }) {
 
       <aside className={`sidebar${sidebarOpen?' open':''}`} style={{ overflowY:'auto' }}>
 
-        {/* ── LOGO: só imagem, sem texto ── */}
+        {/* ── LOGO Fly2Win ── */}
         <div style={{ cursor:'pointer', padding:'16px 12px 8px', textAlign:'center' }} onClick={()=>nav('dashboard')}>
-          <img src="/logo.png" alt="ChampionsLoft"
+          <img src="/logo.png" alt="Fly2Win"
             style={{ width:160, height:'auto', objectFit:'contain', display:'block', margin:'0 auto' }}
-            onError={e=>{ e.target.style.display='none'; e.target.insertAdjacentHTML('afterend','<div style="width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#1E5FD9,#D4AF37);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;margin:0 auto">CL</div>') }} />
+            onError={e=>{ e.target.style.display='none'; e.target.insertAdjacentHTML('afterend','<div style="width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#1E5FD9,#D4AF37);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;margin:0 auto">F2W</div>') }} />
         </div>
 
         <nav className="nav">
@@ -373,7 +377,7 @@ function AppContent({ setIdioma }) {
 
   if (loading) return (
     <div style={{ minHeight:'100vh',background:'#050D1A',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:16 }}>
-      <div style={{ fontSize:40 }}>🕊️</div>
+      <img src="/logo.png" alt="Fly2Win" style={{ width:120, height:'auto', objectFit:'contain' }} onError={e=>e.target.style.display='none'}/>
       <Spinner lg />
       <div style={{ fontSize:12,color:'#475569' }}>A carregar...</div>
     </div>
