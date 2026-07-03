@@ -9,7 +9,7 @@ const T = {
 }
 
 const HISTORIAS = [
-  { num:'01', titulo:'O regresso', icon:'🕊️', corpo:'São 6 da manhã. O céu ainda está escuro. Olhas para o horizonte e o coração acelera — há um ponto pequenino que se aproxima. 800 quilómetros. 14 horas de voo. E agora está ali, a entrar pela portinhola.', impacto:'Com o ChampionsLoft, registas o tempo de chegada, calculas o percentil em segundos e o resultado fica no historial permanente do pombo para sempre.' },
+  { num:'01', titulo:'O regresso', icon:'🕊️', corpo:'São 6 da manhã. O céu ainda está escuro. Olhas para o horizonte e o coração acelera — há um ponto pequenino que se aproxima. 800 quilómetros. 14 horas de voo. E agora está ali, a entrar pela portinhola.', impacto:'Com o Fly2Win, registas o tempo de chegada, calculas o percentil em segundos e o resultado fica no historial permanente do pombo para sempre.' },
   { num:'02', titulo:'A ninhada certa', icon:'🧬', corpo:'Décadas de conhecimento passam de pai para filho — qual o macho a usar, que fêmea combina, que linhagens se complementam. Essa sabedoria estava só na cabeça. Ou no caderno amarelado da gaveta.', impacto:'A IA analisa 3 gerações de consanguinidade, compara percentis de prova e sugere os cruzamentos com maior probabilidade de produzir um campeão.' },
   { num:'03', titulo:'O pedigree que conta a história', icon:'🌳', corpo:'Quando vendes um pombo de topo, não vendes apenas o animal. Vendes a sua história — quem foram os pais, os avós, os bisavós. Esse documento é o passaporte do teu trabalho como criador.', impacto:'Um PDF premium com 4 gerações, foto, conquistas, linhagem e o teu nome como criador. Pronto a enviar em segundos.' },
   { num:'04', titulo:'A época que não se esquece', icon:'📊', corpo:'No final de cada época, tens na cabeça os momentos altos. Mas os números — percentis, distâncias, pombos que surpreenderam — esses perdem-se. O ano que vem começas do zero.', impacto:'Relatório completo da época em PDF: ranking do efectivo, análise por especialidade, comparativo com anos anteriores e recomendações da IA para a época seguinte.' },
@@ -26,7 +26,6 @@ const MODULOS = [
   { icon:'🌐', nome:'LoftSocial', cor:T.tealL, desc:'Rede social columbófila. Feed, grupos, ranking e desafios semanais.' },
 ]
 
-// ── Preços ─────────────────────────────────────────────────────────────────
 const PLANOS = [
   { id:'base', nome:'Base', preco:9.99, anual:99.90, diaM:'0,33', diaA:'0,27', cor:T.tealL,
     desc:'Para o criador que quer organizar o pombal',
@@ -54,9 +53,8 @@ const GRUPOS = [
     elite:{ m:11.19, a:111.90, dM:'0,37', dA:'0,31' } },
 ]
 
-
 const FAQ = [
-  { q:'Preciso de instalar alguma coisa?', r:'Não. O ChampionsLoft funciona directamente no browser — computador, tablet ou telemóvel. Há também uma versão PWA que podes instalar como app.' },
+  { q:'Preciso de instalar alguma coisa?', r:'Não. O Fly2Win funciona directamente no browser — computador, tablet ou telemóvel. Há também uma versão PWA que podes instalar como app.' },
   { q:'Os meus dados estão seguros?', r:'Sim. Dados armazenados em servidores europeus com encriptação. Nunca partilhamos dados com terceiros. Podes exportar ou apagar tudo a qualquer momento.' },
   { q:'Posso experimentar sem cartão de crédito?', r:'Sim. Os primeiros 30 dias são completamente gratuitos, sem cartão de crédito. Só pagas se quiseres continuar.' },
   { q:'Como funcionam as licenças de coletividade?', r:'A coletividade adquire as licenças e paga centralmente. O número total de licenças (independentemente do plano) determina o desconto. O administrador gere tudo a partir de um dashboard dedicado.' },
@@ -99,7 +97,6 @@ export default function Landing({ onEntrar }) {
   const [historiaAtiva, setHistoriaAtiva] = useState(0)
   const [faqAberta, setFaqAberta] = useState(null)
   const [tabGrupo, setTabGrupo] = useState(0)
-  const [planGrupo, setPlanGrupo] = useState('pro')
   const [fundadoresRestam] = useState(73)
 
   useEffect(()=>{
@@ -111,25 +108,13 @@ export default function Landing({ onEntrar }) {
 
   const navSolid = scrollY > 50
 
-  const precoGrupo = (plano, tipo) => {
-    const g = GRUPOS[tabGrupo]
-    const p = g[plano]
-    return tipo === 'mensal' ? p.m : p.a
-  }
-  const diaGrupo = (plano, tipo) => {
-    const g = GRUPOS[tabGrupo]
-    const p = g[plano]
-    return tipo === 'mensal' ? p.dM : p.dA
-  }
-
   return (
     <div style={{ fontFamily:T.sans, background:T.void, color:T.white, overflowX:'hidden' }}>
 
       {/* NAVBAR */}
       <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:300, height:58, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 clamp(16px,5vw,56px)', background:navSolid?'rgba(2,5,9,.96)':'transparent', backdropFilter:navSolid?'blur(20px)':'none', borderBottom:navSolid?`1px solid ${T.ghost}30`:'none', transition:'all .4s' }}>
         <div style={{ display:'flex', alignItems:'center', gap:9 }}>
-          <div style={{ width:32, height:32, borderRadius:7, background:`linear-gradient(140deg,${T.ocean},${T.steel})`, border:`1px solid ${T.goldD}50`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:15 }}>🕊️</div>
-          <span style={{ fontFamily:T.serif, fontSize:15, fontWeight:900, background:`linear-gradient(120deg,${T.white} 40%,${T.gold})`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>ChampionsLoft</span>
+          <img src="/logo.png" alt="Fly2Win" style={{ height:36, width:'auto', objectFit:'contain' }} />
         </div>
         <div style={{ display:'flex', gap:6, alignItems:'center' }}>
           <button onClick={onEntrar} style={{ background:'none', border:'none', color:T.fog, fontSize:13, cursor:'pointer', fontFamily:'inherit', padding:'7px 12px' }}>Entrar</button>
@@ -160,26 +145,36 @@ export default function Landing({ onEntrar }) {
         <div style={{ position:'absolute', bottom:'30%', left:'5%' }}><Anilha codigo="NL·2024·1840033" delay={1500} rotate={4}/></div>
         <div style={{ position:'absolute', bottom:'24%', right:'5%' }}><Anilha codigo="ES·2026·00912" delay={1800} rotate={-4}/></div>
 
-        <div style={{ display:'inline-flex', alignItems:'center', gap:7, background:`${T.goldD}25`, border:`1px solid ${T.goldD}60`, borderRadius:99, padding:'5px 14px', marginBottom:36, opacity:heroIn?1:0, transform:heroIn?'none':'translateY(-10px)', transition:'all .8s ease' }}>
+        {/* Logo hero */}
+        <div style={{ opacity:heroIn?1:0, transform:heroIn?'none':'scale(.9)', transition:'all 1s ease', marginBottom:32 }}>
+          <img src="/logo.png" alt="Fly2Win" style={{ height:90, width:'auto', objectFit:'contain', filter:'drop-shadow(0 0 32px rgba(200,168,75,.4))' }} />
+        </div>
+
+        <div style={{ display:'inline-flex', alignItems:'center', gap:7, background:`${T.goldD}25`, border:`1px solid ${T.goldD}60`, borderRadius:99, padding:'5px 14px', marginBottom:28, opacity:heroIn?1:0, transform:heroIn?'none':'translateY(-10px)', transition:'all .8s ease .1s' }}>
           <span style={{ width:5, height:5, borderRadius:'50%', background:T.gold, flexShrink:0 }}/>
           <span style={{ fontFamily:T.mono, fontSize:10, color:T.gold, letterSpacing:'.14em' }}>GESTÃO COLUMBÓFILA PREMIUM</span>
         </div>
 
-        <h1 style={{ fontFamily:T.serif, fontSize:'clamp(38px,7vw,82px)', fontWeight:900, lineHeight:1.04, letterSpacing:'-.025em', margin:'0 0 28px', maxWidth:760, opacity:heroIn?1:0, transform:heroIn?'none':'translateY(20px)', transition:'all .9s ease .1s' }}>
+        <h1 style={{ fontFamily:T.serif, fontSize:'clamp(34px,6.5vw,76px)', fontWeight:900, lineHeight:1.04, letterSpacing:'-.025em', margin:'0 0 16px', maxWidth:760, opacity:heroIn?1:0, transform:heroIn?'none':'translateY(20px)', transition:'all .9s ease .15s' }}>
           Décadas de paixão.<br/>
           <span style={{ background:`linear-gradient(125deg,${T.goldXL},${T.gold},${T.goldD})`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>Finalmente uma ferramenta</span><br/>à altura.
         </h1>
 
-        <p style={{ fontSize:'clamp(15px,2vw,19px)', color:T.fog, maxWidth:520, margin:'0 auto 44px', lineHeight:1.8, opacity:heroIn?1:0, transition:'all .9s ease .2s' }}>
-          Do pedigree ao Seleccionador de Casais por IA — o ChampionsLoft trata de tudo para que te possas concentrar no que importa: criar pombos de topo.
+        {/* Tagline */}
+        <div style={{ fontFamily:T.mono, fontSize:12, color:T.gold, letterSpacing:'.2em', textTransform:'uppercase', marginBottom:24, opacity:heroIn?1:0, transition:'all .9s ease .25s' }}>
+          Fly to Win · Conquer the Skies
+        </div>
+
+        <p style={{ fontSize:'clamp(15px,2vw,18px)', color:T.fog, maxWidth:500, margin:'0 auto 44px', lineHeight:1.8, opacity:heroIn?1:0, transition:'all .9s ease .3s' }}>
+          Do pedigree ao Seleccionador de Casais por IA — o Fly2Win trata de tudo para que te possas concentrar no que importa: criar pombos de topo.
         </p>
 
-        <div style={{ display:'flex', gap:12, flexWrap:'wrap', justifyContent:'center', marginBottom:64, opacity:heroIn?1:0, transition:'all .9s ease .3s' }}>
+        <div style={{ display:'flex', gap:12, flexWrap:'wrap', justifyContent:'center', marginBottom:64, opacity:heroIn?1:0, transition:'all .9s ease .4s' }}>
           <button onClick={onEntrar} style={{ background:`linear-gradient(135deg,${T.gold},${T.goldD})`, border:'none', color:T.void, fontSize:15, fontWeight:800, cursor:'pointer', fontFamily:'inherit', padding:'16px 40px', borderRadius:8, boxShadow:`0 0 40px ${T.goldD}50` }}>🕊️ Experimentar 30 dias grátis</button>
           <button onClick={onEntrar} style={{ background:'none', border:`1px solid ${T.ghost}`, color:T.fog, fontSize:14, cursor:'pointer', fontFamily:'inherit', padding:'16px 28px', borderRadius:8 }}>Ver a app →</button>
         </div>
 
-        <div style={{ display:'flex', gap:'clamp(24px,4vw,56px)', flexWrap:'wrap', justifyContent:'center', opacity:heroIn?1:0, transition:'all .9s ease .45s' }}>
+        <div style={{ display:'flex', gap:'clamp(24px,4vw,56px)', flexWrap:'wrap', justifyContent:'center', opacity:heroIn?1:0, transition:'all .9s ease .5s' }}>
           {[{val:'800',suf:'km',label:'A distância que um pombo percorre num dia'},{val:'40',suf:'+',label:'Anos de tradição que a app preserva digitalmente'},{val:'3',suf:'ger.',label:'Gerações analisadas pelo Seleccionador IA'},{val:'30',suf:'dias',label:'Para experimentares tudo, sem compromisso'}].map(({val,suf,label})=>(
             <div key={label} style={{ textAlign:'center' }}>
               <div style={{ fontFamily:T.serif, fontSize:'clamp(28px,4vw,40px)', fontWeight:900, color:T.gold, lineHeight:1 }}>{val}<span style={{ fontSize:'.5em', color:T.goldD }}>{suf}</span></div>
@@ -368,7 +363,6 @@ export default function Landing({ onEntrar }) {
             <h2 style={{ fontFamily:T.serif, fontSize:'clamp(26px,4vw,40px)', fontWeight:900, marginBottom:12 }}>Para coletividades e clubes columbófilos</h2>
             <p style={{ color:T.fog, maxWidth:560, margin:'0 auto 32px', lineHeight:1.7 }}>A coletividade adquire licenças para os seus sócios e paga centralmente. O número total de licenças determina o desconto, independentemente do plano escolhido. Gestão centralizada pelo presidente ou secretário.</p>
 
-            {/* selector de faixa */}
             <div style={{ display:'inline-flex', background:T.ocean, border:`1px solid ${T.ghost}30`, borderRadius:99, padding:3, marginBottom:24 }}>
               {GRUPOS.map((g,i)=>(
                 <button key={i} onClick={()=>setTabGrupo(i)} style={{ padding:'7px 16px', borderRadius:99, fontSize:11, fontWeight:600, cursor:'pointer', border:'none', fontFamily:'inherit', background:tabGrupo===i?`linear-gradient(135deg,${T.gold},${T.goldD})`:'none', color:tabGrupo===i?T.void:T.fog, transition:'all .2s', whiteSpace:'nowrap' }}>
@@ -380,7 +374,6 @@ export default function Landing({ onEntrar }) {
             <div style={{ fontSize:12, color:T.fog, marginBottom:32 }}>{GRUPOS[tabGrupo].desc} · desconto de <strong style={{ color:T.gold }}>{GRUPOS[tabGrupo].pct}%</strong> sobre o preço de tabela</div>
           </Reveal>
 
-          {/* toggle mensal/anual */}
           <div style={{ display:'flex', justifyContent:'center', marginBottom:32 }}>
             <div style={{ display:'inline-flex', background:T.ocean, border:`1px solid ${T.ghost}30`, borderRadius:99, padding:3 }}>
               {[['mensal','Mensal'],['anual','Anual (2 meses grátis)']].map(([p,l])=>(
@@ -394,7 +387,6 @@ export default function Landing({ onEntrar }) {
               const g = GRUPOS[tabGrupo]
               const gp = g[p.id]
               const preco = periodo==='anual' ? (gp.a/10).toFixed(2) : gp.m.toFixed(2)
-              const total = periodo==='anual' ? gp.a.toFixed(2) : (gp.m*12).toFixed(2)
               const dia = periodo==='anual' ? gp.dA : gp.dM
               return (
                 <Reveal key={p.id} delay={i*80}>
@@ -423,7 +415,7 @@ export default function Landing({ onEntrar }) {
           <Reveal style={{ marginTop:24, textAlign:'center' }}>
             <div style={{ padding:'16px 20px', background:`${T.goldD}12`, border:`1px solid ${T.goldD}30`, borderRadius:10, display:'inline-block', maxWidth:600 }}>
               <div style={{ fontSize:13, color:T.white, fontWeight:600, marginBottom:6 }}>🏛️ Como aderir como coletividade</div>
-              <div style={{ fontSize:12, color:T.fog, lineHeight:1.7 }}>Envia email para <strong style={{ color:T.gold }}>suporte@championsloft.pt</strong> com o nome do clube, NIF, número de sócios e plano pretendido. A equipa ChampionsLoft configura tudo.</div>
+              <div style={{ fontSize:12, color:T.fog, lineHeight:1.7 }}>Envia email para <strong style={{ color:T.gold }}>suporte@fly2win.pt</strong> com o nome do clube, NIF, número de sócios e plano pretendido. A equipa Fly2Win configura tudo.</div>
             </div>
           </Reveal>
         </div>
@@ -460,11 +452,12 @@ export default function Landing({ onEntrar }) {
           <rect width="100%" height="100%" fill="url(#cta)"/>
         </svg>
         <Reveal style={{ position:'relative', maxWidth:580, margin:'0 auto' }}>
-          <div style={{ fontSize:56, marginBottom:20 }}>🕊️</div>
-          <h2 style={{ fontFamily:T.serif, fontSize:'clamp(32px,5vw,56px)', fontWeight:900, lineHeight:1.05, marginBottom:20 }}>
+          <img src="/logo.png" alt="Fly2Win" style={{ height:72, width:'auto', objectFit:'contain', marginBottom:24, filter:'drop-shadow(0 0 24px rgba(200,168,75,.35))' }} />
+          <h2 style={{ fontFamily:T.serif, fontSize:'clamp(32px,5vw,56px)', fontWeight:900, lineHeight:1.05, marginBottom:12 }}>
             O próximo campeão<br/>
             <span style={{ background:`linear-gradient(125deg,${T.goldXL},${T.gold})`, WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>já está no teu pombal.</span>
           </h2>
+          <div style={{ fontFamily:T.mono, fontSize:11, color:T.gold, letterSpacing:'.18em', textTransform:'uppercase', marginBottom:28 }}>Fly to Win · Conquer the Skies</div>
           <p style={{ color:T.fog, fontSize:16, lineHeight:1.8, marginBottom:44, maxWidth:420, margin:'0 auto 44px' }}>Falta apenas a ferramenta certa para o identificar, criar e registar para a posteridade.</p>
           <button onClick={onEntrar} style={{ background:`linear-gradient(135deg,${T.gold},${T.goldD})`, border:'none', color:T.void, fontSize:16, fontWeight:900, cursor:'pointer', fontFamily:'inherit', padding:'18px 52px', borderRadius:9, boxShadow:`0 16px 48px ${T.goldD}40`, display:'block', margin:'0 auto 20px' }}>Começar grátis agora</button>
           <div style={{ fontSize:12, color:T.ghost }}>Já tens conta? <span style={{ color:T.gold, cursor:'pointer' }} onClick={onEntrar}>Entrar →</span></div>
@@ -480,8 +473,7 @@ export default function Landing({ onEntrar }) {
       <footer style={{ borderTop:`1px solid ${T.ghost}20`, padding:'24px clamp(16px,5vw,56px)', background:T.void }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:12, marginBottom:16 }}>
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-            <span style={{ fontSize:15 }}>🕊️</span>
-            <span style={{ fontFamily:T.serif, fontSize:14, fontWeight:700, color:T.gold }}>ChampionsLoft</span>
+            <img src="/logo.png" alt="Fly2Win" style={{ height:28, width:'auto', objectFit:'contain' }} />
             <span style={{ fontFamily:T.mono, fontSize:10, color:T.ghost }}>© 2026</span>
           </div>
           <div style={{ display:'flex', gap:20, flexWrap:'wrap' }}>
