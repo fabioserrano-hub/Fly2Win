@@ -4,6 +4,12 @@ import { useAuth } from '../hooks/useAuth'
 import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../components/ui'
 import { useIdioma } from '../hooks/useIdioma'
 import { verificarConquistas } from '../components/Conquistas'
+import { gerarFichaPombo } from '../utils/FichaPomboPDF'
+
+<button className="btn btn-secondary btn-sm"
+  onClick={()=>gerarFichaPombo(selected, historicoProvas, pedigreeInfo)}>
+  📄 PDF
+</button>
 
 // ── constantes ────────────────────────────────────────────────────────────────
 const anoAtual = new Date().getFullYear()
