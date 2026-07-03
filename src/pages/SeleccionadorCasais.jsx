@@ -71,8 +71,6 @@ export default function SeleccionadorCasais({ nav }) {
     db.getPombos().then(p => { setPombos(p); setLoading(false) }).catch(e => { toast('Erro: '+e.message,'err'); setLoading(false) })
   }, [])
 
-  if (!temElite) return <BloqueioPlano plano="elite" nav={nav}/>
-
   const machos = pombos.filter(p=>p.sexo==='M'&&(!p.estado_ext||p.estado_ext==='proprio')&&p.estado==='ativo')
   const femeas = pombos.filter(p=>p.sexo==='F'&&(!p.estado_ext||p.estado_ext==='proprio')&&p.estado==='ativo')
 
@@ -138,6 +136,7 @@ Não repitas os dados fornecidos.`
   }
 
   if (loading) return <div style={{display:'flex',justifyContent:'center',padding:60}}><Spinner lg /></div>
+  if (!temElite) return <BloqueioPlano plano="elite" nav={nav}/>
 
   return (
     <div>
