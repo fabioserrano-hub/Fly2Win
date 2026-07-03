@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { db } from '../lib/supabase'
 import { useIdioma } from '../hooks/useIdioma'
 import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../components/ui'
+import { GuiaAuto, BotaoGuia } from '../components/GuiaModulo'
 
 const ESTADOS = ['em_progresso', 'concluido', 'cancelado']
 const ESTADO_LABEL = { em_progresso: 'Activo', concluido: 'Concluído', cancelado: 'Cancelado' }
@@ -133,12 +134,17 @@ export default function Reproducao({ nav, params }) {
 
   return (
     <div>
+      <GuiaAuto modulo="reproducao"/>
+
       <div className="section-header">
         <div>
           <div className="section-title">Reprodução</div>
           <div className="section-sub">{ativos.length} casais activos · {totalNascidos} nascidos esta época</div>
         </div>
-        <button className="btn btn-primary" onClick={()=>openNew()}>＋ Novo Casal</button>
+        <div style={{ display:'flex', gap:6 }}>
+          <BotaoGuia modulo="reproducao"/>
+          <button className="btn btn-primary" onClick={()=>openNew()}>＋ Novo Casal</button>
+        </div>
       </div>
 
       {/* KPIs */}
@@ -217,7 +223,8 @@ export default function Reproducao({ nav, params }) {
                       <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
                         <button className="btn btn-primary btn-sm" onClick={e=>{e.stopPropagation();abrirModalNascimento(aca)}}>🐣 Nascimento</button>
                         <button className="btn btn-secondary btn-sm" onClick={e=>{e.stopPropagation();openEdit(aca)}}>✏️ Editar</button>
-                        <button className="btn btn-secondary btn-sm" onClick={e=>{e.stopPropagation();nav?.('pedigree',{pomboId:aca.pai_id})}}>🌳 Pedigree</button>
+                        <button className="btn btn-secondary btn-sm" onClick={e=>{e.stopPropagation();nav?.('pedigree',{pomboId:aca.pai_id})}}>🌳 Pedigree {paiNome}</button>
+                        <button className="btn btn-secondary btn-sm" onClick={e=>{e.stopPropagation();nav?.('pedigree',{pomboId:aca.mae_id})}}>🌳 {maeNome}</button>
                         <button className="btn btn-icon btn-sm" onClick={e=>{e.stopPropagation();setConfirm(aca)}}>🗑️</button>
                       </div>
                     </div>
@@ -271,6 +278,7 @@ export default function Reproducao({ nav, params }) {
                     <div style={{display:'flex',gap:6,marginTop:10,flexWrap:'wrap'}}>
                       {a.estado==='em_progresso'&&<button className="btn btn-primary btn-sm" onClick={()=>abrirModalNascimento(a)}>🐣 Registar Nascimento</button>}
                       <button className="btn btn-secondary btn-sm" onClick={()=>nav?.('pedigree',{pomboId:a.pai_id})}>🌳 Pedigree {pai?.nome}</button>
+                      <button className="btn btn-secondary btn-sm" onClick={()=>nav?.('pedigree',{pomboId:a.mae_id})}>🌳 {mae?.nome}</button>
                       <button className="btn btn-secondary btn-sm" onClick={()=>openEdit(a)}>✏️ Editar</button>
                       <button className="btn btn-icon btn-sm" onClick={()=>setConfirm(a)}>🗑️</button>
                     </div>
