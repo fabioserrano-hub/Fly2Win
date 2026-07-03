@@ -6,11 +6,6 @@ import { useIdioma } from '../hooks/useIdioma'
 import { verificarConquistas } from '../components/Conquistas'
 import { gerarFichaPombo } from '../utils/FichaPomboPDF'
 
-<button className="btn btn-secondary btn-sm"
-  onClick={()=>gerarFichaPombo(selected, historicoProvas, pedigreeInfo)}>
-  📄 PDF
-</button>
-
 // ── constantes ────────────────────────────────────────────────────────────────
 const anoAtual = new Date().getFullYear()
 const anos = Array.from({ length: 10 }, (_, i) => anoAtual - i)
@@ -564,6 +559,7 @@ export default function Pombos({ nav, params }) {
               <button className="btn btn-danger btn-sm" onClick={()=>{ close(); setConfirm(selected) }}>🗑️</button>
               <button className="btn btn-secondary btn-sm" onClick={()=>{ close(); nav?.('saude',{prefillPomboId:selected.id}) }}>🏥 Saúde</button>
               <button className="btn btn-secondary btn-sm" onClick={()=>{ close(); nav?.('pedigree',{pomboId:selected.id}) }}>🌳 Pedigree</button>
+              <button className="btn btn-secondary btn-sm" onClick={()=>gerarFichaPombo(selected, historicoProvas, pedigreeInfo)}>📄 PDF</button>
               <div style={{ flex:1 }} />
               <button className="btn btn-secondary" onClick={close}>Fechar</button>
               <button className="btn btn-primary" onClick={()=>openEdit(selected)}>✏️ Editar</button>
