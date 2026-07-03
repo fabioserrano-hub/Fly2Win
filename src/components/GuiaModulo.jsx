@@ -111,6 +111,57 @@ const GUIAS = {
     ],
     dica:'As mensagens no topo do feed são personalizadas com base nos teus dados — próximas provas, eclosões e pombos em forma.',
   },
+  // ─── Novos guias ─────────────────────────────────────────────
+  casaisIA: {
+    titulo:'🧬 Seleccionador de Casais IA',
+    passos:[
+      { icon:'⚙️', titulo:'Parâmetros', desc:'Define especialidade alvo, macho fixo, consanguinidade máxima e número de sugestões antes de calcular.' },
+      { icon:'🧮', titulo:'Algoritmo', desc:'O sistema analisa todas as combinações possíveis do teu efectivo — percentil, consanguinidade, especialidade e historial de provas.' },
+      { icon:'🥇', titulo:'Ranking de pares', desc:'Os melhores pares aparecem ordenados por score (0-100). Verde = Excelente, Ouro = Bom, Azul = Razoável.' },
+      { icon:'🤖', titulo:'Análise IA', desc:'Clica em 🤖 num par para receber análise detalhada da IA — potencial da descendência, riscos e recomendação final.' },
+    ],
+    dica:'Filtra por consanguinidade máxima ≤ 10% para garantir diversidade genética e evitar penalizações no score.',
+  },
+  pedigree: {
+    titulo:'🌳 Pedigree',
+    passos:[
+      { icon:'🔍', titulo:'Pesquisar pombo', desc:'Usa a barra de pesquisa para encontrar qualquer pombo por nome ou anilha. O pedigree carrega automaticamente.' },
+      { icon:'🌳', titulo:'Árvore genealógica', desc:'Vê 3 gerações — pais, avós e bisavós. Toca nos bisavós para expandir/recolher em mobile.' },
+      { icon:'🎨', titulo:'Temas de cor', desc:'Escolhe entre 4 temas (Ouro, Azul, Verde, Roxo) — a preferência fica guardada automaticamente.' },
+      { icon:'📤', titulo:'Partilhar e exportar', desc:'Copia o link público do pedigree ou exporta em PDF para partilhar com compradores ou federações.' },
+    ],
+    dica:'O link público do pedigree não requer login — ideal para partilhar com potenciais compradores em leilões.',
+  },
+  ligas: {
+    titulo:'🏆 Ligas',
+    passos:[
+      { icon:'🌍', titulo:'Ligas oficiais', desc:'As Ligas Fly2Win por país (PT Velocidade, PT Fundo...) são actualizadas automaticamente com os resultados das provas registadas.' },
+      { icon:'🔒', titulo:'Ligas privadas', desc:'Cria uma liga privada com código de convite. Define o sistema de pontuação e os pombos participantes.' },
+      { icon:'📊', titulo:'Sistemas de pontuação', desc:'5 sistemas disponíveis: Percentil Médio, ELO, Pontos F1, Acumulado e Melhor Resultado.' },
+      { icon:'🏛️', titulo:'Liga de Clubes', desc:'Formato Liga, Champions (grupos + eliminatórias) ou Desafio entre coletividades registadas na plataforma.' },
+    ],
+    dica:'No sistema ELO, vencer pombos com rating superior dá mais pontos. Ideal para ligas com participantes de nível muito diferente.',
+  },
+  marketplace: {
+    titulo:'🛒 Marketplace',
+    passos:[
+      { icon:'🐦', titulo:'Anunciar pombo', desc:'Publica pombos à venda com preço fixo. Os dados de percentil e anilha são pré-preenchidos do teu efectivo.' },
+      { icon:'🔍', titulo:'Pesquisar', desc:'Filtra por especialidade, distância, percentil mínimo e preço máximo para encontrar o pombo certo.' },
+      { icon:'💬', titulo:'Contactar vendedor', desc:'Clica em "Contactar" para abrir uma conversa directa com o vendedor via Mensagens.' },
+      { icon:'⭐', titulo:'Favoritos', desc:'Guarda anúncios interessantes em Favoritos para comparar mais tarde.' },
+    ],
+    dica:'Anúncios com foto e percentil verificado têm 3× mais contactos. Completa sempre o perfil do pombo antes de publicar.',
+  },
+  clubes: {
+    titulo:'🏛️ Clubes',
+    passos:[
+      { icon:'👥', titulo:'Membros', desc:'Gere sócios com número de FCP, estado (activo/inactivo) e quotas em dia. Importa via CSV para migrar de outro sistema.' },
+      { icon:'💰', titulo:'Quotas e finanças', desc:'Regista pagamentos de quotas e movimentos financeiros. O dashboard mostra receitas, despesas e saldo actual.' },
+      { icon:'📢', titulo:'Comunicados', desc:'Publica comunicados para todos os sócios. Ficam visíveis no painel de cada membro.' },
+      { icon:'📅', titulo:'Reuniões', desc:'Agenda reuniões com data, hora e local. Os sócios recebem notificação automática.' },
+    ],
+    dica:'A licença de Clube dá acesso ao módulo de gestão completo. Os sócios individuais precisam de plano próprio para aceder à plataforma.',
+  },
 }
 
 // ─── Componente de guia ───────────────────────────────────────
@@ -121,14 +172,11 @@ export function GuiaModulo({ modulo, onFechar }) {
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(5,13,26,.9)', zIndex:9500, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
       <div style={{ background:'#0B1830', border:'1px solid rgba(212,175,55,.2)', borderRadius:16, width:'100%', maxWidth:480, maxHeight:'85vh', overflowY:'auto' }}>
-        {/* Header */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'16px 20px', borderBottom:'1px solid #1B2D52', position:'sticky', top:0, background:'#0B1830', zIndex:1 }}>
           <div style={{ fontFamily:"'Fraunces',serif", fontSize:16, fontWeight:900, color:'#fff' }}>{guia.titulo}</div>
           <button onClick={onFechar} style={{ background:'none', border:'none', color:'#7A8699', cursor:'pointer', fontSize:20, lineHeight:1 }}>✕</button>
         </div>
-
         <div style={{ padding:'16px 20px' }}>
-          {/* Passos */}
           <div style={{ display:'flex', flexDirection:'column', gap:12, marginBottom:16 }}>
             {guia.passos.map((p,i)=>(
               <div key={i} style={{ display:'flex', gap:12, alignItems:'flex-start', padding:'12px', background:'#101F40', borderRadius:10 }}>
@@ -140,15 +188,12 @@ export function GuiaModulo({ modulo, onFechar }) {
               </div>
             ))}
           </div>
-
-          {/* Dica */}
           {guia.dica&&(
             <div style={{ background:'rgba(45,212,167,.07)', border:'1px solid rgba(45,212,167,.2)', borderRadius:10, padding:'12px 14px', marginBottom:16 }}>
               <div style={{ fontSize:11, fontWeight:700, color:'#2DD4A7', marginBottom:4 }}>💡 Dica Pro</div>
               <div style={{ fontSize:12, color:'#94a3b8', lineHeight:1.6 }}>{guia.dica}</div>
             </div>
           )}
-
           <button onClick={onFechar} className="btn btn-primary" style={{ width:'100%' }}>Percebido, vamos lá!</button>
         </div>
       </div>
@@ -244,7 +289,6 @@ export function GuiaAuto({ modulo }) {
               <div style={{ fontSize:11, color:'#2DD4A7', lineHeight:1.6 }}>💡 {guia.dica}</div>
             </div>
           )}
-          {/* Checkbox não mostrar mais */}
           <div onClick={()=>setNaoMostrar(v=>!v)} style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14, cursor:'pointer' }}>
             <div style={{ width:16, height:16, borderRadius:4, border:`2px solid ${naoMostrar?'#2DD4A7':'#334155'}`, background:naoMostrar?'#2DD4A7':'transparent', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, color:'#050D1A', flexShrink:0 }}>{naoMostrar&&'✓'}</div>
             <span style={{ fontSize:12, color:'#7A8699' }}>Não mostrar este guia novamente</span>
