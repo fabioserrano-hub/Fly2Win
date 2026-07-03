@@ -5,6 +5,7 @@ import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../component
 import { useIdioma } from '../hooks/useIdioma'
 import { verificarConquistas } from '../components/Conquistas'
 import { gerarFichaPombo } from '../utils/FichaPomboPDF'
+import html2canvas from 'html2canvas'
 
 // ── constantes ────────────────────────────────────────────────────────────────
 const anoAtual = new Date().getFullYear()
@@ -108,6 +109,22 @@ export default function Pombos({ nav, params }) {
   const [tabDetail, setTabDetail] = useState('info')
   const [modalPartilha, setModalPartilha] = useState(false)
   const [pomboPartilha, setPomboPartilha] = useState(null)
+  const [modalCartao, setModalCartao] = useState(false)
+  const [gerandoImg, setGerandoImg] = useState(false)
+
+  const gerarImagemRedes = async () => {
+    setGerandoImg(true)
+    try {
+      const el = document.getElementById('cartao-redes')
+      const canvas = await html2canvas(el, { scale:3, useCORS:true, backgroundColor:null })
+      const link = document.createElement('a')
+      link.download = `${selected?.nome||'pombo'}_fly2win.png`
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+      toast('Imagem guardada!', 'ok')
+    } catch(e) { toast('Erro ao gerar imagem', 'err') }
+    finally { setGerandoImg(false) }
+  }
 
   const [anilhaPais, setAnilhaPais] = useState('PT')
   const [anilhaAno, setAnilhaAno]   = useState(String(anoAtual))
@@ -483,6 +500,79 @@ export default function Pombos({ nav, params }) {
         </Modal>
       )}
 
+      {/* ══ MODAL CARTAO REDES ══════════════════════════════════════════════ */}
+      <Modal open={modalCartao} onClose={()=>setModalCartao(false)} title="🖼️ Cartão para Redes Sociais"
+        footer={
+          <div style={{display:'flex',gap:8,width:'100%'}}>
+            <button className="btn btn-secondary" onClick={()=>setModalCartao(false)}>Fechar</button>
+            <div style={{flex:1}}/>
+            <button className="btn btn-primary" onClick={gerarImagemRedes} disabled={gerandoImg}>
+              {gerandoImg?<Spinner/>:'⬇️ Guardar PNG'}
+            </button>
+          </div>
+        }>
+        {selected&&(
+          <div>
+            <div style={{fontSize:11,color:'#7A8699',marginBottom:12,textAlign:'center'}}>Prévia — formato quadrado para Instagram/Facebook</div>
+            <div id="cartao-redes" style={{width:360,height:360,margin:'0 auto',background:'linear-gradient(145deg,#050D1A,#0B1830,#0A1F3A)',borderRadius:16,overflow:'hidden',position:'relative',fontFamily:"'Inter',system-ui,sans-serif"}}>
+              <div style={{height:4,background:'linear-gradient(90deg,#7A6020,#D4AF37,#F5DFA0,#D4AF37,#7A6020)'}}/>
+              <div style={{padding:'14px 16px',height:'calc(100% - 7px)',display:'flex',flexDirection:'column'}}>
+                <div style={{display:'flex',gap:12,alignItems:'flex-start',marginBottom:12}}>
+                  <div style={{width:88,height:88,borderRadius:12,overflow:'hidden',flexShrink:0,background:'#101F40',border:'2px solid rgba(212,175,55,.3)'}}>
+                    {selected.foto_url
+                      ?<img src={selected.foto_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}} crossOrigin="anonymous"/>
+                      :<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:38}}>{selected.emoji||'🐦'}</div>
+                    }
+                  </div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontFamily:"'Fraunces',Georgia,serif",fontSize:24,fontWeight:900,color:'#fff',lineHeight:1.1,marginBottom:3}}>{selected.nome}</div>
+                    <div style={{fontFamily:"'Space Mono',monospace",fontSize:9,color:'#D4AF37',marginBottom:5}}>{selected.anilha}</div>
+                    <div style={{fontSize:9,color:'#94a3b8',marginBottom:6}}>{selected.sexo==='M'?'Macho':'Femea'}{selected.cor?` · ${selected.cor}`:''}{selected.pombal?` · ${selected.pombal}`:''}</div>
+                    {(selected.esp||[])[0]&&(
+                      <div style={{display:'inline-block',background:`${ESP_COR[(selected.esp||[])[0]]}22`,border:`1px solid ${ESP_COR[(selected.esp||[])[0]]}60`,borderRadius:20,padding:'2px 9px',fontSize:9,fontWeight:700,color:ESP_COR[(selected.esp||[])[0]]}}>
+                        {ESP_ICON[(selected.esp||[])[0]]} {(selected.esp||[])[0]}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6,marginBottom:12}}>
+                  {[{v:(selected.percentil||0)+'%',l:'Percentil',c:'#2DD4A7'},{v:(selected.forma||50)+'%',l:'Forma',c:'#4C8DFF'},{v:String(selected.provas||0),l:'Provas',c:'#D4AF37'}].map(({v,l,c})=>(
+                    <div key={l} style={{background:'rgba(255,255,255,.05)',borderRadius:10,padding:'8px 4px',textAlign:'center',border:'1px solid rgba(255,255,255,.07)'}}>
+                      <div style={{fontFamily:"'Fraunces',Georgia,serif",fontSize:20,fontWeight:900,color:c,lineHeight:1}}>{v}</div>
+                      <div style={{fontSize:8,color:'#475569',marginTop:2,letterSpacing:'.05em'}}>{l.toUpperCase()}</div>
+                    </div>
+                  ))}
+                </div>
+                {(pedigreeInfo?.pai||pedigreeInfo?.mae||selected.pai||selected.mae)&&(
+                  <div style={{background:'rgba(255,255,255,.04)',borderRadius:10,padding:'8px 10px',marginBottom:12,border:'1px solid rgba(255,255,255,.06)'}}>
+                    <div style={{fontSize:8,color:'#7A8699',letterSpacing:'.1em',marginBottom:5}}>PEDIGREE</div>
+                    <div style={{display:'flex',gap:8}}>
+                      {[['PAI',pedigreeInfo?.pai,selected.pai],['MAE',pedigreeInfo?.mae,selected.mae]].map(([lbl,ped,raw])=>(
+                        <div key={lbl} style={{flex:1}}>
+                          <div style={{fontSize:7,color:'#475569'}}>{lbl}</div>
+                          <div style={{fontSize:10,fontWeight:600,color:'#fff'}}>{ped?.nome||raw||'—'}</div>
+                          {ped?.anilha&&<div style={{fontSize:7,color:'#D4AF37'}}>{ped.anilha}</div>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div style={{flex:1}}/>
+                {selected.obs&&<div style={{fontSize:9,color:'#7A8699',fontStyle:'italic',marginBottom:8,borderLeft:'2px solid #D4AF37',paddingLeft:8}}>"{selected.obs.slice(0,80)}{selected.obs.length>80?'...':''}"</div>}
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <div>
+                    <div style={{fontFamily:"'Fraunces',Georgia,serif",fontSize:12,fontWeight:900,color:'#D4AF37',letterSpacing:'.05em'}}>FLY2WIN</div>
+                    <div style={{fontSize:6,color:'#475569',letterSpacing:'.1em'}}>FLY TO WIN · CONQUER THE SKIES</div>
+                  </div>
+                  <div style={{fontSize:7,color:'#334155'}}>fly2win.pt</div>
+                </div>
+              </div>
+              <div style={{position:'absolute',bottom:0,left:0,right:0,height:3,background:'linear-gradient(90deg,#7A6020,#D4AF37,#F5DFA0,#D4AF37,#7A6020)'}}/>
+            </div>
+          </div>
+        )}
+      </Modal>
+
       {/* ══ MODAL FORM ════════════════════════════════════════════════════════ */}
       <Modal open={modal==='form'} onClose={close} title={selected?`✏️ ${selected.nome}`:'🐦 Novo Pombo'} wide
         footer={<><button className="btn btn-secondary" onClick={close}>Cancelar</button><button className="btn btn-primary" onClick={save} disabled={saving}>{saving?<Spinner/>:null}{selected?t('guardar'):'Adicionar'}</button></>}>
@@ -560,6 +650,7 @@ export default function Pombos({ nav, params }) {
               <button className="btn btn-secondary btn-sm" onClick={()=>{ close(); nav?.('saude',{prefillPomboId:selected.id}) }}>🏥 Saúde</button>
               <button className="btn btn-secondary btn-sm" onClick={()=>{ close(); nav?.('pedigree',{pomboId:selected.id}) }}>🌳 Pedigree</button>
               <button className="btn btn-secondary btn-sm" onClick={()=>gerarFichaPombo(selected, historicoProvas, pedigreeInfo)}>📄 PDF</button>
+              <button className="btn btn-secondary btn-sm" onClick={()=>setModalCartao(true)}>🖼️ Redes</button>
               <div style={{ flex:1 }} />
               <button className="btn btn-secondary" onClick={close}>Fechar</button>
               <button className="btn btn-primary" onClick={()=>openEdit(selected)}>✏️ Editar</button>
