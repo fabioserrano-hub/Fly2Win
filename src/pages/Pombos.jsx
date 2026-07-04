@@ -113,18 +113,31 @@ export default function Pombos({ nav, params }) {
   const [gerandoImg, setGerandoImg] = useState(false)
 
   const gerarImagemRedes = async () => {
-    setGerandoImg(true)
-    try {
-      const el = document.getElementById('cartao-redes')
-      const canvas = await html2canvas(el, { scale:3, useCORS:true, backgroundColor:null })
-      const link = document.createElement('a')
-      link.download = `${selected?.nome||'pombo'}_fly2win.png`
-      link.href = canvas.toDataURL('image/png')
-      link.click()
-      toast('Imagem guardada!', 'ok')
-    } catch(e) { toast('Erro ao gerar imagem', 'err') }
-    finally { setGerandoImg(false) }
-  }
+  setGerandoImg(true)
+  try {
+    const el = document.getElementById('cartao-redes')
+    if (!el) { toast('Cartão não encontrado', 'err'); return }
+    // Tornar visível temporariamente fora do viewport para captura
+    el.style.position = 'fixed'
+    el.style.left = '-9999px'
+    el.style.top = '0'
+    el.style.display = 'block'
+    await new Promise(r => setTimeout(r, 200))
+    const canvas = await html2canvas(el, { 
+      scale: 3, useCORS: true, 
+      allowTaint: true, backgroundColor: '#050D1A'
+    })
+    el.style.position = ''
+    el.style.left = ''
+    el.style.top = ''
+    const link = document.createElement('a')
+    link.download = `${selected?.nome||'pombo'}_fly2win.png`
+    link.href = canvas.toDataURL('image/png')
+    link.click()
+    toast('Imagem guardada!', 'ok')
+  } catch(e) { toast('Erro: ' + e.message, 'err') }
+  finally { setGerandoImg(false) }
+}
 
   const [anilhaPais, setAnilhaPais] = useState('PT')
   const [anilhaAno, setAnilhaAno]   = useState(String(anoAtual))
