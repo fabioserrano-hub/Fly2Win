@@ -151,8 +151,11 @@ function AppLayout({ setIdioma }) {
   const [page, setPage] = useState('dashboard')
   const [navParams, setNavParams] = useState({})
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const mostrarOnboarding = false; const concluirOnboarding = ()=>{}
-
+  const [mostrarOnboarding, setMostrarOnboarding] = useState(false)
+useEffect(()=>{
+  if(user && !localStorage.getItem('cl_onboarding_done')) setMostrarOnboarding(true)
+},[user])
+const concluirOnboarding = () => { localStorage.setItem('cl_onboarding_done','1'); setMostrarOnboarding(false) }
   const nav = (p, params={}) => { setPage(p); setNavParams(params); setSidebarOpen(false) }
 
   useEffect(() => {
