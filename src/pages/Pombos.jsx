@@ -793,7 +793,7 @@ export default function Pombos({ nav, params }) {
               <button className="btn btn-secondary btn-sm" onClick={()=>{ close(); nav?.('saude',{prefillPomboId:selected.id}) }}>🏥 Saúde</button>
               <button className="btn btn-secondary btn-sm" onClick={()=>{ close(); nav?.('pedigree',{pomboId:selected.id}) }}>🌳 Pedigree</button>
               <button className="btn btn-secondary btn-sm" onClick={()=>gerarFichaPombo(selected, historicoProvas, pedigreeInfo)}>📄 PDF</button>
-              <button className="btn btn-secondary btn-sm" onClick={()=>setModalCartao(true)}>🖼️ Redes</button>
+              <button className="btn btn-secondary btn-sm" onClick={()=>{ setModal(null); setTimeout(()=>setModalCartao(true),100) }}>🖼️ Redes</button>
               <div style={{ flex:1 }} />
               <button className="btn btn-secondary" onClick={close}>Fechar</button>
               <button className="btn btn-primary" onClick={()=>openEdit(selected)}>✏️ Editar</button>
