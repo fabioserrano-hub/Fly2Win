@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { GuiaAuto, BotaoGuia } from '../components/GuiaModulo'
 
 const DICAS = [
   {
@@ -65,6 +66,7 @@ export default function Dicas({ nav }) {
 
   return (
     <div>
+      <GuiaAuto modulo="dashboard"/>
       <div className="section-header">
         <div><div className="section-title">Dicas & Boas Práticas</div><div className="section-sub">{total} dicas para columbófilos</div></div>
       </div>
@@ -110,3 +112,4 @@ export default function Dicas({ nav }) {
     </div>
   )
 }
+
