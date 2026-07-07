@@ -104,6 +104,16 @@ export default function Treinos({ nav }) {
       const vel = calcVel(parseFloat(form.dist),form.hora_solta,form.hora_retorno)
       const payload = { local:form.local.trim(),tipo:form.tipo,dist:form.dist?parseFloat(form.dist):null,data_reg:form.data_reg,hora_solta:form.hora_solta,hora_retorno:form.hora_retorno||null,pombos_n:form.pombosIds.length||(form.pombos_n?parseInt(form.pombos_n):null),pombos_ids:form.pombosIds,retorno:form.retorno,custo:form.custo?parseFloat(form.custo):null,obs:form.obs,velocidade:vel }
       selected ? await db.updateTreino(selected.id,payload) : await db.createTreino(payload)
+      // actualizar forma dos pombos participantes se tiver velocidade
+      if (vel && form.pombosIds.length > 0) {
+        const formaBonus = vel > 80 ? 5 : vel > 60 ? 3 : 1
+        await Promise.all(form.pombosIds.map(pid =>
+          db.getPombos().then(ps => {
+            const p = ps.find(x => x.id === pid)
+            if (p) db.updatePombo(pid, { forma: Math.min(100, (p.forma||50) + formaBonus) })
+          })
+        ))
+      }
       toast(selected?'Actualizado!':'Treino registado!','ok'); close(); load()
     } catch(e) { toast('Erro: '+e.message,'err') }
     finally { setSaving(false) }
