@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { GuiaAuto, BotaoGuia } from '../components/GuiaModulo'
 import { db, supabase } from '../lib/supabase'
 import { useToast, Spinner } from '../components/ui'
 import { useIdioma } from '../hooks/useIdioma'
@@ -110,3 +111,4 @@ export default function Exportacao({ nav }) {
     </div>
   )
 }
+
