@@ -4,7 +4,7 @@ import { useIdioma } from '../hooks/useIdioma'
 import { useToast, Spinner, Modal, EmptyState, Field } from '../components/ui'
 import { GuiaAuto, BotaoGuia } from '../components/GuiaModulo'
 
-const CATS = ['Manutenção','Alimentação','Saúde','Administrativo','Treino','Outro']
+const CATS = ['Manutenção','Alimentação','Saúde','Administrativo','Treino','Pré-Prova','Outro']
 const PRIORIDADES = ['alta','media','baixa']
 const catIcon = { 'Manutenção':'🧹','Alimentação':'🌾','Saúde':'🏥','Administrativo':'📋','Treino':'🎯','Outro':'📌' }
 const catCor = { 'Manutenção':'#4C8DFF','Alimentação':'#2DD4A7','Saúde':'#f87171','Administrativo':'#D4AF37','Treino':'#C084FC','Outro':'#94a3b8' }
@@ -24,12 +24,13 @@ const SUGESTOES = [
   { titulo:'Pesagem geral do efectivo', cat:'Saúde', dias:14 },
 ]
 
-const EMPTY = { titulo:'', cat:'Manutenção', prioridade:'media', data_prevista:new Date().toISOString().slice(0,10), estado:'por_iniciar', obs:'', recorrencia_dias:'' }
+const EMPTY = { pombo_id:'', titulo:'', cat:'Manutenção', prioridade:'media', data_prevista:new Date().toISOString().slice(0,10), estado:'por_iniciar', obs:'', recorrencia_dias:'' }
 
 export default function Checklist({ nav }) {
   const toast = useToast()
   const { t } = useIdioma()
   const [tarefas, setTarefas] = useState([])
+  const [pombos, setPombos] = useState([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState(false)
   const [selected, setSelected] = useState(null)
@@ -47,7 +48,7 @@ export default function Checklist({ nav }) {
     catch(e) { toast('Erro: '+e.message,'err') }
     finally { setLoading(false) }
   },[])
-  useEffect(()=>{ load() },[load])
+  useEffect(()=>{ load(); db.getPombos().then(setPombos).catch(()=>{}) },[load])
 
   const hoje = new Date().toISOString().slice(0,10)
   const isAtrasada = (t) => t.estado==='por_iniciar' && t.data_prevista && t.data_prevista<hoje
