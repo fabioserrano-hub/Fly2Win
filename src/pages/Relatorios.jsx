@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { GuiaAuto, BotaoGuia } from '../components/GuiaModulo'
 import { db } from '../lib/supabase'
 import { useIdioma } from '../hooks/useIdioma'
 import { useToast, Spinner, Badge } from '../components/ui'
@@ -148,6 +149,7 @@ export default function Relatorios({ nav }) {
 
   return (
     <div>
+      <GuiaAuto modulo="analiticas"/>
       <div className="section-header">
         <div><div className="section-title">Relatórios</div><div className="section-sub">Indicadores da época {ano}</div></div>
       </div>
@@ -248,3 +250,4 @@ export default function Relatorios({ nav }) {
     </div>
   )
 }
+
