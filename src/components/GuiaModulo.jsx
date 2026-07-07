@@ -158,6 +158,33 @@ const GUIAS = {
     ],
     dica:'Cria uma checklist de pré-prova com todas as tarefas de preparação e reutiliza-a em cada competição.',
   },
+  mensagens: {
+    titulo:'💬 Mensagens',
+    passos:[
+      { icon:'💬', titulo:'Conversas', desc:'Vê todas as conversas activas. Toca numa para abrir e responder.' },
+      { icon:'✏️', titulo:'Nova mensagem', desc:'Inicia uma conversa com qualquer columbófilo que sigas ou que participe nos leilões.' },
+      { icon:'🔔', titulo:'Notificações', desc:'Recebes notificação quando tens mensagens não lidas. O badge aparece no menu.' },
+    ],
+    dica:'Usa as Mensagens para contactar vendedores do Marketplace e compradores dos teus Leilões.',
+  },
+  perfil: {
+    titulo:'👤 Perfil',
+    passos:[
+      { icon:'📸', titulo:'Foto e dados', desc:'Actualiza a tua foto, nome e dados do pombal. São visíveis no teu perfil público.' },
+      { icon:'🏠', titulo:'Pombal', desc:'Adiciona as coordenadas GPS do pombal para aparecer no mapa da LoftSocial.' },
+      { icon:'⚙️', titulo:'Preferências', desc:'Configura o idioma, tema e notificações da app.' },
+    ],
+    dica:'Um perfil completo com foto aumenta a confiança dos compradores nos leilões.',
+  },
+  clubes_setup: {
+    titulo:'🏛️ Configurar Clube',
+    passos:[
+      { icon:'🏛️', titulo:'Dados do clube', desc:'Preenche o nome, NIF, morada e contactos do clube columbófilo.' },
+      { icon:'👥', titulo:'Adicionar sócios', desc:'Importa sócios via CSV ou adiciona manualmente com número de FCP e dados de contacto.' },
+      { icon:'💰', titulo:'Quotas', desc:'Define o valor das quotas anuais e regista os pagamentos de cada sócio.' },
+    ],
+    dica:'O módulo de Clubes requer licença institucional. Contacta suporte@fly2win.pt para activar.',
+  },
   casaisIA: {
     titulo:'🧬 Seleccionador de Casais IA',
     passos:[
@@ -347,3 +374,4 @@ export function GuiaAuto({ modulo }) {
 }
 
 export default GuiaModulo
+
