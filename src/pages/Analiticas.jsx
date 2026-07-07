@@ -213,6 +213,11 @@ export default function Analiticas({ nav }) {
     ['clube','🏛️ Clube'],
   ]
 
+      <GuiaAuto modulo="analiticas"/>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+        <div className="section-title">Analíticas</div>
+        <BotaoGuia modulo="analiticas"/>
+      </div>
   return (
     <div>
       {/* Header */}
