@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { GuiaAuto, BotaoGuia } from '../components/GuiaModulo'
 import { supabase, db } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useIdioma } from '../hooks/useIdioma'
