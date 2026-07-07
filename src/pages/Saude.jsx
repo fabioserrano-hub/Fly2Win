@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { db, supabase } from '../lib/supabase'
+import { GuiaAuto, BotaoGuia } from '../components/GuiaModulo'
 import { useAuth } from '../hooks/useAuth'
 import { useIdioma } from '../hooks/useIdioma'
 import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../components/ui'
@@ -321,12 +322,13 @@ export default function Saude({ nav, params }) {
   // ── RENDER ────────────────────────────────────────────────────────────────
   return (
     <div>
+      <GuiaAuto modulo="saude"/>
       <div className="section-header">
         <div>
           <div className="section-title">Saúde</div>
           <div className="section-sub">{registos.length} registos · {vacinas.length} vacinas{alertasTotal>0?` · ⚠️ ${alertasTotal} alertas`:''}</div>
         </div>
-        <button className="btn btn-primary" onClick={()=>openNew()}>＋ Novo Registo</button>
+        <BotaoGuia modulo="saude"/> <button className="btn btn-primary" onClick={()=>openNew()}>＋ Novo Registo</button>
       </div>
 
       {/* alertas globais */}
