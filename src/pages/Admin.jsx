@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { GuiaAuto, BotaoGuia } from '../components/GuiaModulo'
 import { db, supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useToast, Spinner, Modal, EmptyState, Badge, Field } from '../components/ui'
@@ -503,3 +504,4 @@ function TabParcerias({ toast }) {
     </div>
   )
 }
+
