@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { db } from '../lib/supabase'
 import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../components/ui'
+import { GuiaAuto, BotaoGuia } from '../components/GuiaModulo'
 import { useIdioma } from '../hooks/useIdioma'
 import { classificarPombo } from './Pombos'
 
@@ -120,6 +121,20 @@ export default function Pombais({ nav }) {
                 <div key={n} onClick={()=>{
                   if(aca) setExpandidoCacifo(isExpanded?null:`${pb.id}_${n}`)
                   else nav?.('reproducao')
+            {/* mapa se tiver coordenadas */}
+            {pombalDetalhe.lat&&pombalDetalhe.lon&&(
+              <div style={{marginTop:10,borderRadius:10,overflow:'hidden',border:'1px solid #1B2D52'}}>
+                <iframe
+                  title="mapa"
+                  width="100%" height="180"
+                  style={{border:'none',display:'block'}}
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${pombalDetalhe.lon-0.01},${pombalDetalhe.lat-0.01},${pombalDetalhe.lon+0.01},${pombalDetalhe.lat+0.01}&layer=mapnik&marker=${pombalDetalhe.lat},${pombalDetalhe.lon}`}
+                />
+                <div style={{padding:'6px 10px',background:'#0B1830',fontSize:10,color:'#475569'}}>
+                  📍 {pombalDetalhe.loc||`${pombalDetalhe.lat.toFixed(4)}, ${pombalDetalhe.lon.toFixed(4)}`}
+                </div>
+              </div>
+            )}
                 }} style={{ background:aca?'rgba(45,212,167,.08)':conc?'rgba(76,141,255,.06)':'#101F40', border:`1px solid ${aca?'#2DD4A7':conc?'#1E5FD9':'#1B2D52'}`, borderRadius:8, padding:'6px 8px', cursor:'pointer', minHeight:52, position:'relative' }}>
                   <div style={{ fontSize:9, color:aca?'#2DD4A7':conc?'#4C8DFF':'#334155', fontWeight:700 }}>#{n}</div>
                   {aca ? (
@@ -241,6 +256,13 @@ export default function Pombais({ nav }) {
 
           {/* localização */}
           {pb.loc&&<div style={{ fontSize:11, color:'#7A8699', marginBottom:8 }}>📍 {pb.loc}</div>}
+          {/* percentil médio */}
+          {(()=>{
+            const pp=pombos.filter(p=>p.pombal===pb.nome&&(p.percentil||0)>0)
+            if(!pp.length) return null
+            const med=Math.round(pp.reduce((s,p)=>s+(p.percentil||0),0)/pp.length)
+            return <div style={{fontSize:11,color:'#7A8699',marginBottom:6}}>📊 Percentil médio: <strong style={{color:med>=60?'#2DD4A7':'#D4AF37'}}>{med}%</strong></div>
+          })()}
 
           {/* alertas saúde */}
           {comAtencao.length>0&&(
@@ -329,12 +351,13 @@ export default function Pombais({ nav }) {
   // ── RENDER ────────────────────────────────────────────────────────────────
   return (
     <div>
+      <GuiaAuto modulo="pombais"/>
       <div className="section-header">
         <div>
           <div className="section-title">Pombais</div>
           <div className="section-sub">{pombais.length} instalações · {totalOcupacao} pombos alojados</div>
         </div>
-        <button className="btn btn-primary" onClick={openNew}>＋ Novo Pombal</button>
+        <BotaoGuia modulo="pombais"/> <button className="btn btn-primary" onClick={openNew}>＋ Novo Pombal</button>
       </div>
 
       {/* alertas sobre-ocupação */}
