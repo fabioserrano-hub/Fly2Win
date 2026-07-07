@@ -434,7 +434,7 @@ export default function Comunidade({ nav }) {
             <button onClick={()=>abrirComments(post)} style={{display:'flex',alignItems:'center',gap:4,background:'none',border:'none',cursor:'pointer',fontSize:13,color:'#7A8699',padding:'4px 8px',borderRadius:6}}>💬 {post.comments_count||0}</button>
             <button onClick={()=>{
               const txt=`${post.autor_nome}: ${post.conteudo.slice(0,100)}... — LoftSocial`
-              navigator.share?navigator.share({title:'LoftSocial',text:txt}):navigator.clipboard?.writeText(txt).then(()=>toast('Copiado!','ok'))
+              navigator.share?navigator.share({title:'LoftSocial',text:txt}).catch(e=>{if(e.name!=='AbortError')toast('Erro ao partilhar','err')}):navigator.clipboard?.writeText(txt).then(()=>toast('Copiado!','ok'))
             }} style={{display:'flex',alignItems:'center',gap:4,background:'none',border:'none',cursor:'pointer',fontSize:13,color:'#7A8699',padding:'4px 8px',borderRadius:6}}>🔗</button>
             <button onClick={()=>setModalRepost(post)} style={{display:'flex',alignItems:'center',gap:4,background:'none',border:'none',cursor:'pointer',fontSize:13,color:'#7A8699',padding:'4px 8px',borderRadius:6}}>🔁</button>
             {souEu&&<button onClick={async()=>{await db.deletePost(post.id).catch(()=>{});setPosts(ps=>ps.filter(p=>p.id!==post.id))}} style={{marginLeft:'auto',background:'none',border:'none',cursor:'pointer',fontSize:13,color:'#475569',padding:'4px 8px',borderRadius:6}}>🗑️</button>}
@@ -850,7 +850,7 @@ export default function Comunidade({ nav }) {
         </div>
         <button className="btn btn-secondary" style={{width:'100%',marginTop:12}} onClick={()=>{
           const txt=`${nome} — LoftSocial / Fly2Win\n🐦 ${pombos.filter(p=>!p.estado_ext||p.estado_ext==='proprio').length} pombos · 🏆 ${provas.length} provas\nchampionsloft.app/p/${perfil?.slug||''}`
-          navigator.share?navigator.share({title:'LoftSocial',text:txt}):navigator.clipboard?.writeText(txt).then(()=>toast('Copiado!','ok'))
+          navigator.share?navigator.share({title:'LoftSocial',text:txt}).catch(e=>{if(e.name!=='AbortError')toast('Erro ao partilhar','err')}):navigator.clipboard?.writeText(txt).then(()=>toast('Copiado!','ok'))
         }}>🔗 Partilhar cartão</button>
       </Modal>
 
