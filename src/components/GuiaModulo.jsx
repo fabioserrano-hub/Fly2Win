@@ -112,6 +112,52 @@ const GUIAS = {
     dica:'As mensagens no topo do feed são personalizadas com base nos teus dados — próximas provas, eclosões e pombos em forma.',
   },
   // ─── Novos guias ─────────────────────────────────────────────
+  epoca: {
+    titulo:'📅 Época',
+    passos:[
+      { icon:'📋', titulo:'Resumo da época', desc:'Vê os resultados consolidados da época actual — provas, vitórias, pódios e pombos em destaque.' },
+      { icon:'🏆', titulo:'Ranking', desc:'Ranking do efectivo por percentil médio. Identifica os melhores pombos da época.' },
+      { icon:'🔒', titulo:'Fechar época', desc:'No final da época, fecha-a para arquivar os resultados e iniciar uma nova. Os dados ficam no histórico.' },
+      { icon:'🧬', titulo:'Casais IA', desc:'Com base nos resultados, a IA sugere os melhores cruzamentos para a próxima época.' },
+    ],
+    dica:'Fecha a época antes de iniciar a próxima para manter o histórico organizado por ano.',
+  },
+  meteo: {
+    titulo:'🌤️ Meteorologia',
+    passos:[
+      { icon:'📍', titulo:'Previsão local', desc:'Pesquisa qualquer localidade ou usa a localização do teu pombal para ver a previsão dos próximos 7 dias.' },
+      { icon:'🕊️', titulo:'Condições de voo', desc:'Cada dia é classificado: Favorável, Aceitável com cautela ou Desfavorável para lançamento de pombos.' },
+      { icon:'🗺️', titulo:'Rota da Prova', desc:'Analisa as condições meteorológicas ao longo da rota — do local de solta até ao teu pombal.' },
+    ],
+    dica:'Consulta a Meteorologia sempre na véspera do encestamento para decidir se as condições são favoráveis.',
+  },
+  treinos: {
+    titulo:'🎯 Treinos',
+    passos:[
+      { icon:'➕', titulo:'Registar treino', desc:'Regista data, local, distância, velocidade e os pombos participantes. A forma actualiza automaticamente.' },
+      { icon:'📊', titulo:'Velocidade média', desc:'O módulo calcula a velocidade média de cada treino e a evolução ao longo do tempo.' },
+      { icon:'🐦', titulo:'Pombos participantes', desc:'Selecciona quais os pombos que participaram em cada treino para rastrear a sua progressão.' },
+    ],
+    dica:'Treinos regulares de curta distância melhoram a orientação. Regista sempre para acompanhar a evolução.',
+  },
+  calendario: {
+    titulo:'📅 Calendário',
+    passos:[
+      { icon:'📋', titulo:'Eventos', desc:'Regista provas, treinos, tratamentos e eventos do clube num calendário unificado.' },
+      { icon:'🔔', titulo:'Alertas', desc:'Define alertas para eventos importantes — encestamento, vacinas, tratamentos.' },
+      { icon:'📥', titulo:'Importar', desc:'Importa o calendário da tua coletividade em CSV para ter todas as provas de uma vez.' },
+    ],
+    dica:'Mantém o calendário actualizado para que os alertas automáticos de tratamento funcionem correctamente.',
+  },
+  checklist: {
+    titulo:'✅ Checklist',
+    passos:[
+      { icon:'➕', titulo:'Criar tarefa', desc:'Adiciona tarefas por categoria: Manutenção, Saúde, Pré-Prova, Alimentação, etc. Podes associar a um pombo específico.' },
+      { icon:'✅', titulo:'Concluir', desc:'Marca tarefas como concluídas. As recorrentes repetem-se automaticamente.' },
+      { icon:'🏁', titulo:'Pré-Prova', desc:'Usa a categoria Pré-Prova para criar checklists de preparação antes de cada competição.' },
+    ],
+    dica:'Cria uma checklist de pré-prova com todas as tarefas de preparação e reutiliza-a em cada competição.',
+  },
   casaisIA: {
     titulo:'🧬 Seleccionador de Casais IA',
     passos:[
