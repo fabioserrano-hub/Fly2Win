@@ -4,6 +4,8 @@ import { useAuth } from '../hooks/useAuth'
 import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../components/ui'
 import { useIdioma } from '../hooks/useIdioma'
 import { verificarConquistas } from '../components/Conquistas'
+import { GuiaAuto, BotaoGuia } from '../components/GuiaModulo'
+import { GuiaAuto, BotaoGuia } from '../components/GuiaModulo'
 import { gerarFichaPombo } from '../utils/FichaPomboPDF'
 
 // ── constantes ────────────────────────────────────────────────────────────────
@@ -109,6 +111,8 @@ export default function Pombos({ nav, params }) {
   const [modalPartilha, setModalPartilha] = useState(false)
   const [pomboPartilha, setPomboPartilha] = useState(null)
   const [modalCartao, setModalCartao] = useState(false)
+  const [modalMover, setModalMover] = useState(false)
+  const [pombalDestino, setPombalDestino] = useState('')
   const [gerandoImg, setGerandoImg] = useState(false)
 
   const gerarImagemRedes = async () => {
@@ -267,6 +271,15 @@ export default function Pombos({ nav, params }) {
       toast('Imagem guardada! ✅', 'ok')
     } catch(e) { toast('Erro: '+e.message, 'err') }
     finally { setGerandoImg(false) }
+
+  const moverPombo = async () => {
+    if (!pombalDestino) { toast('Selecciona um pombal', 'warn'); return }
+    try {
+      await db.updatePombo(selected.id, { pombal: pombalDestino })
+      toast(`Movido para ${pombalDestino}!`, 'ok')
+      setModalMover(false); setPombalDestino(''); close(); load()
+    } catch(e) { toast('Erro: '+e.message, 'err') }
+  }
   }
 
   const [anilhaPais, setAnilhaPais] = useState('PT')
@@ -504,6 +517,8 @@ export default function Pombos({ nav, params }) {
   // ── RENDER ────────────────────────────────────────────────────────────────
   return (
     <div>
+      <GuiaAuto modulo="pombos"/>
+      <GuiaAuto modulo="pombos"/>
       <div className="section-header">
         <div><div className="section-title">Pombos</div><div className="section-sub">{efectivo.length} no efectivo · {externos.length} externos</div></div>
         <button className="btn btn-primary" onClick={openNew}>＋ Novo Pombo</button>
@@ -642,6 +657,17 @@ export default function Pombos({ nav, params }) {
           <div style={{ fontSize:11, color:'#475569', textAlign:'center' }}>Clica em "Publicar na LoftSocial" para partilhar com a comunidade</div>
         </Modal>
       )}
+
+      {/* ══ MODAL MOVER POMBAL ═══════════════════════════════════════════ */}
+      <Modal open={modalMover} onClose={()=>setModalMover(false)} title="🏠 Mover para Pombal"
+        footer={<><button className="btn btn-secondary" onClick={()=>setModalMover(false)}>Cancelar</button><button className="btn btn-primary" onClick={moverPombo}>Mover</button></>}>
+        <div style={{fontSize:13,color:'#94a3b8',marginBottom:12}}>Mover <strong style={{color:'#fff'}}>{selected?.nome}</strong> para:</div>
+        <select className="input" value={pombalDestino} onChange={e=>setPombalDestino(e.target.value)}>
+          <option value="">— Seleccionar pombal —</option>
+          {pombais.filter(pb=>pb.nome!==selected?.pombal).map(pb=><option key={pb.id} value={pb.nome}>{pb.nome}</option>)}
+        </select>
+        {selected?.pombal&&<div style={{fontSize:11,color:'#7A8699',marginTop:8}}>Pombal actual: {selected.pombal}</div>}
+      </Modal>
 
       {/* ══ MODAL CARTAO REDES ══════════════════════════════════════════════ */}
       <Modal open={modalCartao} onClose={()=>setModalCartao(false)} title="🖼️ Cartão para Redes Sociais"
@@ -794,6 +820,7 @@ export default function Pombos({ nav, params }) {
               <button className="btn btn-secondary btn-sm" onClick={()=>{ close(); nav?.('pedigree',{pomboId:selected.id}) }}>🌳 Pedigree</button>
               <button className="btn btn-secondary btn-sm" onClick={()=>gerarFichaPombo(selected, historicoProvas, pedigreeInfo)}>📄 PDF</button>
               <button className="btn btn-secondary btn-sm" onClick={()=>{ setModal(null); setTimeout(()=>setModalCartao(true),100) }}>🖼️ Redes</button>
+              <button className="btn btn-secondary btn-sm" onClick={()=>{ setModal(null); setTimeout(()=>setModalMover(true),100) }}>🏠 Mover</button>
               <div style={{ flex:1 }} />
               <button className="btn btn-secondary" onClick={close}>Fechar</button>
               <button className="btn btn-primary" onClick={()=>openEdit(selected)}>✏️ Editar</button>
