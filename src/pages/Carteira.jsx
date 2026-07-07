@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { GuiaAuto, BotaoGuia } from '../components/GuiaModulo'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useToast, Spinner, EmptyState } from '../components/ui'
@@ -228,3 +229,4 @@ export default function Carteira({ nav }) {
     </div>
   )
 }
+
