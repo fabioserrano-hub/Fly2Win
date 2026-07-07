@@ -5,7 +5,6 @@ import { useToast, Spinner, Modal, EmptyState, Field, Badge } from '../component
 import { useIdioma } from '../hooks/useIdioma'
 import { verificarConquistas } from '../components/Conquistas'
 import { GuiaAuto, BotaoGuia } from '../components/GuiaModulo'
-import { GuiaAuto, BotaoGuia } from '../components/GuiaModulo'
 import { gerarFichaPombo } from '../utils/FichaPomboPDF'
 
 // ── constantes ────────────────────────────────────────────────────────────────
