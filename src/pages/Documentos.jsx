@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { GuiaAuto, BotaoGuia } from '../components/GuiaModulo'
 import { useToast, Modal, EmptyState, Field } from '../components/ui'
 
 const TIPOS_ICON = { Certificado: '🏆', Regulamento: '📋', Relatório: '📊', Comprovativo: '📄', Outro: '📁' }
@@ -33,12 +34,13 @@ export default function Documentos() {
 
   return (
     <div>
+      <GuiaAuto modulo="dashboard"/>
       <div className="section-header">
         <div>
           <div className="section-title">Documentos</div>
           <div className="section-sub">{docs.length} documentos</div>
         </div>
-        <button className="btn btn-primary" onClick={() => setModal(true)}>＋ Novo Documento</button>
+        <BotaoGuia modulo="dashboard"/> <button className="btn btn-primary" onClick={() => setModal(true)}>＋ Novo Documento</button>
       </div>
 
       {docs.length === 0
@@ -78,3 +80,4 @@ export default function Documentos() {
     </div>
   )
 }
+
