@@ -270,6 +270,7 @@ export default function Pombos({ nav, params }) {
       toast('Imagem guardada! ✅', 'ok')
     } catch(e) { toast('Erro: '+e.message, 'err') }
     finally { setGerandoImg(false) }
+  }
 
   const moverPombo = async () => {
     if (!pombalDestino) { toast('Selecciona um pombal', 'warn'); return }
@@ -278,7 +279,6 @@ export default function Pombos({ nav, params }) {
       toast(`Movido para ${pombalDestino}!`, 'ok')
       setModalMover(false); setPombalDestino(''); close(); load()
     } catch(e) { toast('Erro: '+e.message, 'err') }
-  }
   }
 
   const [anilhaPais, setAnilhaPais] = useState('PT')
