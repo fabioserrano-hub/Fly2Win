@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { GuiaAuto, BotaoGuia } from '../components/GuiaModulo'
 import { db, supabase } from '../lib/supabase'
 import { Spinner } from '../components/ui'
 import { ConquistaCard } from '../components/Conquistas'
@@ -237,3 +238,4 @@ export default function PerfilPublico({ nav, params }) {
     </div>
   )
 }
+
