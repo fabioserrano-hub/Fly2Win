@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { GuiaAuto, BotaoGuia } from '../components/GuiaModulo'
 import { db } from '../lib/supabase'
 import { useToast, Spinner, EmptyState } from '../components/ui'
 import { useIdioma } from '../hooks/useIdioma'
@@ -206,6 +207,7 @@ export default function Meteorologia({ nav, params }) {
 
   return (
     <div>
+      <GuiaAuto modulo="meteo"/>
       <div className="section-header">
         <div><div className="section-title">Meteorologia</div><div className="section-sub">{tab==='local' ? (localNome||'Pesquise um local') : 'Rota da Prova'}</div></div>
       </div>
