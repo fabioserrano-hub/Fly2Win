@@ -94,7 +94,7 @@ function BannerContextual({ mensagens, nav }) {
   if(!visible||!mensagens.length) return null
   const m=mensagens[idx]
   return (
-        <div style={{background:`linear-gradient(135deg,${m.cor}12,${m.cor}06)`,border:`1px solid ${m.cor}25`,borderRadius:14,padding:'14px 16px',marginBottom:14,position:'relative',overflow:'hidden',cursor:m.acao?'pointer':'default'}}
+    <div style={{background:`linear-gradient(135deg,${m.cor}12,${m.cor}06)`,border:`1px solid ${m.cor}25`,borderRadius:14,padding:'14px 16px',marginBottom:14,position:'relative',overflow:'hidden',cursor:m.acao?'pointer':'default'}}
       onClick={()=>m.acao&&nav?.(m.acao)}>
       <div style={{position:'absolute',top:0,left:0,right:0,height:2,background:m.cor,opacity:.5}}/>
       <div style={{display:'flex',gap:12,alignItems:'center'}}>
@@ -229,19 +229,6 @@ function ForumTab({ nome, nav }) {
           <Field label="Conteúdo *"><textarea className="input" rows={6} style={{resize:'none'}} placeholder="Partilhe a sua questão, experiência ou dica..." value={form.conteudo} onChange={e=>setForm(f=>({...f,conteudo:e.target.value}))}/></Field>
         </div>
       </Modal>
-    {/* modal editar post */}
-    {editPost&&(
-      <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.8)',zIndex:9000,display:'flex',alignItems:'flex-end',justifyContent:'center'}} onClick={()=>setEditPost(null)}>
-        <div style={{background:'#0B1830',borderRadius:'16px 16px 0 0',padding:20,width:'100%',maxWidth:600}} onClick={e=>e.stopPropagation()}>
-          <div style={{fontSize:14,fontWeight:700,color:'#fff',marginBottom:12}}>✏️ Editar publicação</div>
-          <textarea className="input" rows={5} style={{resize:'none',marginBottom:12,fontSize:13}} value={editConteudo} onChange={e=>setEditConteudo(e.target.value)}/>
-          <div style={{display:'flex',gap:8}}>
-            <button className="btn btn-secondary" style={{flex:1}} onClick={()=>setEditPost(null)}>Cancelar</button>
-            <button className="btn btn-primary" style={{flex:1}} onClick={guardarEdicao}>Guardar</button>
-          </div>
-        </div>
-      </div>
-    )}
     </div>
   )
 }
@@ -422,19 +409,19 @@ export default function Comunidade({ nav }) {
     try {
       await supabase.from('posts').update({ conteudo: editConteudo }).eq('id', editPost.id)
       setPosts(ps => ps.map(p => p.id === editPost.id ? {...p, conteudo: editConteudo} : p))
-      setEditPost(null); toast('Publicação editada!', 'ok')
+      setEditPost(null); toast('Editado!', 'ok')
     } catch(e) { toast('Erro: '+e.message, 'err') }
   }
 
-  const votarSondagem = async (postId, opcaoIdx) => {
+  const votarSondagem = async (postId, idx) => {
     if (votados[postId] !== undefined) { toast('Já votaste!','warn'); return }
     try {
       const { data: post } = await supabase.from('posts').select('sondagem_votos').eq('id', postId).single()
-      const votos = post?.sondagem_votos || []
-      votos[opcaoIdx] = (votos[opcaoIdx] || 0) + 1
+      const votos = [...(post?.sondagem_votos || [])]
+      votos[idx] = (votos[idx] || 0) + 1
       await supabase.from('posts').update({ sondagem_votos: votos }).eq('id', postId)
       setPosts(ps => ps.map(p => p.id === postId ? {...p, sondagem_votos: votos} : p))
-      setVotados(v => ({...v, [postId]: opcaoIdx}))
+      setVotados(v => ({...v, [postId]: idx}))
       toast('Voto registado! 🗳️','ok')
     } catch(e) { toast('Erro: '+e.message,'err') }
   }
@@ -475,7 +462,7 @@ export default function Comunidade({ nav }) {
                       <span>{jVotei?'✓ ':''}{op}</span><span>{pct}%</span>
                     </div>
                     <div style={{height:6,background:'#101F40',borderRadius:3}}>
-                      <div style={{height:'100%',width:pct+'%',background:jVotei?'#4C8DFF':'#334155',borderRadius:3,transition:'width .4s'}}/>
+                      <div style={{height:'100%',width:pct+'%',background:jVotei?'#4C8DFF':'#334155',borderRadius:3}}/>
                     </div>
                   </div>
                 )
@@ -514,8 +501,8 @@ export default function Comunidade({ nav }) {
   // ── RENDER ────────────────────────────────────────────────────────────────
   return (
     <div>
-      <GuiaAuto modulo="comunidade"/>
       {/* HEADER LOFTSOCIAL */}
+      <GuiaAuto modulo="comunidade"/>
       <div style={{background:'linear-gradient(135deg,#050D1A,#0B1830)',border:'1px solid rgba(212,175,55,.2)',borderRadius:14,padding:'14px 16px',marginBottom:14,position:'relative',overflow:'hidden'}}>
         <div style={{position:'absolute',top:0,left:0,right:0,height:3,background:'linear-gradient(90deg,#B8960C,#D4AF37,#B8960C)'}}/>
         <div style={{display:'flex',alignItems:'center',gap:12}}>
@@ -594,19 +581,18 @@ export default function Comunidade({ nav }) {
               )}
 
               {(()=>{
-                const allTags=posts.flatMap(p=>(p.conteudo?.match(/#[\w]+/g)||[]))
-                const freq=allTags.reduce((a,t)=>{a[t]=(a[t]||0)+1;return a},{})
-                const trending=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,5)
-                if(!trending.length) return null
-                return (
-                  <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:10}}>
-                    {trending.map(([tag,n])=>(
-                      <button key={tag} onClick={()=>setHashtagFiltro(hashtagFiltro===tag?null:tag)} style={{fontSize:10,fontWeight:600,color:hashtagFiltro===tag?'#fff':'#4C8DFF',background:hashtagFiltro===tag?'#1E5FD9':'rgba(76,141,255,.1)',border:'1px solid rgba(76,141,255,.2)',borderRadius:20,padding:'3px 10px',cursor:'pointer',fontFamily:'inherit'}}>
-                        {tag} <span style={{color:'#475569'}}>{n}</span>
-                      </button>
-                    ))}
-                  </div>
-                )
+                const tags=posts.flatMap(p=>(p.conteudo?.match(/#[a-zA-Z0-9_]+/g)||[]))
+                const freq=tags.reduce((a,t)=>{a[t]=(a[t]||0)+1;return a},{})
+                const top=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,5)
+                if(!top.length) return null
+                return <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:10}}>
+                  {top.map(([tag,n])=>(
+                    <button key={tag} onClick={()=>setHashtagFiltro(hashtagFiltro===tag?null:tag)}
+                      style={{fontSize:10,fontWeight:600,color:hashtagFiltro===tag?'#fff':'#4C8DFF',background:hashtagFiltro===tag?'#1E5FD9':'rgba(76,141,255,.1)',border:'1px solid rgba(76,141,255,.2)',borderRadius:20,padding:'3px 10px',cursor:'pointer',fontFamily:'inherit'}}>
+                      {tag} <span style={{color:'#475569'}}>{n}</span>
+                    </button>
+                  ))}
+                </div>
               })()}
               {hashtagFiltro&&(
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10,padding:'6px 12px',background:'rgba(76,141,255,.1)',borderRadius:8,border:'1px solid rgba(76,141,255,.2)'}}>
@@ -1030,9 +1016,20 @@ export default function Comunidade({ nav }) {
             </div>
         }
       </Modal>
+      {/* modal editar post */}
+      {editPost&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.85)',zIndex:9999,display:'flex',alignItems:'flex-end',justifyContent:'center'}} onClick={()=>setEditPost(null)}>
+          <div style={{background:'#0B1830',borderRadius:'16px 16px 0 0',padding:20,width:'100%',maxWidth:600}} onClick={e=>e.stopPropagation()}>
+            <div style={{fontSize:14,fontWeight:700,color:'#fff',marginBottom:12}}>✏️ Editar publicação</div>
+            <textarea className="input" rows={5} style={{resize:'none',marginBottom:12,fontSize:13}} value={editConteudo} onChange={e=>setEditConteudo(e.target.value)}/>
+            <div style={{display:'flex',gap:8}}>
+              <button className="btn btn-secondary" style={{flex:1}} onClick={()=>setEditPost(null)}>Cancelar</button>
+              <button className="btn btn-primary" style={{flex:1}} onClick={guardarEdicao}>Guardar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-    </>
   )
 }
-
 
