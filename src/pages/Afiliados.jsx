@@ -88,10 +88,14 @@ export default function Afiliados({ nav }) {
 
   return (
     <div>
+      <GuiaAuto modulo="afiliados"/>
       {/* Header com stats */}
       <div style={{ background:'linear-gradient(135deg,#050D1A,#0B1830)', border:'1px solid rgba(212,175,55,.25)', borderRadius:14, padding:'14px 16px', marginBottom:14, position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', top:0, left:0, right:0, height:3, background:'linear-gradient(90deg,#B8960C,#D4AF37,#B8960C)' }} />
-        <div style={{ fontSize:16, fontWeight:900, color:'#D4AF37', fontFamily:"'Fraunces',serif", marginBottom:12 }}>🤝 Os teus resultados</div>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+          <div style={{ fontSize:16, fontWeight:900, color:'#D4AF37', fontFamily:"'Fraunces',serif" }}>🤝 Os teus resultados</div>
+          <BotaoGuia modulo="afiliados"/>
+        </div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8 }}>
           {[[referidos.length,'👥', t('referidos')],[`${totalGanho.toFixed(0)}€`,'💰', t('totalGanho')],[`${pendente.toFixed(0)}€`,'⏳', t('pendente3')]].map(([v,i,l])=>(
             <div key={l} style={{ textAlign:'center', padding:'8px', background:'rgba(255,255,255,.04)', borderRadius:8 }}>
