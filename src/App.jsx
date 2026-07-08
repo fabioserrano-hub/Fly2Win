@@ -235,7 +235,7 @@ const concluirOnboarding = () => { localStorage.setItem('cl_onboarding_done','1'
         case 'carteira':      return <Carteira nav={nav} />
         case 'exportacao':    return <Exportacao nav={nav} />
         case 'perfil-publico': return <PerfilPublico nav={nav} params={navParams} />
-        case 'comunidade':    return <Comunidade nav={nav} />
+        case 'comunidade':    return <Comunidade nav={nav} params={navParams} />
         case 'ligas':         return <Ligas nav={nav} />
         case 'patrocinadores': return <Patrocinadores nav={nav} />
         case 'partilha':      return <Partilha nav={nav} />
