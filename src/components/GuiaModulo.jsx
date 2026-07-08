@@ -235,6 +235,63 @@ const GUIAS = {
     ],
     dica:'A licença de Clube dá acesso ao módulo de gestão completo. Os sócios individuais precisam de plano próprio para aceder à plataforma.',
   },
+  ligaclubes: {
+    titulo:'⚔️ Liga de Clubes',
+    passos:[
+      { icon:'🏆', titulo:'Criar competição', desc:'Cria uma liga entre clubes com fases eliminatórias estilo Champions League. Requer plano Elite.' },
+      { icon:'📋', titulo:'Inscrições', desc:'Os clubes inscrevem-se na fase de inscrições. Podes aceitar ou rejeitar cada candidatura.' },
+      { icon:'⚔️', titulo:'Fases e confrontos', desc:'A liga progride por fases — grupo, oitavos, quartos, meias e final. Os resultados são inseridos manualmente.' },
+      { icon:'🥇', titulo:'Classificação', desc:'A tabela actualiza automaticamente com pontos, vitórias e diferença de resultados.' },
+    ],
+    dica:'Partilha o link da liga com outros clubes para aumentar a participação. A liga fica visível a todos os utilizadores Elite.',
+  },
+  admin: {
+    titulo:'👑 Administração',
+    passos:[
+      { icon:'📊', titulo:'KPIs globais', desc:'Visão geral de licenças activas, distribuição por plano e MRR estimado da plataforma.' },
+      { icon:'👤', titulo:'Gestão de utilizadores', desc:'Consulta, filtra e altera o plano de qualquer utilizador. Podes atribuir Elite manualmente.' },
+      { icon:'🤝', titulo:'Parcerias', desc:'Regista parceiros comerciais, estado de negociação e condições acordadas.' },
+      { icon:'📢', titulo:'Comunicados', desc:'Envia comunicados globais que aparecem no dashboard de todos os utilizadores.' },
+    ],
+    dica:'Acesso restrito a administradores Fly2Win. Alterações de plano têm efeito imediato na licença do utilizador.',
+  },
+  carteira: {
+    titulo:'💎 Carteira',
+    passos:[
+      { icon:'💰', titulo:'Saldo de créditos', desc:'Os créditos são a moeda interna da plataforma. Podes comprar créditos ou ganhá-los por conquistas e referências.' },
+      { icon:'🛍️', titulo:'Loja de créditos', desc:'Adquire pacotes de créditos que podes usar em funcionalidades premium como leilões e destaques no marketplace.' },
+      { icon:'📋', titulo:'Histórico', desc:'Consulta todas as entradas e saídas de créditos com data, motivo e valor.' },
+    ],
+    dica:'Créditos ganhos por conquistas nunca expiram. Créditos comprados têm validade de 12 meses.',
+  },
+  afiliados: {
+    titulo:'🤝 Programa de Afiliados',
+    passos:[
+      { icon:'🔗', titulo:'O teu link', desc:'Partilha o teu link único de afiliado. Cada utilizador que se registar através dele fica associado a ti.' },
+      { icon:'💰', titulo:'Comissões', desc:'Ganhas uma percentagem de cada pagamento dos utilizadores que trouxeres, enquanto eles mantiverem subscrição activa.' },
+      { icon:'📊', titulo:'Resultados', desc:'Acompanha cliques, registos convertidos e comissões acumuladas em tempo real.' },
+      { icon:'💳', titulo:'Levantamento', desc:'Quando atingires o mínimo, podes solicitar transferência para a tua conta bancária.' },
+    ],
+    dica:'Quanto maior o plano do utilizador que trouxeres, maior a comissão. Partilha em grupos de columbofilia para melhores resultados.',
+  },
+  exportacao: {
+    titulo:'📤 Exportação de Dados',
+    passos:[
+      { icon:'📁', titulo:'Escolhe o módulo', desc:'Selecciona o conjunto de dados a exportar: pombos, provas, treinos, saúde, finanças ou reprodução.' },
+      { icon:'⬇️', titulo:'Descarrega CSV', desc:'O ficheiro CSV gerado é compatível com Excel, Google Sheets e qualquer software de análise.' },
+      { icon:'🔄', titulo:'Portabilidade', desc:'Os teus dados são sempre teus. Exporta quando quiseres, sem limitações de frequência.' },
+    ],
+    dica:'Para migrar para outro sistema, exporta cada módulo separadamente. O CSV inclui todos os campos visíveis na aplicação.',
+  },
+  perfilpublico: {
+    titulo:'🌐 Perfil Público',
+    passos:[
+      { icon:'🕊️', titulo:'O teu cartão digital', desc:'O teu perfil público é uma página partilhável com as tuas estatísticas, pombos em destaque e conquistas.' },
+      { icon:'📊', titulo:'Estatísticas visíveis', desc:'Outros columbófilos podem ver as tuas provas, percentis e histórico de resultados.' },
+      { icon:'🔗', titulo:'Partilhar', desc:'Copia o link do teu perfil e partilha em grupos, redes sociais ou cartões de visita digitais.' },
+    ],
+    dica:'Mantém o teu perfil actualizado com foto e bio para criar credibilidade na comunidade e no marketplace.',
+  },
 }
 
 // ─── Componente de guia ───────────────────────────────────────
