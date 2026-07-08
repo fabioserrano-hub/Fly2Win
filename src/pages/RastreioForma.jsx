@@ -176,6 +176,7 @@ export default function RastreioForma({ nav }) {
 
   return (
     <div>
+      <GuiaAuto modulo="forma"/>
       {/* Header */}
       <div style={{ background:'linear-gradient(135deg,#050D1A,#0B1830)', border:'1px solid rgba(45,212,167,.2)', borderRadius:14, padding:'14px 16px', marginBottom:14, position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', top:0, left:0, right:0, height:3, background:'linear-gradient(90deg,#2DD4A7,#D4AF37)' }} />
@@ -184,8 +185,8 @@ export default function RastreioForma({ nav }) {
             <div style={{ fontSize:18, fontWeight:900, color:'#fff', fontFamily:"'Fraunces',serif" }}>📈 Rastreio de Forma</div>
             <div style={{ fontSize:11, color:'#7A8699', marginTop:2 }}>Acompanha a evolução da forma do teu efectivo</div>
           </div>
-          <div style={{ display:'flex', gap:8 }}>
-            <button className="btn btn-secondary btn-sm" onClick={()=>setModalGuia(true)} title="Como funciona?">ℹ️ Guia</button>
+          <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+            <BotaoGuia modulo="forma"/>
             <button className="btn btn-primary btn-sm" onClick={()=>setModalReg(true)}>+ Registar</button>
           </div>
         </div>
