@@ -550,7 +550,6 @@ export default function Comunidade({ nav }) {
                   <button key={k} onClick={()=>setTabFeed(k)} style={{flex:1,padding:'7px',borderRadius:6,fontSize:11,fontWeight:600,cursor:'pointer',border:'none',fontFamily:'inherit',background:tabFeed===k?'#1E5FD9':'none',color:tabFeed===k?'#fff':'#7A8699'}}>{l}</button>
                 ))}
               </div>
-            <div>
               {/* Banner contextual LoftSocial */}
               {mensagensCtx.length>0&&<BannerContextual mensagens={mensagensCtx} nav={nav}/>}
 
@@ -893,7 +892,6 @@ export default function Comunidade({ nav }) {
               }
             </div>
           )}
-        </>
       )}
 
       {/* ── Modal cartão de visita ────────────────────────────────────────── */}
