@@ -243,7 +243,7 @@ function TempoAtras({ ts }) {
 }
 
 // ── Componente principal ──────────────────────────────────────────────────────
-export default function Comunidade({ nav }) {
+export default function Comunidade({ nav, params={} }) {
   const toast  = useToast()
   const { t }  = useIdioma()
   const { temPro } = useLicenca()
@@ -316,6 +316,14 @@ export default function Comunidade({ nav }) {
     finally{setLoading(false)}
   },[])
   useEffect(()=>{load()},[load])
+
+  // Abrir modal pré-preenchido quando vem de outro módulo (ex: Pombos)
+  useEffect(()=>{
+    if(params?.prefillPost){
+      setFormPost(f=>({...f,...params.prefillPost}))
+      setModalPost(true)
+    }
+  },[params?.prefillPost])
 
   // badges e ranking
   useEffect(()=>{
