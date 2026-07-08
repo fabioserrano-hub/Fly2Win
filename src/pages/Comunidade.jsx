@@ -229,7 +229,9 @@ function ForumTab({ nome, nav }) {
           <Field label="Conteúdo *"><textarea className="input" rows={6} style={{resize:'none'}} placeholder="Partilhe a sua questão, experiência ou dica..." value={form.conteudo} onChange={e=>setForm(f=>({...f,conteudo:e.target.value}))}/></Field>
         </div>
       </Modal>
-
+    </div>
+  )
+}
 
 // ── TempoAtras ────────────────────────────────────────────────────────────────
 function TempoAtras({ ts }) {
