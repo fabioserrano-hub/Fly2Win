@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { GuiaAuto, BotaoGuia } from '../components/GuiaModulo'
-import { db } from '../lib/supabase'
+import { db, supabase } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useIdioma } from '../hooks/useIdioma'
 import { useLicenca, BloqueioPlano } from '../hooks/useLicenca'
@@ -427,7 +427,7 @@ export default function Comunidade({ nav }) {
       setVotando(true)
       try{
         const novosVotos={...votosLocais,[opcao]:(votosLocais[opcao]||0)+1}
-        await db.supabase.from('posts').update({sondagem_votos:novosVotos}).eq('id',post.id)
+        await supabase.from('posts').update({sondagem_votos:novosVotos}).eq('id',post.id)
         setVotosLocais(novosVotos);setMinhaOpcao(opcao)
       }catch(e){toast('Erro ao votar','err')}finally{setVotando(false)}
     }
@@ -436,7 +436,7 @@ export default function Comunidade({ nav }) {
       if(!editTxt.trim()) return
       setSavingEdit(true)
       try{
-        await db.supabase.from('posts').update({conteudo:editTxt.trim()}).eq('id',post.id)
+        await supabase.from('posts').update({conteudo:editTxt.trim()}).eq('id',post.id)
         setPosts(ps=>ps.map(p=>p.id===post.id?{...p,conteudo:editTxt.trim()}:p))
         setEditando(false);toast('Post actualizado','ok')
       }catch(e){toast('Erro ao guardar','err')}finally{setSavingEdit(false)}
