@@ -448,6 +448,7 @@ export default function Comunidade({ nav }) {
   return (
     <div>
       {/* HEADER LOFTSOCIAL */}
+      <GuiaAuto modulo="comunidade"/>
       <div style={{background:'linear-gradient(135deg,#050D1A,#0B1830)',border:'1px solid rgba(212,175,55,.2)',borderRadius:14,padding:'14px 16px',marginBottom:14,position:'relative',overflow:'hidden'}}>
         <div style={{position:'absolute',top:0,left:0,right:0,height:3,background:'linear-gradient(90deg,#B8960C,#D4AF37,#B8960C)'}}/>
         <div style={{display:'flex',alignItems:'center',gap:12}}>
@@ -455,6 +456,7 @@ export default function Comunidade({ nav }) {
             <div style={{fontSize:20,fontWeight:900,color:'#fff',fontFamily:"'Fraunces',serif",letterSpacing:.5}}>🌐 LoftSocial</div>
             <div style={{fontSize:11,color:'#7A8699',marginTop:1}}>{posts.length} publicações · {explorar.length} columbófilos</div>
           </div>
+          <BotaoGuia modulo="comunidade"/>
           <button onClick={()=>setShowCartao(true)} style={{background:'rgba(212,175,55,.12)',border:'1px solid rgba(212,175,55,.3)',borderRadius:10,padding:'7px 10px',cursor:'pointer',fontSize:11,color:'#D4AF37',fontWeight:600}}>💳 Visita</button>
           <button className="btn btn-primary" onClick={()=>setModalPost(true)} style={{fontSize:12,fontWeight:700}}>✏️ Publicar</button>
         </div>
