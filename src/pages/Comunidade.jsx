@@ -267,7 +267,7 @@ export default function Comunidade({ nav }) {
   const [mensagensCtx, setMensagensCtx] = useState([])
 
   const [modalPost, setModalPost]   = useState(false)
-  const [formPost, setFormPost]     = useState({ tipo:'Geral', conteudo:'', hashtags:'' })
+  const [formPost, setFormPost]     = useState({ tipo:'Geral', conteudo:'', hashtags:'', video_url:'', sondagem:false, sondagem_pergunta:'', sondagem_opcoes:['',''] })
   const [savingPost, setSavingPost] = useState(false)
   const [reacaoAberta, setReacaoAberta] = useState(null)
   const [modalComments, setModalComments] = useState(null)
@@ -340,8 +340,14 @@ export default function Comunidade({ nav }) {
     try{
       const hashtags=(formPost.hashtags||'').split(/[\s,]+/).filter(h=>h).map(h=>h.startsWith('#')?h:'#'+h).join(' ')
       const conteudo=formPost.conteudo.slice(0,500)+(hashtags?'\n'+hashtags:'')
-      await db.createPost({autor_nome:nome,autor_avatar:perfil?.foto_perfil_url||'',autor_username:user?.email?.split('@')[0]||'user',tipo:formPost.tipo,conteudo,likes_count:0,comments_count:0})
-      toast('Publicado!','ok');setModalPost(false);setFormPost({tipo:'Geral',conteudo:'',hashtags:''});load()
+      const videoId=extrairYoutubeId(formPost.video_url||'')
+      const video_url=videoId?`https://www.youtube.com/watch?v=${videoId}`:null
+      const opcoesFiltradas=formPost.sondagem_opcoes.filter(o=>o.trim())
+      const sondagem_pergunta=formPost.sondagem&&formPost.sondagem_pergunta.trim()?formPost.sondagem_pergunta.trim():null
+      const sondagem_opcoes=sondagem_pergunta&&opcoesFiltradas.length>=2?opcoesFiltradas:null
+      const sondagem_votos=sondagem_opcoes?Object.fromEntries(sondagem_opcoes.map(o=>[o,0])):null
+      await db.createPost({autor_nome:nome,autor_avatar:perfil?.foto_perfil_url||'',autor_username:user?.email?.split('@')[0]||'user',tipo:formPost.tipo,conteudo,video_url,sondagem_pergunta,sondagem_opcoes,sondagem_votos,likes_count:0,comments_count:0})
+      toast('Publicado!','ok');setModalPost(false);setFormPost({tipo:'Geral',conteudo:'',hashtags:'',video_url:'',sondagem:false,sondagem_pergunta:'',sondagem_opcoes:['','']});load()
     }catch(e){toast('Erro: '+e.message,'err')}finally{setSavingPost(false)}
   }
 
@@ -384,6 +390,12 @@ export default function Comunidade({ nav }) {
 
   const nNaoLidas=notifs.filter(n=>!n.lida).length
 
+  const extrairYoutubeId=(url)=>{
+    if(!url) return null
+    const m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([a-zA-Z0-9_-]{11})/)
+    return m?m[1]:null
+  }
+
   const formatConteudo=(texto)=>{
     if(!texto) return null
     return texto.split('\n').map((linha,li)=>(
@@ -402,6 +414,34 @@ export default function Comunidade({ nav }) {
     const souEu=post.user_id===user?.id
     const liked=myLikes.has(post.id)
     const cor=tipoCor[post.tipo]||'#4C8DFF'
+    const [editando,setEditando]=useState(false)
+    const [editTxt,setEditTxt]=useState(post.conteudo||'')
+    const [savingEdit,setSavingEdit]=useState(false)
+
+    const [votando,setVotando]=useState(false)
+    const [votosLocais,setVotosLocais]=useState(post.sondagem_votos||{})
+    const [minhaOpcao,setMinhaOpcao]=useState(null)
+
+    const votar=async(opcao)=>{
+      if(minhaOpcao||votando) return
+      setVotando(true)
+      try{
+        const novosVotos={...votosLocais,[opcao]:(votosLocais[opcao]||0)+1}
+        await db.supabase.from('posts').update({sondagem_votos:novosVotos}).eq('id',post.id)
+        setVotosLocais(novosVotos);setMinhaOpcao(opcao)
+      }catch(e){toast('Erro ao votar','err')}finally{setVotando(false)}
+    }
+
+    const guardarEdicao=async()=>{
+      if(!editTxt.trim()) return
+      setSavingEdit(true)
+      try{
+        await db.supabase.from('posts').update({conteudo:editTxt.trim()}).eq('id',post.id)
+        setPosts(ps=>ps.map(p=>p.id===post.id?{...p,conteudo:editTxt.trim()}:p))
+        setEditando(false);toast('Post actualizado','ok')
+      }catch(e){toast('Erro ao guardar','err')}finally{setSavingEdit(false)}
+    }
+
     return (
       <div className="card" style={{overflow:'hidden',marginBottom:0}}>
         <div style={{height:3,background:`linear-gradient(90deg,${cor},${cor}88)`}}/>
@@ -418,7 +458,52 @@ export default function Comunidade({ nav }) {
               <span style={{fontSize:10,background:`${cor}18`,color:cor,padding:'1px 8px',borderRadius:10,fontWeight:600}}>{tipoIcon[post.tipo]} {post.tipo}</span>
             </div>
           </div>
-          <div style={{fontSize:13,color:'#cbd5e1',lineHeight:1.7,marginBottom:12}}>{formatConteudo(post.conteudo)}</div>
+          {post.sondagem_pergunta&&post.sondagem_opcoes&&(
+            <div style={{marginBottom:12,padding:'10px 12px',background:'rgba(76,141,255,.06)',border:'1px solid rgba(76,141,255,.2)',borderRadius:10}}>
+              <div style={{fontSize:12,fontWeight:700,color:'#fff',marginBottom:8}}>📊 {post.sondagem_pergunta}</div>
+              {(()=>{
+                const total=Object.values(votosLocais).reduce((s,v)=>s+v,0)
+                return post.sondagem_opcoes.map(op=>{
+                  const n=votosLocais[op]||0
+                  const pct=total>0?Math.round(n/total*100):0
+                  const voted=minhaOpcao===op
+                  return (
+                    <button key={op} onClick={()=>votar(op)} disabled={!!minhaOpcao||votando}
+                      style={{display:'block',width:'100%',marginBottom:6,background:'none',border:`1px solid ${voted?'#4C8DFF':'#1B2D52'}`,borderRadius:8,padding:'6px 10px',cursor:minhaOpcao?'default':'pointer',textAlign:'left',fontFamily:'inherit',position:'relative',overflow:'hidden'}}>
+                      {minhaOpcao&&<div style={{position:'absolute',left:0,top:0,bottom:0,width:`${pct}%`,background:'rgba(76,141,255,.18)',transition:'width .4s'}}/>}
+                      <div style={{position:'relative',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                        <span style={{fontSize:12,color:voted?'#4C8DFF':'#cbd5e1',fontWeight:voted?700:400}}>{voted?'✓ ':''}{op}</span>
+                        {minhaOpcao&&<span style={{fontSize:11,color:'#4C8DFF',fontWeight:600}}>{pct}%</span>}
+                      </div>
+                    </button>
+                  )
+                })
+              })()}
+              {minhaOpcao&&<div style={{fontSize:10,color:'#475569',marginTop:4,textAlign:'right'}}>{Object.values(votosLocais).reduce((s,v)=>s+v,0)} voto(s)</div>}
+            </div>
+          )}
+          {post.video_url&&extrairYoutubeId(post.video_url)&&(
+            <div style={{marginBottom:12,borderRadius:10,overflow:'hidden',background:'#000'}}>
+              <iframe
+                src={`https://www.youtube.com/embed/${extrairYoutubeId(post.video_url)}`}
+                style={{width:'100%',height:180,border:'none',display:'block'}}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          )}
+          {editando?(
+            <div style={{marginBottom:12}}>
+              <textarea value={editTxt} onChange={e=>setEditTxt(e.target.value)}
+                style={{width:'100%',minHeight:80,background:'#101F40',border:'1px solid #1E5FD9',borderRadius:8,padding:'8px 10px',color:'#fff',fontSize:13,lineHeight:1.6,resize:'vertical',fontFamily:'inherit',boxSizing:'border-box'}}/>
+              <div style={{display:'flex',gap:6,marginTop:6}}>
+                <button className="btn btn-primary btn-sm" onClick={guardarEdicao} disabled={savingEdit}>{savingEdit?<Spinner/>:'✓ Guardar'}</button>
+                <button className="btn btn-secondary btn-sm" onClick={()=>{setEditando(false);setEditTxt(post.conteudo||'')}}>Cancelar</button>
+              </div>
+            </div>
+          ):(
+            <div style={{fontSize:13,color:'#cbd5e1',lineHeight:1.7,marginBottom:12}}>{formatConteudo(post.conteudo)}</div>
+          )}
           <div style={{display:'flex',gap:4,alignItems:'center',borderTop:'1px solid rgba(255,255,255,.05)',paddingTop:10,position:'relative'}}>
             <div style={{position:'relative'}}>
               <button onClick={()=>setReacaoAberta(reacaoAberta===post.id?null:post.id)}
@@ -437,7 +522,12 @@ export default function Comunidade({ nav }) {
               navigator.share?navigator.share({title:'LoftSocial',text:txt}).catch(e=>{if(e.name!=='AbortError')toast('Erro ao partilhar','err')}):navigator.clipboard?.writeText(txt).then(()=>toast('Copiado!','ok'))
             }} style={{display:'flex',alignItems:'center',gap:4,background:'none',border:'none',cursor:'pointer',fontSize:13,color:'#7A8699',padding:'4px 8px',borderRadius:6}}>🔗</button>
             <button onClick={()=>setModalRepost(post)} style={{display:'flex',alignItems:'center',gap:4,background:'none',border:'none',cursor:'pointer',fontSize:13,color:'#7A8699',padding:'4px 8px',borderRadius:6}}>🔁</button>
-            {souEu&&<button onClick={async()=>{await db.deletePost(post.id).catch(()=>{});setPosts(ps=>ps.filter(p=>p.id!==post.id))}} style={{marginLeft:'auto',background:'none',border:'none',cursor:'pointer',fontSize:13,color:'#475569',padding:'4px 8px',borderRadius:6}}>🗑️</button>}
+            {souEu&&(
+              <div style={{marginLeft:'auto',display:'flex',gap:2}}>
+                <button onClick={()=>setEditando(e=>!e)} style={{background:'none',border:'none',cursor:'pointer',fontSize:13,color:'#475569',padding:'4px 8px',borderRadius:6}}>✏️</button>
+                <button onClick={async()=>{await db.deletePost(post.id).catch(()=>{});setPosts(ps=>ps.filter(p=>p.id!==post.id))}} style={{background:'none',border:'none',cursor:'pointer',fontSize:13,color:'#475569',padding:'4px 8px',borderRadius:6}}>🗑️</button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -519,6 +609,29 @@ export default function Comunidade({ nav }) {
                   ))}
                 </div>
               )}
+
+              {/* Trending hashtags */}
+              {(()=>{
+                const freq={}
+                posts.forEach(p=>{(p.conteudo||'').match(/#\w+/g)?.forEach(h=>{freq[h]=(freq[h]||0)+1})})
+                const top=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,6)
+                if(!top.length) return null
+                return (
+                  <div style={{marginBottom:12}}>
+                    <div style={{fontSize:10,color:'#475569',fontWeight:600,marginBottom:6,letterSpacing:'.05em'}}>🔥 TRENDING</div>
+                    <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                      {top.map(([h,c])=>(
+                        <button key={h} onClick={()=>setHashtagFiltro(hashtagFiltro===h?null:h)}
+                          style={{fontSize:11,padding:'4px 10px',borderRadius:20,border:'none',cursor:'pointer',fontWeight:600,
+                            background:hashtagFiltro===h?'#1E5FD9':'rgba(76,141,255,.12)',
+                            color:hashtagFiltro===h?'#fff':'#4C8DFF',transition:'all .15s'}}>
+                          {h} <span style={{fontSize:9,opacity:.7}}>{c}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })()}
 
               {hashtagFiltro&&(
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10,padding:'6px 12px',background:'rgba(76,141,255,.1)',borderRadius:8,border:'1px solid rgba(76,141,255,.2)'}}>
@@ -857,7 +970,7 @@ export default function Comunidade({ nav }) {
       </Modal>
 
       {/* ── Modal publicar ────────────────────────────────────────────────── */}
-      <Modal open={modalPost} onClose={()=>{setModalPost(false);setFormPost({tipo:'Geral',conteudo:'',hashtags:''})}} title="✏️ Nova Publicação — LoftSocial"
+      <Modal open={modalPost} onClose={()=>{setModalPost(false);setFormPost({tipo:'Geral',conteudo:'',hashtags:'',video_url:'',sondagem:false,sondagem_pergunta:'',sondagem_opcoes:['','']})}} title="✏️ Nova Publicação — LoftSocial"
         footer={<><button className="btn btn-secondary" onClick={()=>setModalPost(false)}>Cancelar</button><button className="btn btn-primary" onClick={publicar} disabled={savingPost}>{savingPost?<Spinner/>:null}Publicar</button></>}>
         <div style={{display:'flex',gap:6,marginBottom:12,flexWrap:'wrap'}}>
           {TIPOS_POST.map(tipo=>(
@@ -896,6 +1009,44 @@ export default function Comunidade({ nav }) {
             </div>
           </div>
         )}
+        <div style={{marginBottom:10}}>
+          <button onClick={()=>setFormPost(f=>({...f,sondagem:!f.sondagem}))}
+            style={{display:'flex',alignItems:'center',gap:8,background:formPost.sondagem?'rgba(76,141,255,.12)':'rgba(255,255,255,.04)',border:`1px solid ${formPost.sondagem?'rgba(76,141,255,.4)':'#1B2D52'}`,borderRadius:8,padding:'7px 12px',cursor:'pointer',width:'100%',fontFamily:'inherit'}}>
+            <span style={{fontSize:14}}>📊</span>
+            <span style={{fontSize:12,color:formPost.sondagem?'#4C8DFF':'#94a3b8',fontWeight:600}}>Adicionar sondagem</span>
+            <span style={{marginLeft:'auto',fontSize:11,color:formPost.sondagem?'#4C8DFF':'#475569'}}>{formPost.sondagem?'✓ Activa':'Opcional'}</span>
+          </button>
+          {formPost.sondagem&&(
+            <div style={{marginTop:8,padding:'10px 12px',background:'rgba(76,141,255,.06)',border:'1px solid rgba(76,141,255,.2)',borderRadius:8}}>
+              <input className="input" placeholder="Pergunta da sondagem..." value={formPost.sondagem_pergunta}
+                onChange={e=>setFormPost(f=>({...f,sondagem_pergunta:e.target.value}))}
+                style={{fontSize:12,marginBottom:6}}/>
+              {formPost.sondagem_opcoes.map((op,i)=>(
+                <div key={i} style={{display:'flex',gap:6,marginBottom:4}}>
+                  <input className="input" placeholder={`Opção ${i+1}...`} value={op}
+                    onChange={e=>{const arr=[...formPost.sondagem_opcoes];arr[i]=e.target.value;setFormPost(f=>({...f,sondagem_opcoes:arr}))}}
+                    style={{fontSize:12,flex:1}}/>
+                  {formPost.sondagem_opcoes.length>2&&(
+                    <button onClick={()=>setFormPost(f=>({...f,sondagem_opcoes:f.sondagem_opcoes.filter((_,j)=>j!==i)}))}
+                      style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:14,padding:'0 6px'}}>✕</button>
+                  )}
+                </div>
+              ))}
+              {formPost.sondagem_opcoes.length<4&&(
+                <button onClick={()=>setFormPost(f=>({...f,sondagem_opcoes:[...f.sondagem_opcoes,'']}))}
+                  style={{fontSize:11,color:'#4C8DFF',background:'none',border:'none',cursor:'pointer',padding:'2px 0'}}>+ Adicionar opção</button>
+              )}
+            </div>
+          )}
+        </div>
+        <div style={{marginBottom:10}}>
+          <div style={{fontSize:11,color:'#7A8699',marginBottom:6}}>🎬 Vídeo YouTube (opcional):</div>
+          <input className="input" placeholder="https://youtube.com/watch?v=..." value={formPost.video_url}
+            onChange={e=>setFormPost(f=>({...f,video_url:e.target.value}))} style={{fontSize:12}}/>
+          {extrairYoutubeId(formPost.video_url)&&(
+            <div style={{marginTop:6,fontSize:11,color:'#2DD4A7'}}>✓ Vídeo detectado — será incorporado no post</div>
+          )}
+        </div>
         {explorar.length>0&&(
           <div>
             <div style={{fontSize:11,color:'#7A8699',marginBottom:6}}>@ Mencionar:</div>
