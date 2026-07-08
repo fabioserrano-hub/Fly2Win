@@ -597,6 +597,7 @@ export default function Ligas({ nav }) {
 
   return (
     <div>
+      <GuiaAuto modulo="ligas"/>
       {/* Header */}
       <div style={{ background:'linear-gradient(135deg,#050D1A,#0B1830)', border:'1px solid rgba(76,141,255,.2)', borderRadius:14, padding:'14px 16px', marginBottom:14, position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', top:0, left:0, right:0, height:3, background:'linear-gradient(90deg,#4C8DFF,#2DD4A7,#D4AF37)' }}/>
@@ -605,7 +606,8 @@ export default function Ligas({ nav }) {
             <div style={{ fontSize:18, fontWeight:900, color:'#fff', fontFamily:"'Fraunces',serif" }}>🏆 Ligas</div>
             <div style={{ fontSize:11, color:'#7A8699', marginTop:2 }}>{minhasLigas.length} liga(s) activa(s) · classificação em tempo real</div>
           </div>
-          <div style={{ display:'flex', gap:6 }}>
+          <div style={{ display:'flex', gap:6, alignItems:'center' }}>
+            <BotaoGuia modulo="ligas"/>
             <button className="btn btn-secondary btn-sm" onClick={() => setModalEntrar(true)}>🔑 Entrar</button>
             <button className="btn btn-primary btn-sm" onClick={() => temElite ? setWizard(true) : nav('precos')}>{temElite ? '+ '+t('criarLiga') : '🔒 Elite'}</button>
           </div>
