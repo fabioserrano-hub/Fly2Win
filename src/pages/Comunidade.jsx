@@ -230,22 +230,6 @@ function ForumTab({ nome, nav }) {
         </div>
       </Modal>
 
-      {/* modal editar post */}
-      {editPost&&(
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.8)',zIndex:9000,display:'flex',alignItems:'flex-end',justifyContent:'center'}} onClick={()=>setEditPost(null)}>
-          <div style={{background:'#0B1830',borderRadius:'16px 16px 0 0',padding:20,width:'100%',maxWidth:600}} onClick={e=>e.stopPropagation()}>
-            <div style={{fontSize:14,fontWeight:700,color:'#fff',marginBottom:12}}>✏️ Editar publicação</div>
-            <textarea className="input" rows={5} style={{resize:'none',marginBottom:12,fontSize:13}} value={editConteudo} onChange={e=>setEditConteudo(e.target.value)}/>
-            <div style={{display:'flex',gap:8}}>
-              <button className="btn btn-secondary" style={{flex:1}} onClick={()=>setEditPost(null)}>Cancelar</button>
-              <button className="btn btn-primary" style={{flex:1}} onClick={guardarEdicao}>Guardar</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
 
 // ── TempoAtras ────────────────────────────────────────────────────────────────
 function TempoAtras({ ts }) {
@@ -670,6 +654,7 @@ export default function Comunidade({ nav }) {
                       )
                     })}
                   </div>
+                </div>
               }
             </div>
           )}
@@ -1042,6 +1027,20 @@ export default function Comunidade({ nav }) {
             </div>
         }
       </Modal>
+
+      {/* modal editar post */}
+      {editPost&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.8)',zIndex:9000,display:'flex',alignItems:'flex-end',justifyContent:'center'}} onClick={()=>setEditPost(null)}>
+          <div style={{background:'#0B1830',borderRadius:'16px 16px 0 0',padding:20,width:'100%',maxWidth:600}} onClick={e=>e.stopPropagation()}>
+            <div style={{fontSize:14,fontWeight:700,color:'#fff',marginBottom:12}}>✏️ Editar publicação</div>
+            <textarea className="input" rows={5} style={{resize:'none',marginBottom:12,fontSize:13}} value={editConteudo} onChange={e=>setEditConteudo(e.target.value)}/>
+            <div style={{display:'flex',gap:8}}>
+              <button className="btn btn-secondary" style={{flex:1}} onClick={()=>setEditPost(null)}>Cancelar</button>
+              <button className="btn btn-primary" style={{flex:1}} onClick={guardarEdicao}>Guardar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
