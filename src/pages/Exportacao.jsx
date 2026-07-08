@@ -76,9 +76,13 @@ export default function Exportacao({ nav }) {
 
   return (
     <div>
+      <GuiaAuto modulo="exportacao"/>
       <div style={{ background:'linear-gradient(135deg,#050D1A,#0B1830)', border:'1px solid rgba(45,212,167,.2)', borderRadius:14, padding:'14px 16px', marginBottom:14, position:'relative', overflow:'hidden' }}>
         <div style={{ position:'absolute', top:0, left:0, right:0, height:3, background:'linear-gradient(90deg,#2DD4A7,#4C8DFF)' }} />
-        <div style={{ fontSize:18, fontWeight:900, color:'#fff', fontFamily:"'Fraunces',serif" }}>📤 Exportação de Dados</div>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          <div style={{ fontSize:18, fontWeight:900, color:'#fff', fontFamily:"'Fraunces',serif" }}>📤 Exportação de Dados</div>
+          <BotaoGuia modulo="exportacao"/>
+        </div>
         <div style={{ fontSize:11, color:'#7A8699', marginTop:2 }}>Exporta os teus dados em formato CSV (compatível com Excel)</div>
       </div>
 
