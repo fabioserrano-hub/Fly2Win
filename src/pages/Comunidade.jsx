@@ -270,11 +270,6 @@ export default function Comunidade({ nav }) {
   const [formPost, setFormPost]     = useState({ tipo:'Geral', conteudo:'', hashtags:'' })
   const [savingPost, setSavingPost] = useState(false)
   const [reacaoAberta, setReacaoAberta] = useState(null)
-  const [editPost, setEditPost]         = useState(null)
-  const [editConteudo, setEditConteudo] = useState('')
-  const [tabFeed, setTabFeed]           = useState('todos')
-  const [sondagem, setSondagem]         = useState({ativa:false,pergunta:'',opcoes:['','']})
-  const [votados, setVotados]           = useState({})
   const [modalComments, setModalComments] = useState(null)
   const [comments, setComments]     = useState([])
   const [novoComment, setNovoComment] = useState('')
@@ -345,10 +340,8 @@ export default function Comunidade({ nav }) {
     try{
       const hashtags=(formPost.hashtags||'').split(/[\s,]+/).filter(h=>h).map(h=>h.startsWith('#')?h:'#'+h).join(' ')
       const conteudo=formPost.conteudo.slice(0,500)+(hashtags?'\n'+hashtags:'')
-      const sondagemPayload=sondagem.ativa&&sondagem.pergunta?{sondagem_pergunta:sondagem.pergunta,sondagem_opcoes:sondagem.opcoes.filter(o=>o.trim()),sondagem_votos:sondagem.opcoes.filter(o=>o.trim()).map(()=>0)}:{}
-      const videoPayload=formPost.video_url?{video_url:formPost.video_url}:{}
       await db.createPost({autor_nome:nome,autor_avatar:perfil?.foto_perfil_url||'',autor_username:user?.email?.split('@')[0]||'user',tipo:formPost.tipo,conteudo,likes_count:0,comments_count:0})
-      toast('Publicado!','ok');setModalPost(false);setFormPost({tipo:'Geral',conteudo:'',hashtags:'',video_url:''});setSondagem({ativa:false,pergunta:'',opcoes:['','']});load()
+      toast('Publicado!','ok');setModalPost(false);setFormPost({tipo:'Geral',conteudo:'',hashtags:''});load()
     }catch(e){toast('Erro: '+e.message,'err')}finally{setSavingPost(false)}
   }
 
@@ -404,28 +397,6 @@ export default function Comunidade({ nav }) {
     ))
   }
 
-  const guardarEdicao = async () => {
-    if (!editConteudo.trim()) return
-    try {
-      await supabase.from('posts').update({ conteudo: editConteudo }).eq('id', editPost.id)
-      setPosts(ps => ps.map(p => p.id === editPost.id ? {...p, conteudo: editConteudo} : p))
-      setEditPost(null); toast('Editado!', 'ok')
-    } catch(e) { toast('Erro: '+e.message, 'err') }
-  }
-
-  const votarSondagem = async (postId, idx) => {
-    if (votados[postId] !== undefined) { toast('Já votaste!','warn'); return }
-    try {
-      const { data: post } = await supabase.from('posts').select('sondagem_votos').eq('id', postId).single()
-      const votos = [...(post?.sondagem_votos || [])]
-      votos[idx] = (votos[idx] || 0) + 1
-      await supabase.from('posts').update({ sondagem_votos: votos }).eq('id', postId)
-      setPosts(ps => ps.map(p => p.id === postId ? {...p, sondagem_votos: votos} : p))
-      setVotados(v => ({...v, [postId]: idx}))
-      toast('Voto registado! 🗳️','ok')
-    } catch(e) { toast('Erro: '+e.message,'err') }
-  }
-
   // ── PostCard ────────────────────────────────────────────────────────────────
   const PostCard=({post})=>{
     const souEu=post.user_id===user?.id
@@ -448,28 +419,6 @@ export default function Comunidade({ nav }) {
             </div>
           </div>
           <div style={{fontSize:13,color:'#cbd5e1',lineHeight:1.7,marginBottom:12}}>{formatConteudo(post.conteudo)}</div>
-          {post.sondagem_pergunta&&(
-            <div style={{background:'rgba(76,141,255,.08)',border:'1px solid rgba(76,141,255,.2)',borderRadius:10,padding:'10px 12px',marginBottom:12}}>
-              <div style={{fontSize:12,fontWeight:700,color:'#4C8DFF',marginBottom:8}}>🗳️ {post.sondagem_pergunta}</div>
-              {(post.sondagem_opcoes||[]).map((op,i)=>{
-                const votos=post.sondagem_votos||[]
-                const total=votos.reduce((s,v)=>s+v,0)||1
-                const pct=Math.round((votos[i]||0)/total*100)
-                const jVotei=votados[post.id]===i
-                return (
-                  <div key={i} onClick={()=>votarSondagem(post.id,i)} style={{marginBottom:6,cursor:'pointer'}}>
-                    <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:jVotei?'#4C8DFF':'#94a3b8',marginBottom:2}}>
-                      <span>{jVotei?'✓ ':''}{op}</span><span>{pct}%</span>
-                    </div>
-                    <div style={{height:6,background:'#101F40',borderRadius:3}}>
-                      <div style={{height:'100%',width:pct+'%',background:jVotei?'#4C8DFF':'#334155',borderRadius:3}}/>
-                    </div>
-                  </div>
-                )
-              })}
-              <div style={{fontSize:10,color:'#475569',marginTop:6}}>{(post.sondagem_votos||[]).reduce((s,v)=>s+v,0)} votos</div>
-            </div>
-          )}
           <div style={{display:'flex',gap:4,alignItems:'center',borderTop:'1px solid rgba(255,255,255,.05)',paddingTop:10,position:'relative'}}>
             <div style={{position:'relative'}}>
               <button onClick={()=>setReacaoAberta(reacaoAberta===post.id?null:post.id)}
@@ -488,10 +437,7 @@ export default function Comunidade({ nav }) {
               navigator.share?navigator.share({title:'LoftSocial',text:txt}).catch(e=>{if(e.name!=='AbortError')toast('Erro ao partilhar','err')}):navigator.clipboard?.writeText(txt).then(()=>toast('Copiado!','ok'))
             }} style={{display:'flex',alignItems:'center',gap:4,background:'none',border:'none',cursor:'pointer',fontSize:13,color:'#7A8699',padding:'4px 8px',borderRadius:6}}>🔗</button>
             <button onClick={()=>setModalRepost(post)} style={{display:'flex',alignItems:'center',gap:4,background:'none',border:'none',cursor:'pointer',fontSize:13,color:'#7A8699',padding:'4px 8px',borderRadius:6}}>🔁</button>
-            {souEu&&<>
-              <button onClick={()=>{setEditPost(post);setEditConteudo(post.conteudo)}} style={{marginLeft:'auto',background:'none',border:'none',cursor:'pointer',fontSize:13,color:'#7A8699',padding:'4px 8px',borderRadius:6}}>✏️</button>
-              <button onClick={async()=>{await db.deletePost(post.id).catch(()=>{});setPosts(ps=>ps.filter(p=>p.id!==post.id))}} style={{background:'none',border:'none',cursor:'pointer',fontSize:13,color:'#475569',padding:'4px 8px',borderRadius:6}}>🗑️</button>
-            </>}
+            {souEu&&<button onClick={async()=>{await db.deletePost(post.id).catch(()=>{});setPosts(ps=>ps.filter(p=>p.id!==post.id))}} style={{marginLeft:'auto',background:'none',border:'none',cursor:'pointer',fontSize:13,color:'#475569',padding:'4px 8px',borderRadius:6}}>🗑️</button>}
           </div>
         </div>
       </div>
@@ -545,11 +491,6 @@ export default function Comunidade({ nav }) {
           {/* ── FEED ─────────────────────────────────────────────────────── */}
           {tab==='feed'&&(
             <div>
-              <div style={{display:'flex',gap:4,background:'#101F40',borderRadius:8,padding:3,marginBottom:12}}>
-                {[['todos','🌐 Todos'],['meus','👤 Os meus']].map(([k,l])=>(
-                  <button key={k} onClick={()=>setTabFeed(k)} style={{flex:1,padding:'7px',borderRadius:6,fontSize:11,fontWeight:600,cursor:'pointer',border:'none',fontFamily:'inherit',background:tabFeed===k?'#1E5FD9':'none',color:tabFeed===k?'#fff':'#7A8699'}}>{l}</button>
-                ))}
-              </div>
               {/* Banner contextual LoftSocial */}
               {mensagensCtx.length>0&&<BannerContextual mensagens={mensagensCtx} nav={nav}/>}
 
@@ -579,20 +520,6 @@ export default function Comunidade({ nav }) {
                 </div>
               )}
 
-              {(()=>{
-                const tags=posts.flatMap(p=>(p.conteudo?.match(/#[a-zA-Z0-9_]+/g)||[]))
-                const freq=tags.reduce((a,t)=>{a[t]=(a[t]||0)+1;return a},{})
-                const top=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,5)
-                if(!top.length) return null
-                return <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:10}}>
-                  {top.map(([tag,n])=>(
-                    <button key={tag} onClick={()=>setHashtagFiltro(hashtagFiltro===tag?null:tag)}
-                      style={{fontSize:10,fontWeight:600,color:hashtagFiltro===tag?'#fff':'#4C8DFF',background:hashtagFiltro===tag?'#1E5FD9':'rgba(76,141,255,.1)',border:'1px solid rgba(76,141,255,.2)',borderRadius:20,padding:'3px 10px',cursor:'pointer',fontFamily:'inherit'}}>
-                      {tag} <span style={{color:'#475569'}}>{n}</span>
-                    </button>
-                  ))}
-                </div>
-              })()}
               {hashtagFiltro&&(
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10,padding:'6px 12px',background:'rgba(76,141,255,.1)',borderRadius:8,border:'1px solid rgba(76,141,255,.2)'}}>
                   <span style={{fontSize:13,color:'#4C8DFF',fontWeight:600}}>{hashtagFiltro}</span>
@@ -604,7 +531,7 @@ export default function Comunidade({ nav }) {
                 ?<EmptyState icon="📰" title="Feed vazio" desc="Publica o primeiro post ou segue outros columbófilos" action={<button className="btn btn-primary" onClick={()=>setModalPost(true)}>✏️ Publicar</button>}/>
                 :<>
                   <div style={{display:'flex',flexDirection:'column',gap:8}}>
-                    {posts.filter(p=>(!hashtagFiltro||p.conteudo?.includes(hashtagFiltro))&&(tabFeed==='todos'||(tabFeed==='meus'&&p.user_id===user?.id))).map(p=><PostCard key={p.id} post={p}/>)}
+                    {posts.filter(p=>!hashtagFiltro||p.conteudo?.includes(hashtagFiltro)).map(p=><PostCard key={p.id} post={p}/>)}
                   </div>
                   {hasMore&&<button className="btn btn-secondary" style={{width:'100%',marginTop:12}} onClick={carregarMais} disabled={loadingMore}>{loadingMore?<Spinner/>:'Carregar mais'}</button>}
                 </>
@@ -892,6 +819,7 @@ export default function Comunidade({ nav }) {
               }
             </div>
           )}
+        </>
       )}
 
       {/* ── Modal cartão de visita ────────────────────────────────────────── */}
@@ -1014,20 +942,6 @@ export default function Comunidade({ nav }) {
             </div>
         }
       </Modal>
-      {/* modal editar post */}
-      {editPost&&(
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.85)',zIndex:9999,display:'flex',alignItems:'flex-end',justifyContent:'center'}} onClick={()=>setEditPost(null)}>
-          <div style={{background:'#0B1830',borderRadius:'16px 16px 0 0',padding:20,width:'100%',maxWidth:600}} onClick={e=>e.stopPropagation()}>
-            <div style={{fontSize:14,fontWeight:700,color:'#fff',marginBottom:12}}>✏️ Editar publicação</div>
-            <textarea className="input" rows={5} style={{resize:'none',marginBottom:12,fontSize:13}} value={editConteudo} onChange={e=>setEditConteudo(e.target.value)}/>
-            <div style={{display:'flex',gap:8}}>
-              <button className="btn btn-secondary" style={{flex:1}} onClick={()=>setEditPost(null)}>Cancelar</button>
-              <button className="btn btn-primary" style={{flex:1}} onClick={guardarEdicao}>Guardar</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
-
