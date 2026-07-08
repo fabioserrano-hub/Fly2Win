@@ -63,6 +63,7 @@ export default function PerfilPublico({ nav, params }) {
 
   return (
     <div style={{ minHeight:'100vh', background:'#050D1A', color:'#fff', fontFamily:"'Inter',system-ui,sans-serif" }}>
+      <GuiaAuto modulo="perfilpublico"/>
       {/* Header */}
       <div style={{ background:'linear-gradient(135deg,#050D1A,#0B1830)', borderBottom:'1px solid rgba(212,175,55,.15)', padding:'clamp(20px,4vw,40px) clamp(16px,4vw,40px) 0' }}>
         <div style={{ maxWidth:720, margin:'0 auto' }}>
@@ -70,11 +71,14 @@ export default function PerfilPublico({ nav, params }) {
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
               <span style={{ fontSize:20 }}>🕊️</span>
-              <span style={{ fontFamily:"'Fraunces',serif", fontSize:14, fontWeight:700, background:'linear-gradient(135deg,#fff,#D4AF37)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>ChampionsLoft</span>
+              <span style={{ fontFamily:"'Fraunces',serif", fontSize:14, fontWeight:700, background:'linear-gradient(135deg,#fff,#D4AF37)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>Fly2Win</span>
             </div>
-            <button onClick={() => window.location.href='/'} style={{ background:'linear-gradient(135deg,#D4AF37,#B8960C)', border:'none', color:'#050D1A', padding:'8px 16px', borderRadius:7, cursor:'pointer', fontSize:12, fontWeight:700, fontFamily:'inherit' }}>
-              Experimentar grátis
-            </button>
+            <div style={{ display:'flex', gap:6, alignItems:'center' }}>
+              <BotaoGuia modulo="perfilpublico"/>
+              <button onClick={() => window.location.href='/'} style={{ background:'linear-gradient(135deg,#D4AF37,#B8960C)', border:'none', color:'#050D1A', padding:'8px 16px', borderRadius:7, cursor:'pointer', fontSize:12, fontWeight:700, fontFamily:'inherit' }}>
+                Experimentar grátis
+              </button>
+            </div>
           </div>
 
           {/* Perfil */}
