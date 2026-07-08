@@ -915,11 +915,11 @@ export default function Comunidade({ nav }) {
                       )
                     })}
                   </div>
-                </>
+                </div>
               }
             </div>
           )}
-        </>
+        </div>
       )}
 
       {/* ── Modal cartão de visita ────────────────────────────────────────── */}
