@@ -597,7 +597,7 @@ export default function Pombos({ nav, params }) {
                 const esp = (pomboPartilha.esp||[]).map(e=>ESP_ICON[e]+' '+e).join(' ')
                 const obsStr = pomboPartilha.obs ? '\n"' + pomboPartilha.obs + '"' : ''
                 const conteudo = (pomboPartilha.emoji||'🐦') + ' ' + pomboPartilha.nome + ' — ' + pomboPartilha.anilha + '\n\n📊 Percentil: ' + (pomboPartilha.percentil||0) + '%\n💪 Forma: ' + (pomboPartilha.forma||50) + '%\n🏆 Provas: ' + (pomboPartilha.provas||0) + (esp?'\n'+esp:'') + obsStr
-                nav?.('comunidade', { prefillPost: { tipo:'Geral', conteudo, pomboId: pomboPartilha.id } })
+                nav?.('comunidade', { prefillPost: { tipo:'Geral', conteudo, foto_url: pomboPartilha.foto_url||null, pomboId: pomboPartilha.id } })
               }}>🌐 Publicar na LoftSocial →</button>
             </div>
           }>
@@ -644,7 +644,7 @@ export default function Pombos({ nav, params }) {
                 </div>
                 <div>
                   {pomboPartilha.pombal&&<div style={{ fontSize:11, color:'#7A8699', marginTop:10 }}>🏠 {pomboPartilha.pombal}</div>}
-                  <div style={{ fontSize:9, color:'#334155', marginTop:4, fontFamily:"'Space Mono',monospace" }}>Fly2Win.pt</div>
+                  <div style={{ fontSize:9, color:'#334155', marginTop:4, fontFamily:"'Space Mono',monospace" }}>championsloft.pt</div>
                 </div>
               </div>
             </div>
