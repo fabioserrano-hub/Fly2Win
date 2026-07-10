@@ -267,7 +267,7 @@ export default function Comunidade({ nav, params={} }) {
   const [mensagensCtx, setMensagensCtx] = useState([])
 
   const [modalPost, setModalPost]   = useState(false)
-  const [formPost, setFormPost]     = useState({ tipo:'Geral', conteudo:'', hashtags:'', video_url:'', sondagem:false, sondagem_pergunta:'', sondagem_opcoes:['',''] })
+  const [formPost, setFormPost]     = useState({ tipo:'Geral', conteudo:'', hashtags:'', video_url:'', foto_url:'', sondagem:false, sondagem_pergunta:'', sondagem_opcoes:['',''] })
   const [savingPost, setSavingPost] = useState(false)
   const [reacaoAberta, setReacaoAberta] = useState(null)
   const [modalComments, setModalComments] = useState(null)
@@ -354,7 +354,7 @@ export default function Comunidade({ nav, params={} }) {
       const sondagem_pergunta=formPost.sondagem&&formPost.sondagem_pergunta.trim()?formPost.sondagem_pergunta.trim():null
       const sondagem_opcoes=sondagem_pergunta&&opcoesFiltradas.length>=2?opcoesFiltradas:null
       const sondagem_votos=sondagem_opcoes?Object.fromEntries(sondagem_opcoes.map(o=>[o,0])):null
-      await db.createPost({autor_nome:nome,autor_avatar:perfil?.foto_perfil_url||'',autor_username:user?.email?.split('@')[0]||'user',tipo:formPost.tipo,conteudo,video_url,sondagem_pergunta,sondagem_opcoes,sondagem_votos,likes_count:0,comments_count:0})
+      await db.createPost({autor_nome:nome,autor_avatar:perfil?.foto_perfil_url||'',autor_username:user?.email?.split('@')[0]||'user',tipo:formPost.tipo,conteudo,video_url,foto_url:formPost.foto_url||null,sondagem_pergunta,sondagem_opcoes,sondagem_votos,likes_count:0,comments_count:0})
       toast('Publicado!','ok');setModalPost(false);setFormPost({tipo:'Geral',conteudo:'',hashtags:'',video_url:'',sondagem:false,sondagem_pergunta:'',sondagem_opcoes:['','']});load()
     }catch(e){toast('Erro: '+e.message,'err')}finally{setSavingPost(false)}
   }
@@ -460,12 +460,24 @@ export default function Comunidade({ nav, params={} }) {
             </div>
             <div style={{flex:1,minWidth:0}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:6}}>
-                <div style={{fontSize:13,fontWeight:700,color:'#fff'}}>{post.autor_nome||'Columbófilo'}</div>
+                <div style={{display:'flex',alignItems:'center',gap:4}}>
+                  <div style={{fontSize:13,fontWeight:700,color:'#fff'}}>{post.autor_nome||'Columbófilo'}</div>
+                  {explorar.find(e=>e.user_id===post.user_id)?.verificado&&(
+                    <span title="Columbófilo verificado" style={{fontSize:10,background:'linear-gradient(135deg,#1E5FD9,#2DD4A7)',borderRadius:'50%',width:14,height:14,display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontWeight:900,flexShrink:0}}>✓</span>
+                  )}
+                </div>
                 <span style={{fontSize:9,color:'#475569',flexShrink:0}}><TempoAtras ts={post.created_at}/></span>
               </div>
               <span style={{fontSize:10,background:`${cor}18`,color:cor,padding:'1px 8px',borderRadius:10,fontWeight:600}}>{tipoIcon[post.tipo]} {post.tipo}</span>
             </div>
           </div>
+          {post.foto_url&&(
+            <div style={{marginBottom:12,borderRadius:10,overflow:'hidden',border:'1px solid rgba(255,255,255,.08)'}}>
+              <img src={post.foto_url} alt="" style={{width:'100%',maxHeight:280,objectFit:'cover',display:'block'}}
+                onClick={()=>window.open(post.foto_url,'_blank')}
+                style={{width:'100%',maxHeight:280,objectFit:'cover',display:'block',cursor:'pointer'}}/>
+            </div>
+          )}
           {post.sondagem_pergunta&&post.sondagem_opcoes&&(
             <div style={{marginBottom:12,padding:'10px 12px',background:'rgba(76,141,255,.06)',border:'1px solid rgba(76,141,255,.2)',borderRadius:10}}>
               <div style={{fontSize:12,fontWeight:700,color:'#fff',marginBottom:8}}>📊 {post.sondagem_pergunta}</div>
@@ -968,11 +980,11 @@ export default function Comunidade({ nav, params={} }) {
               ))}
             </div>
             {perfil?.bio&&<div style={{fontSize:11,color:'#94a3b8',marginTop:8,fontStyle:'italic'}}>"{perfil.bio}"</div>}
-            {perfil?.slug&&<div style={{fontSize:10,color:'#475569',textAlign:'right',marginTop:8}}>Fly2Win.app/p/{perfil.slug}</div>}
+            {perfil?.slug&&<div style={{fontSize:10,color:'#475569',textAlign:'right',marginTop:8}}>championsloft.app/p/{perfil.slug}</div>}
           </div>
         </div>
         <button className="btn btn-secondary" style={{width:'100%',marginTop:12}} onClick={()=>{
-          const txt=`${nome} — LoftSocial / Fly2Win\n🐦 ${pombos.filter(p=>!p.estado_ext||p.estado_ext==='proprio').length} pombos · 🏆 ${provas.length} provas\nFly2Win.app/p/${perfil?.slug||''}`
+          const txt=`${nome} — LoftSocial / Fly2Win\n🐦 ${pombos.filter(p=>!p.estado_ext||p.estado_ext==='proprio').length} pombos · 🏆 ${provas.length} provas\nchampionsloft.app/p/${perfil?.slug||''}`
           navigator.share?navigator.share({title:'LoftSocial',text:txt}).catch(e=>{if(e.name!=='AbortError')toast('Erro ao partilhar','err')}):navigator.clipboard?.writeText(txt).then(()=>toast('Copiado!','ok'))
         }}>🔗 Partilhar cartão</button>
       </Modal>
@@ -1006,15 +1018,37 @@ export default function Comunidade({ nav, params={} }) {
         </div>
         {provas.length>0&&formPost.tipo==='Resultado'&&(
           <div style={{marginBottom:10}}>
-            <div style={{fontSize:11,color:'#7A8699',marginBottom:6}}>Seleccionar prova:</div>
+            <div style={{fontSize:11,color:'#7A8699',marginBottom:6}}>🏆 Seleccionar prova para preencher automaticamente:</div>
             <div style={{display:'flex',gap:6,overflowX:'auto',paddingBottom:4}}>
-              {provas.slice(0,5).map(p=>(
-                <button key={p.id} onClick={()=>setFormPost(f=>({...f,conteudo:`🏆 ${p.nome} — ${p.dist}km\n📍 ${p.local_solta||''}\n📅 ${new Date(p.data_reg).toLocaleDateString('pt-PT')}\n\n`}))}
-                  style={{flexShrink:0,padding:'4px 10px',background:'#101F40',border:'1px solid #1B2D52',borderRadius:8,fontSize:11,color:'#cbd5e1',cursor:'pointer'}}>
-                  🏆 {p.nome}
-                </button>
-              ))}
+              {provas.slice(0,8).map(p=>{
+                const pombo=pombos.find(b=>b.id===p.pombo_id)
+                const medalha=p.lugar===1?'🥇':p.lugar===2?'🥈':p.lugar===3?'🥉':'🏅'
+                return (
+                  <button key={p.id} onClick={()=>{
+                    const vel=p.velocidade?`\n⚡ ${p.velocidade}m/min`:''
+                    const pct=p.percentil?`\n📊 Percentil: ${p.percentil}%`:''
+                    const dist=p.distancia?`\n📏 ${p.distancia}km`:'';
+                    const total=p.total_pombos?` de ${p.total_pombos} pombos`:''
+                    const local=p.local_largada?`\n📍 Largada: ${p.local_largada}`:''
+                    const data=p.data_reg?`\n📅 ${new Date(p.data_reg).toLocaleDateString('pt-PT')}`:''
+                    const nomePombo=pombo?`🕊️ ${pombo.nome} (${pombo.anilha})\n`:'';
+                    setFormPost(f=>({...f,
+                      conteudo:`${medalha} ${p.lugar}º lugar${total}${dist}${vel}${pct}${local}${data}\n\n${nomePombo}`,
+                      hashtags:'#columbofilia #prova'+(p.distancia>500?' #fundo':p.distancia>300?' #meiofundo':' #velocidade')
+                    }))
+                  }}
+                    style={{flexShrink:0,padding:'6px 12px',background:'rgba(212,175,55,.08)',border:'1px solid rgba(212,175,55,.2)',borderRadius:8,fontSize:11,color:'#D4AF37',cursor:'pointer',textAlign:'left'}}>
+                    <div style={{fontWeight:700}}>{medalha} {p.lugar}º</div>
+                    <div style={{fontSize:10,color:'#94a3b8',marginTop:1}}>{pombo?.nome||'?'} · {p.distancia}km</div>
+                  </button>
+                )
+              })}
             </div>
+            {formPost.conteudo&&formPost.tipo==='Resultado'&&(
+              <div style={{marginTop:6,padding:'8px 10px',background:'rgba(212,175,55,.06)',border:'1px solid rgba(212,175,55,.15)',borderRadius:8,fontSize:11,color:'#D4AF37'}}>
+                ✓ Template preenchido — podes editar antes de publicar
+              </div>
+            )}
           </div>
         )}
         <div style={{marginBottom:10}}>
@@ -1045,6 +1079,32 @@ export default function Comunidade({ nav, params={} }) {
                   style={{fontSize:11,color:'#4C8DFF',background:'none',border:'none',cursor:'pointer',padding:'2px 0'}}>+ Adicionar opção</button>
               )}
             </div>
+          )}
+        </div>
+        <div style={{marginBottom:10}}>
+          <div style={{fontSize:11,color:'#7A8699',marginBottom:6}}>📷 Foto (opcional):</div>
+          {formPost.foto_url?(
+            <div style={{position:'relative',display:'inline-block'}}>
+              <img src={formPost.foto_url} alt="" style={{width:'100%',maxHeight:180,objectFit:'cover',borderRadius:8,border:'1px solid #1B2D52'}}/>
+              <button onClick={()=>setFormPost(f=>({...f,foto_url:''}))}
+                style={{position:'absolute',top:4,right:4,background:'rgba(0,0,0,.7)',border:'none',borderRadius:'50%',width:22,height:22,color:'#fff',cursor:'pointer',fontSize:12,display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+            </div>
+          ):(
+            <label style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',background:'rgba(255,255,255,.04)',border:'1px dashed #1B2D52',borderRadius:8,cursor:'pointer'}}>
+              <span style={{fontSize:18}}>📷</span>
+              <span style={{fontSize:12,color:'#7A8699'}}>Carregar foto</span>
+              <input type="file" accept="image/*" style={{display:'none'}} onChange={async e=>{
+                const file=e.target.files?.[0]; if(!file) return
+                try{
+                  const ext=file.name.split('.').pop()
+                  const path=`posts/${user.id}/${Date.now()}.${ext}`
+                  const {error}=await supabase.storage.from('avatars').upload(path,file,{upsert:true})
+                  if(error) throw error
+                  const {data}=supabase.storage.from('avatars').getPublicUrl(path)
+                  setFormPost(f=>({...f,foto_url:data.publicUrl}))
+                }catch(err){toast('Erro ao carregar foto','err')}
+              }}/>
+            </label>
           )}
         </div>
         <div style={{marginBottom:10}}>
