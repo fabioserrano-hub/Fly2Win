@@ -3,7 +3,7 @@ import { db } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 
 const PASSOS = [
-  { id:'boas-vindas', icon:'🕊️', titulo:'Bem-vindo ao ChampionsLoft!', desc:'A plataforma premium de gestão columbófila. Vamos configurar o teu pombal em menos de 2 minutos.', acao:null },
+  { id:'boas-vindas', icon:'🕊️', titulo:'Bem-vindo ao Fly2Win!', desc:'A plataforma premium de gestão columbófila. Vamos configurar o teu pombal em menos de 2 minutos.', acao:null },
   { id:'perfil', icon:'👤', titulo:'O teu perfil', desc:'Preenche o teu nome, federação e localização do pombal. Estes dados aparecem no Pedigree e na Comunidade.', acao:'perfil', acaoLabel:'Preencher Perfil' },
   { id:'primeiro-pombo', icon:'🐦', titulo:'Adiciona o teu primeiro pombo', desc:'Regista um pombo do teu efectivo. Podes importar vários de uma vez em CSV no módulo de Importação.', acao:'pombos', acaoLabel:'Ir a Pombos' },
   { id:'primeira-prova', icon:'🏆', titulo:'Regista uma prova', desc:'Adiciona resultados de provas para calcular percentis e acompanhar a evolução do efectivo.', acao:'provas', acaoLabel:'Ir a Provas' },
