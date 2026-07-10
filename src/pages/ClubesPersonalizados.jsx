@@ -55,7 +55,7 @@ function DetalheClubePersonalizado({ clube, user, onVoltar, toast, temPro, nav }
   const minhaPos  = ranking.findIndex(m=>m.user_id===user?.id)+1
   const mediaClube = ranking.length ? Math.round(ranking.reduce((s,m)=>s+m.mediaPercentil,0)/ranking.length) : 0
   const totalVitorias = ranking.reduce((s,m)=>s+m.vitorias,0)
-  const linkConvite = `Junta-te ao clube "${clube.nome}" no ChampionsLoft!\nCódigo: *${clube.invite_code}*\n🔗 ${window.location.origin}`
+  const linkConvite = `Junta-te ao clube "${clube.nome}" no Fly2Win!\nCódigo: *${clube.invite_code}*\n🔗 ${window.location.origin}`
 
   return (
     <div>

@@ -2,17 +2,17 @@ import { useState } from 'react'
 
 const SECCOES = [
   { id:'1', titulo:'1. Identificação do Serviço',
-    corpo:`O ChampionsLoft é uma plataforma de gestão columbófila disponível em championsloft.pt, desenvolvida e operada por Fábio André da Conceição Serrano, com sede em Portugal.
+    corpo:`O Fly2Win é uma plataforma de gestão columbófila disponível em Fly2Win.pt, desenvolvida e operada por Fábio André da Conceição Serrano, com sede em Portugal.
 
-Contacto: suporte@championsloft.pt` },
+Contacto: suporte@Fly2Win.pt` },
 
   { id:'2', titulo:'2. Aceitação dos Termos',
-    corpo:`Ao criar uma conta ou utilizar a plataforma ChampionsLoft, o utilizador aceita integralmente os presentes Termos e Condições de Utilização, bem como a Política de Privacidade.
+    corpo:`Ao criar uma conta ou utilizar a plataforma Fly2Win, o utilizador aceita integralmente os presentes Termos e Condições de Utilização, bem como a Política de Privacidade.
 
 Se não concordar com estes termos, deverá abster-se de utilizar o serviço.` },
 
   { id:'3', titulo:'3. Descrição do Serviço',
-    corpo:`O ChampionsLoft oferece ferramentas digitais para gestão columbófila, incluindo:
+    corpo:`O Fly2Win oferece ferramentas digitais para gestão columbófila, incluindo:
 
 • Registo e gestão de efectivo (pombos)
 • Registo de provas e resultados
@@ -32,7 +32,7 @@ O serviço é prestado mediante subscrição mensal ou anual, com planos Base, P
 
 4.3. É proibida a partilha de credenciais entre múltiplos utilizadores. Cada subscrição corresponde a um utilizador individual.
 
-4.4. O ChampionsLoft reserva-se o direito de suspender ou encerrar contas que violem estes termos.` },
+4.4. O Fly2Win reserva-se o direito de suspender ou encerrar contas que violem estes termos.` },
 
   { id:'5', titulo:'5. Subscrições e Pagamentos',
     corpo:`5.1. Os planos disponíveis são Base (9,99€/mês), Pro (11,99€/mês) e Elite AI (15,99€/mês), com desconto em planos anuais.
@@ -41,7 +41,7 @@ O serviço é prestado mediante subscrição mensal ou anual, com planos Base, P
 
 5.3. Os preços indicados incluem IVA à taxa legal aplicável.
 
-5.4. Os pagamentos são processados de forma segura através da Stripe. O ChampionsLoft não armazena dados de cartão de crédito.
+5.4. Os pagamentos são processados de forma segura através da Stripe. O Fly2Win não armazena dados de cartão de crédito.
 
 5.5. A subscrição renova automaticamente no final de cada período, salvo cancelamento antecipado pelo utilizador.
 
@@ -73,56 +73,56 @@ O serviço é prestado mediante subscrição mensal ou anual, com planos Base, P
 • Realizar leilões ou transacções de pombos inexistentes ou com informações falsas
 • Tentar aceder a dados de outros utilizadores
 
-O ChampionsLoft pode remover conteúdo e suspender contas que violem estas regras.` },
+O Fly2Win pode remover conteúdo e suspender contas que violem estas regras.` },
 
   { id:'9', titulo:'9. Conteúdo do Utilizador',
     corpo:`9.1. O utilizador mantém a propriedade de todos os dados e conteúdos que introduz na plataforma (dados de pombos, fotos, resultados, publicações).
 
-9.2. Ao introduzir conteúdo, o utilizador concede ao ChampionsLoft uma licença não exclusiva para armazenar, processar e apresentar esse conteúdo no contexto da prestação do serviço.
+9.2. Ao introduzir conteúdo, o utilizador concede ao Fly2Win uma licença não exclusiva para armazenar, processar e apresentar esse conteúdo no contexto da prestação do serviço.
 
 9.3. O utilizador garante que tem os direitos necessários sobre o conteúdo que partilha, nomeadamente fotografias de pombos de terceiros.
 
-9.4. O ChampionsLoft não reivindica propriedade sobre os dados do utilizador e não os partilha com terceiros para fins comerciais.` },
+9.4. O Fly2Win não reivindica propriedade sobre os dados do utilizador e não os partilha com terceiros para fins comerciais.` },
 
   { id:'10', titulo:'10. Funcionalidade IA',
     corpo:`10.1. O Seleccionador de Casais por IA (plano Elite) utiliza o modelo Claude da Anthropic para análise de cruzamentos genéticos.
 
 10.2. As sugestões da IA são de carácter orientativo e não substituem o conhecimento e experiência do columbófilo.
 
-10.3. O ChampionsLoft não assume responsabilidade pelos resultados de criação baseados nas sugestões da IA.
+10.3. O Fly2Win não assume responsabilidade pelos resultados de criação baseados nas sugestões da IA.
 
 10.4. Os dados do utilizador utilizados para análise IA são processados de forma anonimizada e não são partilhados com a Anthropic para treino de modelos.` },
 
   { id:'11', titulo:'11. Marketplace e Leilões',
-    corpo:`11.1. O ChampionsLoft disponibiliza um espaço de marketplace e leilões para transacção de pombos entre utilizadores.
+    corpo:`11.1. O Fly2Win disponibiliza um espaço de marketplace e leilões para transacção de pombos entre utilizadores.
 
-11.2. O ChampionsLoft actua como intermediário tecnológico e não é parte nas transacções entre utilizadores.
+11.2. O Fly2Win actua como intermediário tecnológico e não é parte nas transacções entre utilizadores.
 
 11.3. Os utilizadores são responsáveis pela veracidade das informações dos animais anunciados, cumprimento das obrigações legais de transacção de animais e eventuais litígios entre compradores e vendedores.
 
-11.4. O ChampionsLoft pode remover anúncios que violem os termos ou a legislação aplicável.
+11.4. O Fly2Win pode remover anúncios que violem os termos ou a legislação aplicável.
 
 11.5. As garantias de performance oferecidas por vendedores são da exclusiva responsabilidade destes.` },
 
   { id:'12', titulo:'12. Disponibilidade do Serviço',
-    corpo:`12.1. O ChampionsLoft empenha-se em garantir a disponibilidade contínua do serviço, mas não garante disponibilidade ininterrupta.
+    corpo:`12.1. O Fly2Win empenha-se em garantir a disponibilidade contínua do serviço, mas não garante disponibilidade ininterrupta.
 
 12.2. Podem ocorrer períodos de manutenção programada, anunciados com antecedência sempre que possível.
 
-12.3. O ChampionsLoft não é responsável por indisponibilidades causadas por factores externos (falhas de Internet, fornecedores de infraestrutura, etc.).` },
+12.3. O Fly2Win não é responsável por indisponibilidades causadas por factores externos (falhas de Internet, fornecedores de infraestrutura, etc.).` },
 
   { id:'13', titulo:'13. Limitação de Responsabilidade',
-    corpo:`O ChampionsLoft não é responsável por:
+    corpo:`O Fly2Win não é responsável por:
 
 • Perdas de dados resultantes de erros do utilizador
 • Decisões de criação baseadas nas sugestões da plataforma ou IA
 • Resultados de transacções no marketplace entre utilizadores
 • Danos indirectos ou lucros cessantes
 
-A responsabilidade total do ChampionsLoft, em qualquer circunstância, não excede o valor pago pelo utilizador nos últimos 3 meses de subscrição.` },
+A responsabilidade total do Fly2Win, em qualquer circunstância, não excede o valor pago pelo utilizador nos últimos 3 meses de subscrição.` },
 
   { id:'14', titulo:'14. Alterações aos Termos',
-    corpo:`14.1. O ChampionsLoft pode actualizar estes Termos e Condições, notificando os utilizadores por email com 30 dias de antecedência.
+    corpo:`14.1. O Fly2Win pode actualizar estes Termos e Condições, notificando os utilizadores por email com 30 dias de antecedência.
 
 14.2. A utilização continuada do serviço após a entrada em vigor das alterações constitui aceitação dos novos termos.
 
@@ -140,16 +140,16 @@ A responsabilidade total do ChampionsLoft, em qualquer circunstância, não exce
 Última actualização: Junho de 2026` },
 ,
   { id:'16', titulo:'16. Licenças Institucionais (Coletividades)',
-    corpo:`16.1. O ChampionsLoft disponibiliza um modelo de licenciamento institucional para coletividades columbófilas, clubes e associações federadas.
+    corpo:`16.1. O Fly2Win disponibiliza um modelo de licenciamento institucional para coletividades columbófilas, clubes e associações federadas.
 
-16.2. A coletividade adquire licenças para os seus sócios e paga centralmente ao ChampionsLoft. O número total de licenças (independentemente do plano) determina o desconto:
+16.2. A coletividade adquire licenças para os seus sócios e paga centralmente ao Fly2Win. O número total de licenças (independentemente do plano) determina o desconto:
 • 3 a 5 licenças: -10%
 • 6 a 12 licenças: -20%
 • 13 ou mais licenças: -30%
 
 16.3. O plano anual corresponde a 10 meses (2 meses gratuitos), calculado sobre o preço com desconto de coletividade.
 
-16.4. O administrador é responsável pela gestão das licenças e pagamento centralizado. Para aderir: suporte@championsloft.pt` },
+16.4. O administrador é responsável pela gestão das licenças e pagamento centralizado. Para aderir: suporte@Fly2Win.pt` },
 
   { id:'17', titulo:'17. Plano Fundadores — Garantia de Preço Permanente',
     corpo:`17.1. Os utilizadores do Plano Fundadores beneficiam de garantia de preço permanente.
@@ -176,7 +176,7 @@ export default function Termos({ onVoltar }) {
           <div>
             <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4 }}>
               <span style={{ fontSize:20 }}>🕊️</span>
-              <span style={{ fontFamily:"'Fraunces',serif", fontSize:15, fontWeight:900, color:'#C8A84B' }}>ChampionsLoft</span>
+              <span style={{ fontFamily:"'Fraunces',serif", fontSize:15, fontWeight:900, color:'#C8A84B' }}>Fly2Win</span>
             </div>
             <h1 style={{ fontFamily:"'Fraunces',serif", fontSize:'clamp(24px,4vw,36px)', fontWeight:900, margin:0, lineHeight:1.1 }}>Termos e Condições</h1>
             <div style={{ fontSize:12, color:'#445566', marginTop:4 }}>Última actualização: Junho de 2026</div>
@@ -185,7 +185,7 @@ export default function Termos({ onVoltar }) {
 
         {/* Intro */}
         <div style={{ background:'rgba(200,168,75,.08)', border:'1px solid rgba(200,168,75,.2)', borderRadius:12, padding:'16px 20px', marginBottom:32, fontSize:13, color:'#8899AA', lineHeight:1.7 }}>
-          Por favor leia atentamente estes Termos e Condições antes de utilizar o ChampionsLoft. Ao criar uma conta, está a aceitar estes termos na sua totalidade.
+          Por favor leia atentamente estes Termos e Condições antes de utilizar o Fly2Win. Ao criar uma conta, está a aceitar estes termos na sua totalidade.
         </div>
 
         {/* Secções */}
@@ -206,7 +206,7 @@ export default function Termos({ onVoltar }) {
 
         {/* Contacto */}
         <div style={{ marginTop:40, padding:'16px 20px', background:'#0A1A2E', borderRadius:12, fontSize:12, color:'#445566', textAlign:'center' }}>
-          Questões sobre estes termos? Contacta-nos em <strong style={{ color:'#C8A84B' }}>suporte@championsloft.pt</strong>
+          Questões sobre estes termos? Contacta-nos em <strong style={{ color:'#C8A84B' }}>suporte@Fly2Win.pt</strong>
         </div>
       </div>
     </div>

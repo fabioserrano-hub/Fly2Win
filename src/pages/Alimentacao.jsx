@@ -226,7 +226,7 @@ function imprimirPlano(plano, produtos, nPombos) {
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px"><div><h1 style="font-size:18px;margin:0 0 4px">🕊️ ${plano.nome}</h1><p style="margin:0;font-size:12px;color:#64748b"><span class="badge">${ESP_LABEL[plano.especialidade]||plano.especialidade}</span> &nbsp;Prova ao ${DIAS_SEMANA.find(d=>d.key===plano.dia_prova)?.full} &nbsp;·&nbsp; ${nPombos} pombo(s)</p></div><button class="noprint" onclick="window.print()" style="padding:8px 18px;background:#1e3a5f;color:#fff;border:none;border-radius:8px;cursor:pointer">🖨️ Imprimir</button></div>
   <table><thead><tr><th style="border:1px solid #e2e8f0;padding:8px;background:#0f172a;color:#fff;font-size:10px;width:28px"></th><th style="border:1px solid #e2e8f0;padding:8px;background:#0f172a;color:#fff;font-size:10px">Campo</th>${hDias}</tr></thead><tbody>${linhas.join('')}</tbody></table>
   ${plano.obs?`<p style="margin-top:12px;font-size:11px;color:#64748b">📝 ${plano.obs}</p>`:''}
-  <p style="margin-top:14px;font-size:9px;color:#94a3b8">Gerado por ChampionsLoft · ${new Date().toLocaleDateString('pt-PT')}</p>
+  <p style="margin-top:14px;font-size:9px;color:#94a3b8">Gerado por Fly2Win · ${new Date().toLocaleDateString('pt-PT')}</p>
   <script>window.onload=()=>setTimeout(()=>window.print(),400)</script></body></html>`
   const w=window.open('','_blank'); w.document.write(html); w.document.close()
 }

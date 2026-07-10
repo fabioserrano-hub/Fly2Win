@@ -18,7 +18,7 @@ export default function PaginaSucesso() {
           Plano <strong style={{ color: '#fff' }}>{planoNomes[plano] || plano}</strong> activado com sucesso.
         </div>
         <div style={{ fontSize: 13, color: '#64748b', marginBottom: 32 }}>
-          Bem-vindo ao ChampionsLoft! A tua licença está activa.
+          Bem-vindo ao Fly2Win! A tua licença está activa.
         </div>
         <div style={{ background: '#141f2e', border: '1px solid rgba(30,217,138,.2)', borderRadius: 16, padding: 24, marginBottom: 24 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -31,7 +31,7 @@ export default function PaginaSucesso() {
         </div>
         <button onClick={() => window.location.href = '/'}
           style={{ width: '100%', padding: '14px', borderRadius: 12, border: 'none', background: '#1ed98a', color: '#0a0f14', fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-          🕊️ Entrar no ChampionsLoft
+          🕊️ Entrar no Fly2Win
         </button>
       </div>
     </div>

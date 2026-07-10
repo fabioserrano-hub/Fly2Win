@@ -170,7 +170,7 @@ function DetalhesParceiro({ p, onVoltar, toast }) {
         {/* Desconto destaque */}
         {p.desconto&&(
           <div style={{background:`${cor}10`,border:`1px solid ${cor}30`,borderRadius:10,padding:'12px 14px'}}>
-            <div style={{fontSize:12,fontWeight:700,color:cor,marginBottom:4}}>🎁 Desconto exclusivo ChampionsLoft</div>
+            <div style={{fontSize:12,fontWeight:700,color:cor,marginBottom:4}}>🎁 Desconto exclusivo Fly2Win</div>
             <div style={{fontSize:13,color:'#fff',marginBottom:8}}>{p.desconto}</div>
             {p.codigo&&(
               <div style={{display:'flex',gap:8,alignItems:'center'}}>
@@ -249,7 +249,7 @@ export default function Patrocinadores({ nav }) {
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
           <div>
             <div style={{fontSize:18,fontWeight:900,color:'#fff',fontFamily:"'Fraunces',serif"}}>🛍️ Parceiros</div>
-            <div style={{fontSize:11,color:'#7A8699',marginTop:2}}>Produtos e serviços exclusivos para utilizadores ChampionsLoft</div>
+            <div style={{fontSize:11,color:'#7A8699',marginTop:2}}>Produtos e serviços exclusivos para utilizadores Fly2Win</div>
           </div>
           <button className="btn btn-secondary btn-sm" onClick={()=>setModalSugerir(true)}>+ Sugerir parceiro</button>
         </div>
@@ -330,7 +330,7 @@ export default function Patrocinadores({ nav }) {
       {/* Tab: Descontos */}
       {tab==='descontos'&&(
         <div style={{display:'flex',flexDirection:'column',gap:8}}>
-          <div style={{fontSize:12,color:'#94a3b8',marginBottom:8}}>Códigos de desconto exclusivos para utilizadores ChampionsLoft</div>
+          <div style={{fontSize:12,color:'#94a3b8',marginBottom:8}}>Códigos de desconto exclusivos para utilizadores Fly2Win</div>
           {PARCEIROS.filter(p=>p.desconto).map(p=>{
             const cor=CAT_COR[p.cat]||'#4C8DFF'
             return (
@@ -398,7 +398,7 @@ export default function Patrocinadores({ nav }) {
       <Modal open={modalSugerir} onClose={()=>setModalSugerir(false)} title="+ Sugerir Parceiro"
         footer={<><button className="btn btn-secondary" onClick={()=>setModalSugerir(false)}>Cancelar</button><button className="btn btn-primary" onClick={()=>{toast('Sugestão enviada! Analisaremos em breve.','ok');setModalSugerir(false)}}>Enviar Sugestão</button></>}>
         <div style={{fontSize:12,color:'#94a3b8',marginBottom:14,lineHeight:1.6}}>
-          Conheces uma loja ou marca que deveria estar aqui? Sugere e a equipa ChampionsLoft irá analisar e contactar o parceiro.
+          Conheces uma loja ou marca que deveria estar aqui? Sugere e a equipa Fly2Win irá analisar e contactar o parceiro.
         </div>
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
           <Field label="Nome da loja/marca *"><input className="input" value={form.nome} onChange={e=>sf('nome',e.target.value)} placeholder="Ex: Colombo Shop"/></Field>

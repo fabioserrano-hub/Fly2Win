@@ -299,9 +299,9 @@ export default function Pedigree({ nav, params }) {
 
       doc.setFillColor(...GOLD); doc.rect(0,0,W,10,'F')
       doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(...NAVY)
-      doc.text(S('CHAMPIONSLOFT'), 8, 7)
+      doc.text(S('Fly2Win'), 8, 7)
       doc.setFontSize(6); doc.setFont('helvetica','normal')
-      doc.text(S('PEDIGREE PREMIUM  |  championsloft.app'), W-8, 7, {align:'right'})
+      doc.text(S('PEDIGREE PREMIUM  |  Fly2Win.app'), W-8, 7, {align:'right'})
 
       const HDR_H = 29
       doc.setFillColor(...NAVY); doc.rect(0,10,W,HDR_H,'F')
@@ -346,7 +346,7 @@ export default function Pedigree({ nav, params }) {
       doc.text(S(new Date().toLocaleDateString('pt-PT')), W-8, HY+13, {align:'right'})
       doc.setFontSize(5); doc.setFont('helvetica','normal'); doc.setTextColor(71,85,105)
       doc.text(S('Documento oficial'), W-8, HY+19, {align:'right'})
-      doc.text('ChampionsLoft (c) '+S(new Date().getFullYear()), W-8, HY+24, {align:'right'})
+      doc.text('Fly2Win (c) '+S(new Date().getFullYear()), W-8, HY+24, {align:'right'})
 
       const ORG_W = 207
       const PALM_X = 213
@@ -507,7 +507,7 @@ export default function Pedigree({ nav, params }) {
       doc.setFillColor(...NAVY); doc.rect(0,H-9,W,9,'F')
       doc.setFillColor(...GOLD); doc.rect(0,H-9,W,0.6,'F')
       doc.setFontSize(5); doc.setFont('helvetica','normal'); doc.setTextColor(150,165,200)
-      doc.text(S('Documento gerado pela ChampionsLoft - championsloft.app'), 8, H-3.5)
+      doc.text(S('Documento gerado pela Fly2Win - Fly2Win.app'), 8, H-3.5)
       doc.setTextColor(...GOLD)
       doc.text('(c) '+S(new Date().getFullYear())+' '+S(perfil?.nome), W-8, H-3.5, {align:'right'})
 
@@ -753,9 +753,9 @@ export default function Pedigree({ nav, params }) {
             <div style={{ background:`linear-gradient(90deg,${tema.primariaEscura},${tema.primaria},${tema.primariaEscura})`, padding:'5px 16px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
               <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                 <img src="/logo.png" alt="" style={{ height:24, objectFit:'contain' }} onError={e=>e.target.style.display='none'} />
-                <span style={{ fontSize:12, fontWeight:900, color:'#050D1A', letterSpacing:2, fontFamily:"'Fraunces',serif" }}>CHAMPIONSLOFT</span>
+                <span style={{ fontSize:12, fontWeight:900, color:'#050D1A', letterSpacing:2, fontFamily:"'Fraunces',serif" }}>Fly2Win</span>
               </div>
-              <span style={{ fontSize:9, color:'#050D1A', fontWeight:700 }}>PEDIGREE PREMIUM · championsloft.app</span>
+              <span style={{ fontSize:9, color:'#050D1A', fontWeight:700 }}>PEDIGREE PREMIUM · Fly2Win.app</span>
             </div>
             <div style={{ background:'linear-gradient(135deg,#050D1A,#0B1830)', padding:'14px 18px', display:'flex', gap:14, alignItems:'center', flexWrap:'wrap' }}>
               <div style={{ display:'flex', gap:10, flexShrink:0 }}>
@@ -782,7 +782,7 @@ export default function Pedigree({ nav, params }) {
                 <div style={{ fontSize:8, color:'#7A8699', textTransform:'uppercase', letterSpacing:1 }}>Data de emissão</div>
                 <div style={{ fontSize:13, fontWeight:700, color:'#fff' }}>{new Date().toLocaleDateString('pt-PT')}</div>
                 <div style={{ fontSize:8, color:'#475569', marginTop:4 }}>Documento oficial</div>
-                <div style={{ fontSize:8, color:'#475569' }}>ChampionsLoft © {new Date().getFullYear()}</div>
+                <div style={{ fontSize:8, color:'#475569' }}>Fly2Win © {new Date().getFullYear()}</div>
               </div>
             </div>
           </div>
@@ -880,7 +880,7 @@ export default function Pedigree({ nav, params }) {
 
           {/* Rodapé */}
           <div style={{ borderTop:'1px solid #1B2D52', paddingTop:10, display:'flex', justifyContent:'space-between', fontSize:10, color:'#475569', flexWrap:'wrap', gap:6 }}>
-            <span>Documento gerado pela ChampionsLoft · championsloft.app</span>
+            <span>Documento gerado pela Fly2Win · Fly2Win.app</span>
             <span>© {new Date().getFullYear()} {perfil?.nome || ''}</span>
           </div>
         </div>

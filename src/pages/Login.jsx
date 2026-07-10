@@ -87,7 +87,7 @@ export default function Login() {
       {/* Logo + tagline */}
       <div style={{ textAlign:'center', marginBottom:32, position:'relative' }}>
         <div style={{ margin:'0 auto 16px', textAlign:'center' }}>
-        <img src="/logo.png" alt="ChampionsLoft" style={{ width:350, height:'auto', objectFit:'contain', display:'block', margin:'0 auto' }} onError={e=>{ e.target.style.display='none'; e.target.insertAdjacentHTML('afterend','<div style="width:72px;height:72px;border-radius:16px;background:linear-gradient(140deg,#0A1A2E,#112036);border:1px solid rgba(200,168,75,.3);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto">🕊️</div>') }}/>
+        <img src="/logo.png" alt="Fly2Win" style={{ width:350, height:'auto', objectFit:'contain', display:'block', margin:'0 auto' }} onError={e=>{ e.target.style.display='none'; e.target.insertAdjacentHTML('afterend','<div style="width:72px;height:72px;border-radius:16px;background:linear-gradient(140deg,#0A1A2E,#112036);border:1px solid rgba(200,168,75,.3);display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto">🕊️</div>') }}/>
       </div>
 
 
@@ -195,17 +195,17 @@ export default function Login() {
       {/* Modais legais */}
       <ModalLegal open={showTermos} onClose={()=>setShowTermos(false)} title="📋 Termos de Utilização">
         <p><strong style={{ color:'#fff' }}>1. Aceitação dos Termos</strong></p>
-        <p>Ao utilizar o ChampionsLoft, o utilizador aceita os presentes Termos de Utilização na sua totalidade.</p>
+        <p>Ao utilizar o Fly2Win, o utilizador aceita os presentes Termos de Utilização na sua totalidade.</p>
         <p style={{ marginTop:12 }}><strong style={{ color:'#fff' }}>2. Descrição do Serviço</strong></p>
-        <p>O ChampionsLoft é uma plataforma de gestão columbófila que permite registar e gerir pombos, provas, saúde, reprodução e financeiro.</p>
+        <p>O Fly2Win é uma plataforma de gestão columbófila que permite registar e gerir pombos, provas, saúde, reprodução e financeiro.</p>
         <p style={{ marginTop:12 }}><strong style={{ color:'#fff' }}>3. Conta de Utilizador</strong></p>
         <p>O utilizador é responsável pela confidencialidade das suas credenciais e por todas as actividades realizadas na sua conta.</p>
         <p style={{ marginTop:12 }}><strong style={{ color:'#fff' }}>4. Dados e Privacidade</strong></p>
-        <p>Os dados introduzidos são armazenados de forma segura. O ChampionsLoft não partilha dados pessoais com terceiros sem consentimento expresso.</p>
+        <p>Os dados introduzidos são armazenados de forma segura. O Fly2Win não partilha dados pessoais com terceiros sem consentimento expresso.</p>
         <p style={{ marginTop:12 }}><strong style={{ color:'#fff' }}>5. Propriedade Intelectual</strong></p>
-        <p>Todo o software, design e conteúdo do ChampionsLoft são propriedade dos seus criadores e estão protegidos por direitos de autor.</p>
+        <p>Todo o software, design e conteúdo do Fly2Win são propriedade dos seus criadores e estão protegidos por direitos de autor.</p>
         <p style={{ marginTop:12 }}><strong style={{ color:'#fff' }}>6. Limitação de Responsabilidade</strong></p>
-        <p>O ChampionsLoft não se responsabiliza por perdas de dados resultantes de uso indevido ou falhas técnicas fora do controlo da plataforma.</p>
+        <p>O Fly2Win não se responsabiliza por perdas de dados resultantes de uso indevido ou falhas técnicas fora do controlo da plataforma.</p>
         <p style={{ marginTop:12, color:'#475569', fontSize:11 }}>Última actualização: Junho 2026</p>
       </ModalLegal>
 

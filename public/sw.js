@@ -1,4 +1,4 @@
-const CACHE = 'championsloft-v2'
+const CACHE = 'Fly2Win-v2'
 const STATIC = ['/','/?pwa=1','/manifest.json']
 
 // Instalar — cache dos estáticos
@@ -44,7 +44,7 @@ self.addEventListener('fetch', e => {
 self.addEventListener('push', e => {
   const data = e.data?.json() || {}
   e.waitUntil(
-    self.registration.showNotification(data.title || 'ChampionsLoft', {
+    self.registration.showNotification(data.title || 'Fly2Win', {
       body: data.body || '',
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-192.png',

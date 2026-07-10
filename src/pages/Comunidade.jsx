@@ -968,11 +968,11 @@ export default function Comunidade({ nav, params={} }) {
               ))}
             </div>
             {perfil?.bio&&<div style={{fontSize:11,color:'#94a3b8',marginTop:8,fontStyle:'italic'}}>"{perfil.bio}"</div>}
-            {perfil?.slug&&<div style={{fontSize:10,color:'#475569',textAlign:'right',marginTop:8}}>championsloft.app/p/{perfil.slug}</div>}
+            {perfil?.slug&&<div style={{fontSize:10,color:'#475569',textAlign:'right',marginTop:8}}>Fly2Win.app/p/{perfil.slug}</div>}
           </div>
         </div>
         <button className="btn btn-secondary" style={{width:'100%',marginTop:12}} onClick={()=>{
-          const txt=`${nome} — LoftSocial / Fly2Win\n🐦 ${pombos.filter(p=>!p.estado_ext||p.estado_ext==='proprio').length} pombos · 🏆 ${provas.length} provas\nchampionsloft.app/p/${perfil?.slug||''}`
+          const txt=`${nome} — LoftSocial / Fly2Win\n🐦 ${pombos.filter(p=>!p.estado_ext||p.estado_ext==='proprio').length} pombos · 🏆 ${provas.length} provas\nFly2Win.app/p/${perfil?.slug||''}`
           navigator.share?navigator.share({title:'LoftSocial',text:txt}).catch(e=>{if(e.name!=='AbortError')toast('Erro ao partilhar','err')}):navigator.clipboard?.writeText(txt).then(()=>toast('Copiado!','ok'))
         }}>🔗 Partilhar cartão</button>
       </Modal>

@@ -50,7 +50,7 @@ export default function Exportacao({ nav }) {
       if (!dados?.length) { toast('Sem dados para exportar','warn'); return }
       const csv = toCSV(dados)
       const data = new Date().toISOString().slice(0,10)
-      downloadCSV(csv, `championsloft-${modulo.id}-${data}.csv`)
+      downloadCSV(csv, `Fly2Win-${modulo.id}-${data}.csv`)
       toast(`${dados.length} registos exportados!`,'ok')
     } catch(e) { toast('Erro: '+e.message,'err') }
     finally { setExportando(e=>({...e,[modulo.id]:false})) }
@@ -62,7 +62,7 @@ export default function Exportacao({ nav }) {
       const data = new Date().toISOString().slice(0,10)
       for (const modulo of MODULOS) {
         const dados = await modulo.fn()
-        if (dados?.length) downloadCSV(toCSV(dados), `championsloft-${modulo.id}-${data}.csv`)
+        if (dados?.length) downloadCSV(toCSV(dados), `Fly2Win-${modulo.id}-${data}.csv`)
         await new Promise(r=>setTimeout(r,300)) // pequena pausa entre downloads
       }
       toast('Backup completo exportado!','ok')

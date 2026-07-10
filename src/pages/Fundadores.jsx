@@ -72,7 +72,7 @@ export default function Fundadores({ nav }) {
         <div style={{ fontSize:11, fontWeight:700, color:'#D4AF37', letterSpacing:'.15em', textTransform:'uppercase', marginBottom:8 }}>Oferta Limitada</div>
         <h1 style={{ fontFamily:"'Fraunces',serif", fontSize:'clamp(26px,5vw,40px)', fontWeight:900, lineHeight:1.1, marginBottom:12, color:'#fff' }}>
           🏅 Utilizador Fundador<br/>
-          <span style={{ background:'linear-gradient(135deg,#D4AF37,#B8960C)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>ChampionsLoft</span>
+          <span style={{ background:'linear-gradient(135deg,#D4AF37,#B8960C)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>Fly2Win</span>
         </h1>
         <p style={{ fontSize:14, color:'#94a3b8', lineHeight:1.7, marginBottom:20 }}>
           Faz parte dos primeiros {VAGAS_TOTAL} columbófilos que acreditam nesta plataforma. Garante o plano Elite AI pelo preço de hoje — para sempre.

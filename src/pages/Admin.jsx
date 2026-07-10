@@ -56,7 +56,7 @@ export default function Admin({ nav }) {
     <div style={{ textAlign:'center', padding:60 }}>
       <div style={{ fontSize:48, marginBottom:16 }}>🔒</div>
       <div style={{ fontSize:16, color:'#fff', fontWeight:600 }}>Acesso Restrito</div>
-      <div style={{ fontSize:13, color:'#7A8699', marginTop:8 }}>Apenas para administradores do ChampionsLoft</div>
+      <div style={{ fontSize:13, color:'#7A8699', marginTop:8 }}>Apenas para administradores do Fly2Win</div>
     </div>
   )
 
@@ -261,7 +261,7 @@ export default function Admin({ nav }) {
                       {p.verificado && <span style={{ marginLeft:6, fontSize:12, color:'#2DD4A7' }}>✅ {p.tipo_verificado}</span>}
                     </div>
                     {p.org && <div style={{ fontSize:11, color:'#7A8699' }}>{p.org}</div>}
-                    {p.slug && <div style={{ fontSize:10, color:'#475569' }}>championsloft.app/p/{p.slug}</div>}
+                    {p.slug && <div style={{ fontSize:10, color:'#475569' }}>Fly2Win.app/p/{p.slug}</div>}
                   </div>
                   <div style={{ display:'flex', gap:6, flexShrink:0 }}>
                     {!p.verificado ? (

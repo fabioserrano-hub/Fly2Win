@@ -440,7 +440,7 @@ function DetalheLiga({ liga, user, onVoltar, provas, toast }) {
         </button>
         {liga.invite_code && (
           <button className="btn btn-secondary btn-sm" onClick={() => {
-            navigator.clipboard?.writeText(`Entra na minha liga no ChampionsLoft! Código: ${liga.invite_code}`)
+            navigator.clipboard?.writeText(`Entra na minha liga no Fly2Win! Código: ${liga.invite_code}`)
             toast('Link copiado!','ok')
           }}>📋 Copiar convite</button>
         )}
@@ -645,7 +645,7 @@ export default function Ligas({ nav }) {
         ) : (
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
             <div style={{ padding:'10px 14px', background:'rgba(212,175,55,.06)', border:'1px solid rgba(212,175,55,.15)', borderRadius:8, fontSize:12, color:'#94a3b8' }}>
-              👑 As Ligas Oficiais ChampionsLoft são geridas pela plataforma. A tua classificação actualiza automaticamente quando registas provas com posição e nº de pombos preenchidos.
+              👑 As Ligas Oficiais Fly2Win são geridas pela plataforma. A tua classificação actualiza automaticamente quando registas provas com posição e nº de pombos preenchidos.
             </div>
             {oficiaisLigas.length === 0
               ? <EmptyState icon="👑" title="Em breve" desc="As Ligas Oficiais serão lançadas com a nova época"/>

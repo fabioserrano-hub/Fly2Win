@@ -201,7 +201,7 @@ export default function ImportacaoCSV({ nav }) {
           <div style={{ marginBottom:12, padding:'10px 14px', background:'rgba(45,212,167,.06)', border:'1px solid rgba(45,212,167,.15)', borderRadius:8, fontSize:12, color:'#2DD4A7' }}>
             ✅ {ficheiro?.name} · {parsed.rows.length} linhas detectadas · {parsed.headers.length} colunas
           </div>
-          <div style={{ fontWeight:600, color:'#fff', fontSize:13, marginBottom:10 }}>Mapear colunas do ficheiro → campos ChampionsLoft</div>
+          <div style={{ fontWeight:600, color:'#fff', fontSize:13, marginBottom:10 }}>Mapear colunas do ficheiro → campos Fly2Win</div>
           <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:14 }}>
             {colunasAlvo.map(col => (
               <div key={col} style={{ display:'flex', gap:10, alignItems:'center' }}>

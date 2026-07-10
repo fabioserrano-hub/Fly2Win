@@ -59,7 +59,7 @@ export default function Afiliados({ nav }) {
         <div style={{ position:'absolute', top:0, left:0, right:0, height:3, background:'linear-gradient(90deg,#B8960C,#D4AF37,#B8960C)' }} />
         <div style={{ fontSize:18, fontWeight:900, color:'#D4AF37', fontFamily:"'Fraunces',serif", marginBottom:6 }}>🤝 Programa de Afiliados</div>
         <div style={{ fontSize:13, color:'#94a3b8', lineHeight:1.7, marginBottom:16 }}>
-          Recomenda o ChampionsLoft a outros columbófilos e ganha <strong style={{ color:'#D4AF37' }}>15% de comissão</strong> em cada subscrição que originares.
+          Recomenda o Fly2Win a outros columbófilos e ganha <strong style={{ color:'#D4AF37' }}>15% de comissão</strong> em cada subscrição que originares.
         </div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8, marginBottom:20 }}>
           {[['15%','💰','Comissão por referido'],['30 dias','⏳','Cookie de rastreio'],['Mensal','📅','Pagamento']].map(([v,i,l])=>(
@@ -117,11 +117,11 @@ export default function Afiliados({ nav }) {
             📋 Copiar link
           </button>
           {navigator.share && (
-            <button className="btn btn-secondary btn-sm" onClick={() => navigator.share({ title:'ChampionsLoft', url:linkAfiliado, text:'Experimenta o ChampionsLoft — gestão columbófila premium!' })}>
+            <button className="btn btn-secondary btn-sm" onClick={() => navigator.share({ title:'Fly2Win', url:linkAfiliado, text:'Experimenta o Fly2Win — gestão columbófila premium!' })}>
               🔗 Partilhar
             </button>
           )}
-          <BotaoQR titulo="ChampionsLoft — Afiliado" conteudo={linkAfiliado} subtitulo={`Código: ${afiliado.codigo}`} />
+          <BotaoQR titulo="Fly2Win — Afiliado" conteudo={linkAfiliado} subtitulo={`Código: ${afiliado.codigo}`} />
         </div>
         <div style={{ marginTop:10, fontSize:11, color:'#475569' }}>Código: <strong style={{ color:'#94a3b8' }}>{afiliado.codigo}</strong> · Comissão: <strong style={{ color:'#D4AF37' }}>{afiliado.comissao_pct}%</strong></div>
       </div>
@@ -130,9 +130,9 @@ export default function Afiliados({ nav }) {
       <div className="card card-p" style={{ marginBottom:12 }}>
         <div style={{ fontSize:12, fontWeight:600, color:'#fff', marginBottom:10 }}>📣 Mensagens prontas para partilhar</div>
         {[
-          { label:'WhatsApp', msg:`🕊️ Descobri o ChampionsLoft — gestão columbófila como nunca viste! Pedigree, provas, IA, comunidade. Experimenta grátis 30 dias: ${linkAfiliado}` },
-          { label:'Facebook', msg:`🏆 Estou a usar o ChampionsLoft para gerir o meu pombal e é incrível! Pedigree PDF, análises IA, comunidade de columbófilos. Experimenta: ${linkAfiliado}` },
-          { label:'Email', msg:`Olá,\n\nRecomendo o ChampionsLoft para gestão columbófila. Tem tudo: pedigree, provas, reprodução, saúde, IA e muito mais.\n\nExperimenta grátis durante 30 dias: ${linkAfiliado}\n\nCumprimentos` },
+          { label:'WhatsApp', msg:`🕊️ Descobri o Fly2Win — gestão columbófila como nunca viste! Pedigree, provas, IA, comunidade. Experimenta grátis 30 dias: ${linkAfiliado}` },
+          { label:'Facebook', msg:`🏆 Estou a usar o Fly2Win para gerir o meu pombal e é incrível! Pedigree PDF, análises IA, comunidade de columbófilos. Experimenta: ${linkAfiliado}` },
+          { label:'Email', msg:`Olá,\n\nRecomendo o Fly2Win para gestão columbófila. Tem tudo: pedigree, provas, reprodução, saúde, IA e muito mais.\n\nExperimenta grátis durante 30 dias: ${linkAfiliado}\n\nCumprimentos` },
         ].map(({ label, msg }) => (
           <div key={label} style={{ marginBottom:8, padding:'8px 10px', background:'#070F1D', borderRadius:8 }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>

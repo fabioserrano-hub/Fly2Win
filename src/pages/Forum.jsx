@@ -17,10 +17,10 @@ const CATEGORIAS = [
 ]
 
 const TOPICOS_SEED = [
-  { categoria: 'alimentacao', titulo: 'Qual a melhor ração para época de provas?', autor_nome: 'Admin ChampionsLoft', conteudo: 'Partilhe a sua experiência com rações durante a época competitiva. Que marcas usa? Que resultados obteve?' },
-  { categoria: 'saude', titulo: 'Como prevenir o Paramyxovirus na época de treinos?', autor_nome: 'Admin ChampionsLoft', conteudo: 'A vacinação é obrigatória por lei, mas quando é o melhor momento para vacinar? Partilhe as suas práticas.' },
-  { categoria: 'provas', titulo: 'Dicas para o encestamento em provas de fundo', autor_nome: 'Admin ChampionsLoft', conteudo: 'Quantos dias antes? Que pombos seleccionar? Como preparar os pombos para provas de +500km?' },
-  { categoria: 'genetica', titulo: 'Linhas Janssen em Portugal — experiências', autor_nome: 'Admin ChampionsLoft', conteudo: 'Os Janssen são das linhas mais usadas em Portugal. Partilhe a sua experiência com esta linha genética.' },
+  { categoria: 'alimentacao', titulo: 'Qual a melhor ração para época de provas?', autor_nome: 'Admin Fly2Win', conteudo: 'Partilhe a sua experiência com rações durante a época competitiva. Que marcas usa? Que resultados obteve?' },
+  { categoria: 'saude', titulo: 'Como prevenir o Paramyxovirus na época de treinos?', autor_nome: 'Admin Fly2Win', conteudo: 'A vacinação é obrigatória por lei, mas quando é o melhor momento para vacinar? Partilhe as suas práticas.' },
+  { categoria: 'provas', titulo: 'Dicas para o encestamento em provas de fundo', autor_nome: 'Admin Fly2Win', conteudo: 'Quantos dias antes? Que pombos seleccionar? Como preparar os pombos para provas de +500km?' },
+  { categoria: 'genetica', titulo: 'Linhas Janssen em Portugal — experiências', autor_nome: 'Admin Fly2Win', conteudo: 'Os Janssen são das linhas mais usadas em Portugal. Partilhe a sua experiência com esta linha genética.' },
 ]
 
 function TempoAtras({ ts }) {
@@ -127,7 +127,7 @@ export default function Forum({ nav }) {
     <div>
       <GuiaAuto modulo="comunidade"/>
       <div className="section-header">
-        <div><div className="section-title">💬 Fórum</div><div className="section-sub">Comunidade ChampionsLoft</div></div>
+        <div><div className="section-title">💬 Fórum</div><div className="section-sub">Comunidade Fly2Win</div></div>
         <BotaoGuia modulo="comunidade"/> <button className="btn btn-primary" onClick={() => setModalNovo(true)}>＋ Novo Tópico</button>
       </div>
 

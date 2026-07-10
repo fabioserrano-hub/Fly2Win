@@ -271,7 +271,7 @@ export default function Leiloes({ nav }) {
   const partilharWA = (l, e) => {
     e?.stopPropagation()
     const isDesc=l.subtipo==='descendente'
-    const texto=`🔨 Leilão ChampionsLoft\n\n${isDesc?'🥚':'🐦'} *${l.nome}*${l.anilha?`\n🏷️ ${l.anilha}`:''}\n${l.provas>0?`\n🏆 ${l.provas} provas · ${l.percentil}% percentil`:''}\n${isDesc&&l.data_acasalamento_prev?`\n📅 Acasalamento previsto: ${new Date(l.data_acasalamento_prev).toLocaleDateString('pt-PT')}`:''}\n\n💰 Lance actual: *${(l.leilao_atual||l.leilao_min||0).toFixed(0)}€*\n⏱️ Termina: ${new Date(l.leilao_fim).toLocaleDateString('pt-PT')}\n\n👉 Ver em ChampionsLoft`
+    const texto=`🔨 Leilão Fly2Win\n\n${isDesc?'🥚':'🐦'} *${l.nome}*${l.anilha?`\n🏷️ ${l.anilha}`:''}\n${l.provas>0?`\n🏆 ${l.provas} provas · ${l.percentil}% percentil`:''}\n${isDesc&&l.data_acasalamento_prev?`\n📅 Acasalamento previsto: ${new Date(l.data_acasalamento_prev).toLocaleDateString('pt-PT')}`:''}\n\n💰 Lance actual: *${(l.leilao_atual||l.leilao_min||0).toFixed(0)}€*\n⏱️ Termina: ${new Date(l.leilao_fim).toLocaleDateString('pt-PT')}\n\n👉 Ver em Fly2Win`
     window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`,'_blank')
   }
 
@@ -538,7 +538,7 @@ export default function Leiloes({ nav }) {
 
       {loading?<div style={{display:'flex',justifyContent:'center',padding:40}}><Spinner lg/></div>:(
         <>
-          {tab==='ativos'&&(leiloesFiltrados.length===0?<EmptyState icon="🔨" title="Sem leilões activos" desc="Sê o primeiro a leiloar um pombo ChampionsLoft!" action={<button className="btn btn-primary" onClick={()=>setModal(true)}>🔨 Criar leilão</button>}/>:<div style={{display:'flex',flexDirection:'column',gap:10}}>{leiloesFiltrados.map(l=>renderCard(l))}</div>)}
+          {tab==='ativos'&&(leiloesFiltrados.length===0?<EmptyState icon="🔨" title="Sem leilões activos" desc="Sê o primeiro a leiloar um pombo Fly2Win!" action={<button className="btn btn-primary" onClick={()=>setModal(true)}>🔨 Criar leilão</button>}/>:<div style={{display:'flex',flexDirection:'column',gap:10}}>{leiloesFiltrados.map(l=>renderCard(l))}</div>)}
           {tab==='favoritos'&&(leiloesFavoritos.length===0?<EmptyState icon="⭐" title="Sem favoritos" desc="Toca em ☆ num leilão para o seguir"/>:<div style={{display:'flex',flexDirection:'column',gap:10}}>{leiloesFavoritos.map(l=>renderCard(l))}</div>)}
           {tab==='meus'&&(meusLeiloes.length===0?<EmptyState icon="🔨" title="Sem leilões" desc="Cria o teu primeiro leilão" action={<button className="btn btn-primary" onClick={()=>setModal(true)}>+ Leiloar</button>}/>:<div style={{display:'flex',flexDirection:'column',gap:10}}>{meusLeiloes.map(l=>renderCard(l,new Date(l.leilao_fim)<=new Date()))}</div>)}
           {tab==='encerrados'&&(encerrados.length===0?<EmptyState icon="⏰" title="Sem leilões encerrados" desc="Os leilões terminados aparecerão aqui"/>:<div style={{display:'flex',flexDirection:'column',gap:10}}>{encerrados.map(l=>renderCard(l,true))}</div>)}

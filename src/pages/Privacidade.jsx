@@ -2,9 +2,9 @@ import { useState } from 'react'
 
 const SECCOES = [
   { id:'1', titulo:'1. Responsável pelo Tratamento',
-    corpo:`ChampionsLoft — Fábio André da Conceição Serrano
-Email: suporte@championsloft.pt
-Plataforma: championsloft.pt
+    corpo:`Fly2Win — Fábio André da Conceição Serrano
+Email: suporte@Fly2Win.pt
+Plataforma: Fly2Win.pt
 
 Nos termos do Regulamento Geral sobre a Protecção de Dados (RGPD — Regulamento (UE) 2016/679), somos o responsável pelo tratamento dos seus dados pessoais.` },
 
@@ -36,7 +36,7 @@ DADOS DE LOCALIZAÇÃO (opcionais)
 
   { id:'3', titulo:'3. Finalidades e Base Legal do Tratamento',
     corpo:`EXECUÇÃO DO CONTRATO (Art. 6.º, n.º 1, al. b) RGPD)
-• Prestação do serviço ChampionsLoft
+• Prestação do serviço Fly2Win
 • Processamento de pagamentos e gestão de subscrições
 • Suporte ao utilizador
 
@@ -103,7 +103,7 @@ Pode solicitar a eliminação antecipada dos seus dados a qualquer momento (exce
 
 ✦ DIREITO DE RETIRAR CONSENTIMENTO — Pode retirar qualquer consentimento dado, sem afectar a licitude do tratamento anterior
 
-Para exercer os seus direitos: suporte@championsloft.pt
+Para exercer os seus direitos: suporte@Fly2Win.pt
 Prazo de resposta: 30 dias úteis
 
 Tem também o direito de apresentar reclamação à autoridade de controlo:
@@ -137,11 +137,11 @@ NÃO utilizamos cookies de rastreamento, publicidade ou analytics de terceiros.
 A plataforma não utiliza Google Analytics, Facebook Pixel ou ferramentas similares de rastreamento.` },
 
   { id:'10', titulo:'10. Menores de Idade',
-    corpo:`O ChampionsLoft não se destina a utilizadores com menos de 16 anos de idade.
+    corpo:`O Fly2Win não se destina a utilizadores com menos de 16 anos de idade.
 
 Não recolhemos intencionalmente dados pessoais de menores. Se tomarmos conhecimento de que recolhemos dados de um menor, procederemos à sua eliminação imediata.
 
-Se for pai/tutor e tiver conhecimento de que o seu filho forneceu dados pessoais, contacte-nos em suporte@championsloft.pt.` },
+Se for pai/tutor e tiver conhecimento de que o seu filho forneceu dados pessoais, contacte-nos em suporte@Fly2Win.pt.` },
 
   { id:'11', titulo:'11. Alterações a Esta Política',
     corpo:`Podemos actualizar esta Política de Privacidade periodicamente. Alterações significativas serão comunicadas por email com 30 dias de antecedência.
@@ -164,7 +164,7 @@ export default function Privacidade({ onVoltar }) {
           <div>
             <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4 }}>
               <span style={{ fontSize:20 }}>🕊️</span>
-              <span style={{ fontFamily:"'Fraunces',serif", fontSize:15, fontWeight:900, color:'#C8A84B' }}>ChampionsLoft</span>
+              <span style={{ fontFamily:"'Fraunces',serif", fontSize:15, fontWeight:900, color:'#C8A84B' }}>Fly2Win</span>
             </div>
             <h1 style={{ fontFamily:"'Fraunces',serif", fontSize:'clamp(24px,4vw,36px)', fontWeight:900, margin:0, lineHeight:1.1 }}>Política de Privacidade & RGPD</h1>
             <div style={{ fontSize:12, color:'#445566', marginTop:4 }}>Última actualização: Junho de 2026</div>
@@ -206,7 +206,7 @@ export default function Privacidade({ onVoltar }) {
             {[
               { icon:'📤', label:'Exportar dados', desc:'Definições → Exportar' },
               { icon:'🗑️', label:'Eliminar conta', desc:'Definições → Conta → Eliminar' },
-              { icon:'✉️', label:'Contacto DPO', desc:'suporte@championsloft.pt' },
+              { icon:'✉️', label:'Contacto DPO', desc:'suporte@Fly2Win.pt' },
               { icon:'🏛️', label:'CNPD', desc:'www.cnpd.pt' },
             ].map(({icon,label,desc})=>(
               <div key={label} style={{ background:'rgba(255,255,255,.03)', borderRadius:8, padding:'12px', display:'flex', gap:10, alignItems:'center' }}>
@@ -221,7 +221,7 @@ export default function Privacidade({ onVoltar }) {
         </div>
 
         <div style={{ marginTop:20, fontSize:12, color:'#445566', textAlign:'center' }}>
-          Questões sobre privacidade? <strong style={{ color:'#C8A84B' }}>suporte@championsloft.pt</strong> — Respondemos em até 30 dias úteis
+          Questões sobre privacidade? <strong style={{ color:'#C8A84B' }}>suporte@Fly2Win.pt</strong> — Respondemos em até 30 dias úteis
         </div>
       </div>
     </div>

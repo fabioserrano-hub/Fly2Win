@@ -41,7 +41,7 @@ export default async function handler(req) {
     // Quantidade: usa a do payload se enviada, senão a default do plano
     const qty = quantidade || cfg.quantity
 
-    const origin = req.headers.get('origin') || 'https://championsloft.pt'
+    const origin = req.headers.get('origin') || 'https://Fly2Win.pt'
 
     const params = new URLSearchParams({
       'mode': 'subscription',

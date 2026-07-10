@@ -47,7 +47,7 @@ export default function PerfilPublico({ nav, params }) {
         <div style={{ fontFamily:"'Fraunces',serif", fontSize:24, color:'#fff', marginBottom:8 }}>Perfil não encontrado</div>
         <div style={{ color:'#7A8699', marginBottom:20 }}>Este link pode ter expirado ou o perfil não é público.</div>
         <button onClick={() => window.location.href='/'} style={{ background:'#1E5FD9', border:'none', color:'#fff', padding:'10px 24px', borderRadius:8, cursor:'pointer', fontFamily:'inherit' }}>
-          Conhecer o ChampionsLoft
+          Conhecer o Fly2Win
         </button>
       </div>
     </div>
@@ -168,7 +168,7 @@ export default function PerfilPublico({ nav, params }) {
                 texto={textoCartaoVisita(perfil, { total:pombos.length, provas:provas.length, mediaPercentil })}
                 label="Partilhar perfil"
               />
-              <BotaoQR titulo={perfil.nome} conteudo={window.location.href} subtitulo="Perfil ChampionsLoft" />
+              <BotaoQR titulo={perfil.nome} conteudo={window.location.href} subtitulo="Perfil Fly2Win" />
             </div>
           </div>
         )}
@@ -235,7 +235,7 @@ export default function PerfilPublico({ nav, params }) {
           <div style={{ fontFamily:"'Fraunces',serif", fontSize:16, fontWeight:700, color:'#fff', marginBottom:6 }}>Gestão columbófila premium</div>
           <div style={{ fontSize:12, color:'#7A8699', marginBottom:14 }}>Pedigree, provas, IA, comunidade — tudo integrado.<br/>30 dias grátis, sem cartão.</div>
           <button onClick={() => window.location.href='/'} style={{ background:'linear-gradient(135deg,#D4AF37,#B8960C)', border:'none', color:'#050D1A', padding:'12px 28px', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:800, fontFamily:'inherit' }}>
-            🕊️ Experimentar o ChampionsLoft
+            🕊️ Experimentar o Fly2Win
           </button>
         </div>
       </div>

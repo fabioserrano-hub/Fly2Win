@@ -30,15 +30,15 @@ export default function Partilha({ nav }) {
 
   const copiarTexto = () => {
     if (!stats) return
-    const txt = `🏆 Época ${stats.ano} — ChampionsLoft\n\n🐦 ${stats.nPombos} pombos activos\n📊 ${stats.nProvas} provas realizadas\n${stats.top ? `⭐ Destaque: ${stats.top.nome} · ${stats.top.percentil}% percentil\n` : ''}🚀 Gestão columbófila profissional\n\n#ChampionsLoft #Columbofilia #PombosCorreio`
+    const txt = `🏆 Época ${stats.ano} — Fly2Win\n\n🐦 ${stats.nPombos} pombos activos\n📊 ${stats.nProvas} provas realizadas\n${stats.top ? `⭐ Destaque: ${stats.top.nome} · ${stats.top.percentil}% percentil\n` : ''}🚀 Gestão columbófila profissional\n\n#Fly2Win #Columbofilia #PombosCorreio`
     navigator.clipboard?.writeText(txt).then(() => toast('Texto copiado!', 'ok')).catch(() => toast('Copie o texto manualmente', 'warn'))
   }
 
   const partilharNativo = () => {
     if (!stats) return
-    const txt = `🏆 Época ${stats.ano} — ChampionsLoft\n🐦 ${stats.nPombos} pombos · ${stats.nProvas} provas${stats.top ? ` · ⭐ ${stats.top.nome} ${stats.top.percentil}%` : ''}`
+    const txt = `🏆 Época ${stats.ano} — Fly2Win\n🐦 ${stats.nPombos} pombos · ${stats.nProvas} provas${stats.top ? ` · ⭐ ${stats.top.nome} ${stats.top.percentil}%` : ''}`
     if (navigator.share) {
-      navigator.share({ title: 'ChampionsLoft', text: txt, url: 'https://championsloft.app' }).catch(() => {})
+      navigator.share({ title: 'Fly2Win', text: txt, url: 'https://Fly2Win.app' }).catch(() => {})
     } else {
       copiarTexto()
     }
@@ -122,8 +122,8 @@ export default function Partilha({ nav }) {
 
         {/* Rodapé */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-          <div style={{ fontSize:10, color:c.sub }}>championsloft.app</div>
-          <div style={{ fontSize:10, color:c.sub }}>#ChampionsLoft #Columbofilia</div>
+          <div style={{ fontSize:10, color:c.sub }}>Fly2Win.app</div>
+          <div style={{ fontSize:10, color:c.sub }}>#Fly2Win #Columbofilia</div>
         </div>
       </div>
 

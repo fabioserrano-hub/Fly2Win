@@ -16,7 +16,7 @@ export function partilharNativo(titulo, texto, url = window.location.origin) {
 
 // Textos pré-formatados para cada contexto
 export function textoPartilhaPombo(pombo, perfil) {
-  const criador = perfil?.nome || 'ChampionsLoft'
+  const criador = perfil?.nome || 'Fly2Win'
   const anilha = pombo.anilha ? `🏷️ ${pombo.anilha}` : ''
   const stats = pombo.provas > 0 ? `📊 ${pombo.provas} provas · Percentil ${pombo.percentil || 0}%` : ''
   return `🕊️ *${pombo.nome}*
@@ -24,7 +24,7 @@ ${anilha}
 ${pombo.cor ? `🎨 ${pombo.cor}` : ''} ${pombo.sexo === 'M' ? '♂' : '♀'}
 ${stats}
 
-Criado por *${criador}* via ChampionsLoft
+Criado por *${criador}* via Fly2Win
 🔗 ${window.location.origin}/p/${perfil?.slug || ''}`
 }
 
@@ -39,7 +39,7 @@ ${pos}
 ${perc}
 
 🏠 ${perfil?.pombal_nome || 'Pombal'} · ${perfil?.nome || ''}
-Gestão via *ChampionsLoft* 🇵🇹
+Gestão via *Fly2Win* 🇵🇹
 🔗 ${window.location.origin}`
 }
 
@@ -51,7 +51,7 @@ export function textoPartilhaPedigree(pombo, perfil) {
 📊 ${pombo.provas || 0} provas · Percentil ${pombo.percentil || 0}%
 
 Criador: *${perfil?.nome || ''}*
-📜 Pedigree verificado via ChampionsLoft
+📜 Pedigree verificado via Fly2Win
 🔗 ${window.location.origin}/p/${perfil?.slug || ''}#pedigree`
 }
 
@@ -62,7 +62,7 @@ export function textoCartaoVisita(perfil, stats) {
 📊 ${stats?.total || 0} pombos · ${stats?.provas || 0} provas
 🏆 Percentil médio: ${stats?.mediaPercentil || 0}%
 
-*ChampionsLoft* — Gestão Columbófila Premium
+*Fly2Win* — Gestão Columbófila Premium
 🔗 ${window.location.origin}/p/${perfil?.slug || ''}`
 }
 
@@ -74,14 +74,14 @@ Estou em *${posicao}º lugar* com ${pontos} pontos!
 Junta-te à liga → Código: *${liga.invite_code}*
 🔗 ${window.location.origin}
 
-Gestão via *ChampionsLoft* 🇵🇹`
+Gestão via *Fly2Win* 🇵🇹`
 }
 
 // Botão de partilha reutilizável
 export function BotaoPartilha({ texto, titulo = 'Partilhar', size = 'sm', style = {} }) {
   const handleClick = () => {
     if (navigator.share) {
-      navigator.share({ title: 'ChampionsLoft', text: texto, url: window.location.origin }).catch(() => partilharWhatsApp(texto))
+      navigator.share({ title: 'Fly2Win', text: texto, url: window.location.origin }).catch(() => partilharWhatsApp(texto))
     } else {
       partilharWhatsApp(texto)
     }

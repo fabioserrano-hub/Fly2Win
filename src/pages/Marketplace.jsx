@@ -240,7 +240,7 @@ export default function Marketplace({ nav }) {
             <div style={{ fontSize:13, color:'#94a3b8', marginBottom:16 }}>Vendedor: <strong style={{ color:'#fff' }}>{modalContacto.autor_nome}</strong></div>
             <div style={{ display:'flex', gap:8, justifyContent:'center' }}>
               <button className="btn btn-primary" onClick={()=>{
-                const txt = `Olá ${modalContacto.autor_nome}, tenho interesse no ${modalContacto.nome} (${modalContacto.anilha}) anunciado no ChampionsLoft por ${modalContacto.preco}€.`
+                const txt = `Olá ${modalContacto.autor_nome}, tenho interesse no ${modalContacto.nome} (${modalContacto.anilha}) anunciado no Fly2Win por ${modalContacto.preco}€.`
                 navigator.share ? navigator.share({ text:txt }) : navigator.clipboard?.writeText(txt).then(()=>toast('Contacto copiado!','ok'))
                 setModalContacto(null)
               }}>🔗 Copiar mensagem</button>

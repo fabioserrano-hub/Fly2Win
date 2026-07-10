@@ -644,7 +644,7 @@ export default function Pombos({ nav, params }) {
                 </div>
                 <div>
                   {pomboPartilha.pombal&&<div style={{ fontSize:11, color:'#7A8699', marginTop:10 }}>🏠 {pomboPartilha.pombal}</div>}
-                  <div style={{ fontSize:9, color:'#334155', marginTop:4, fontFamily:"'Space Mono',monospace" }}>championsloft.pt</div>
+                  <div style={{ fontSize:9, color:'#334155', marginTop:4, fontFamily:"'Space Mono',monospace" }}>Fly2Win.pt</div>
                 </div>
               </div>
             </div>
