@@ -257,6 +257,7 @@ export default function Comunidade({ nav, params={} }) {
   const [pombos, setPombos]   = useState([])
   const [provas, setProvas]   = useState([])
   const [acasalamentos, setAcasalamentos] = useState([])
+  const [treinos, setTreinos]             = useState([])
   const [myLikes, setMyLikes] = useState(new Set())
   const [following, setFollowing] = useState(new Set())
   const [perfil, setPerfil]   = useState(null)
@@ -267,7 +268,7 @@ export default function Comunidade({ nav, params={} }) {
   const [mensagensCtx, setMensagensCtx] = useState([])
 
   const [modalPost, setModalPost]   = useState(false)
-  const [formPost, setFormPost]     = useState({ tipo:'Geral', conteudo:'', hashtags:'', video_url:'', foto_url:'', sondagem:false, sondagem_pergunta:'', sondagem_opcoes:['',''] })
+  const [formPost, setFormPost]     = useState({ tipo:'Geral', conteudo:'', hashtags:'', video_url:'', foto_url:'', card_data:null, sondagem:false, sondagem_pergunta:'', sondagem_opcoes:['',''] })
   const [savingPost, setSavingPost] = useState(false)
   const [reacaoAberta, setReacaoAberta] = useState(null)
   const [modalComments, setModalComments] = useState(null)
@@ -307,9 +308,10 @@ export default function Comunidade({ nav, params={} }) {
         db.getExplorar().catch(()=>[]),
       ])
       const pb=await db.getPombos().catch(()=>[])
+      const tr=await db.getTreinos().catch(()=>[])
       setPosts(ps); setPerfil(pf); setProvas(pv); setAcasalamentos(ac)
       setMyLikes(lk); setFollowing(fw); setNotifs(nt); setRanking(rk)
-      setExplorar(ex); setPombos(pb)
+      setExplorar(ex); setPombos(pb); setTreinos(tr)
       setOffset(20); setHasMore(ps.length===20)
       setMensagensCtx(gerarMensagensContextuais({pombos:pb,provas:pv,acasalamentos:ac}))
     } catch(e){toast('Erro: '+e.message,'err')}
@@ -354,8 +356,8 @@ export default function Comunidade({ nav, params={} }) {
       const sondagem_pergunta=formPost.sondagem&&formPost.sondagem_pergunta.trim()?formPost.sondagem_pergunta.trim():null
       const sondagem_opcoes=sondagem_pergunta&&opcoesFiltradas.length>=2?opcoesFiltradas:null
       const sondagem_votos=sondagem_opcoes?Object.fromEntries(sondagem_opcoes.map(o=>[o,0])):null
-      await db.createPost({autor_nome:nome,autor_avatar:perfil?.foto_perfil_url||'',autor_username:user?.email?.split('@')[0]||'user',tipo:formPost.tipo,conteudo,video_url,foto_url:formPost.foto_url||null,sondagem_pergunta,sondagem_opcoes,sondagem_votos,likes_count:0,comments_count:0})
-      toast('Publicado!','ok');setModalPost(false);setFormPost({tipo:'Geral',conteudo:'',hashtags:'',video_url:'',sondagem:false,sondagem_pergunta:'',sondagem_opcoes:['','']});load()
+      await db.createPost({autor_nome:nome,autor_avatar:perfil?.foto_perfil_url||'',autor_username:user?.email?.split('@')[0]||'user',tipo:formPost.tipo,conteudo,video_url,foto_url:formPost.foto_url||null,card_data:formPost.card_data||null,sondagem_pergunta,sondagem_opcoes,sondagem_votos,likes_count:0,comments_count:0})
+      toast('Publicado!','ok');setModalPost(false);setFormPost({tipo:'Geral',conteudo:'',hashtags:'',video_url:'',card_data:null,sondagem:false,sondagem_pergunta:'',sondagem_opcoes:['','']});load()
     }catch(e){toast('Erro: '+e.message,'err')}finally{setSavingPost(false)}
   }
 
@@ -471,6 +473,92 @@ export default function Comunidade({ nav, params={} }) {
               <span style={{fontSize:10,background:`${cor}18`,color:cor,padding:'1px 8px',borderRadius:10,fontWeight:600}}>{tipoIcon[post.tipo]} {post.tipo}</span>
             </div>
           </div>
+          {post.card_data&&(()=>{
+            const cd=post.card_data
+            if(cd.tipo==='pombo') return (
+              <div style={{marginBottom:12,borderRadius:12,overflow:'hidden',border:'1px solid rgba(212,175,55,.25)',background:'linear-gradient(135deg,#050D1A,#0B1830)'}}>
+                {cd.foto_url&&<img src={cd.foto_url} alt="" style={{width:'100%',height:140,objectFit:'cover',display:'block'}}/>}
+                <div style={{padding:'10px 12px'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:6}}>
+                    <div>
+                      <div style={{fontSize:14,fontWeight:800,color:'#fff'}}>{cd.nome}</div>
+                      <div style={{fontSize:11,color:'#7A8699'}}>{cd.anilha} · {cd.sexo==='M'?'♂':'♀'} · {cd.cor}</div>
+                    </div>
+                    {cd.percentil&&<div style={{textAlign:'right'}}>
+                      <div style={{fontSize:18,fontWeight:900,color:'#D4AF37'}}>{cd.percentil}%</div>
+                      <div style={{fontSize:9,color:'#7A8699'}}>PERCENTIL</div>
+                    </div>}
+                  </div>
+                  <div style={{display:'flex',gap:8}}>
+                    {cd.forma&&<div style={{flex:1,background:'rgba(45,212,167,.1)',borderRadius:6,padding:'4px 8px',textAlign:'center'}}>
+                      <div style={{fontSize:13,fontWeight:700,color:'#2DD4A7'}}>{cd.forma}%</div>
+                      <div style={{fontSize:9,color:'#7A8699'}}>FORMA</div>
+                    </div>}
+                    {cd.provas&&<div style={{flex:1,background:'rgba(76,141,255,.1)',borderRadius:6,padding:'4px 8px',textAlign:'center'}}>
+                      <div style={{fontSize:13,fontWeight:700,color:'#4C8DFF'}}>{cd.provas}</div>
+                      <div style={{fontSize:9,color:'#7A8699'}}>PROVAS</div>
+                    </div>}
+                    {cd.esp?.length>0&&<div style={{flex:1,background:'rgba(212,175,55,.1)',borderRadius:6,padding:'4px 8px',textAlign:'center'}}>
+                      <div style={{fontSize:11,fontWeight:700,color:'#D4AF37'}}>{cd.esp[0]}</div>
+                      <div style={{fontSize:9,color:'#7A8699'}}>ESP.</div>
+                    </div>}
+                  </div>
+                </div>
+              </div>
+            )
+            if(cd.tipo==='prova') return (
+              <div style={{marginBottom:12,borderRadius:12,border:'1px solid rgba(212,175,55,.25)',background:'linear-gradient(135deg,#050D1A,#0B1830)',padding:'12px 14px'}}>
+                <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
+                  <div style={{fontSize:36}}>{cd.lugar===1?'🥇':cd.lugar===2?'🥈':cd.lugar===3?'🥉':'🏅'}</div>
+                  <div>
+                    <div style={{fontSize:16,fontWeight:900,color:'#D4AF37'}}>{cd.lugar}º lugar{cd.total?' de '+cd.total:''}</div>
+                    <div style={{fontSize:11,color:'#7A8699'}}>{cd.local_largada}{cd.data?' · '+cd.data:''}</div>
+                  </div>
+                </div>
+                <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                  {cd.distancia&&<span style={{fontSize:11,padding:'3px 8px',background:'rgba(76,141,255,.12)',border:'1px solid rgba(76,141,255,.2)',borderRadius:6,color:'#4C8DFF'}}>📏 {cd.distancia}km</span>}
+                  {cd.velocidade&&<span style={{fontSize:11,padding:'3px 8px',background:'rgba(45,212,167,.12)',border:'1px solid rgba(45,212,167,.2)',borderRadius:6,color:'#2DD4A7'}}>⚡ {cd.velocidade}m/min</span>}
+                  {cd.percentil&&<span style={{fontSize:11,padding:'3px 8px',background:'rgba(212,175,55,.12)',border:'1px solid rgba(212,175,55,.2)',borderRadius:6,color:'#D4AF37'}}>📊 {cd.percentil}%</span>}
+                  {cd.pombo_nome&&<span style={{fontSize:11,padding:'3px 8px',background:'rgba(255,255,255,.05)',border:'1px solid rgba(255,255,255,.1)',borderRadius:6,color:'#cbd5e1'}}>🕊️ {cd.pombo_nome}</span>}
+                </div>
+              </div>
+            )
+            if(cd.tipo==='treino') return (
+              <div style={{marginBottom:12,borderRadius:12,border:'1px solid rgba(45,212,167,.2)',background:'linear-gradient(135deg,#050D1A,#0B1830)',padding:'12px 14px'}}>
+                <div style={{fontSize:13,fontWeight:700,color:'#2DD4A7',marginBottom:6}}>🎯 Treino · {cd.data}</div>
+                <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                  {cd.distancia&&<span style={{fontSize:11,padding:'3px 8px',background:'rgba(45,212,167,.1)',borderRadius:6,color:'#2DD4A7'}}>📏 {cd.distancia}km</span>}
+                  {cd.local&&<span style={{fontSize:11,padding:'3px 8px',background:'rgba(255,255,255,.05)',borderRadius:6,color:'#cbd5e1'}}>📍 {cd.local}</span>}
+                  {cd.pombos&&<span style={{fontSize:11,padding:'3px 8px',background:'rgba(76,141,255,.1)',borderRadius:6,color:'#4C8DFF'}}>🐦 {cd.pombos} pombos</span>}
+                </div>
+              </div>
+            )
+            if(cd.tipo==='reproducao') return (
+              <div style={{marginBottom:12,borderRadius:12,border:'1px solid rgba(192,132,252,.2)',background:'linear-gradient(135deg,#050D1A,#0B1830)',padding:'12px 14px'}}>
+                <div style={{fontSize:13,fontWeight:700,color:'#c084fc',marginBottom:8}}>🥚 Reprodução</div>
+                <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                  <div style={{flex:1,textAlign:'center'}}>
+                    <div style={{fontSize:11,color:'#7A8699'}}>♂ MACHO</div>
+                    <div style={{fontSize:12,fontWeight:700,color:'#fff'}}>{cd.macho}</div>
+                  </div>
+                  <div style={{fontSize:18}}>💕</div>
+                  <div style={{flex:1,textAlign:'center'}}>
+                    <div style={{fontSize:11,color:'#7A8699'}}>♀ FÊMEA</div>
+                    <div style={{fontSize:12,fontWeight:700,color:'#fff'}}>{cd.femea}</div>
+                  </div>
+                </div>
+                {cd.ovos&&<div style={{marginTop:8,fontSize:11,color:'#c084fc',textAlign:'center'}}>🥚 {cd.ovos} ovos · {cd.eclosoes||0} eclosões · {cd.desmamados||0} desmamados</div>}
+              </div>
+            )
+            if(cd.tipo==='conquista') return (
+              <div style={{marginBottom:12,borderRadius:12,border:'1px solid rgba(212,175,55,.3)',background:'linear-gradient(135deg,#050D1A,#0B1830)',padding:'14px',textAlign:'center'}}>
+                <div style={{fontSize:40,marginBottom:6}}>{cd.icone}</div>
+                <div style={{fontSize:15,fontWeight:900,color:'#D4AF37',marginBottom:2}}>{cd.nome}</div>
+                <div style={{fontSize:11,color:'#7A8699'}}>{cd.desc}</div>
+              </div>
+            )
+            return null
+          })()}
           {post.foto_url&&(
             <div style={{marginBottom:12,borderRadius:10,overflow:'hidden',border:'1px solid rgba(255,255,255,.08)'}}>
               <img src={post.foto_url} alt="" style={{width:'100%',maxHeight:280,objectFit:'cover',display:'block'}}
@@ -990,67 +1078,130 @@ export default function Comunidade({ nav, params={} }) {
       </Modal>
 
       {/* ── Modal publicar ────────────────────────────────────────────────── */}
-      <Modal open={modalPost} onClose={()=>{setModalPost(false);setFormPost({tipo:'Geral',conteudo:'',hashtags:'',video_url:'',sondagem:false,sondagem_pergunta:'',sondagem_opcoes:['','']})}} title="✏️ Nova Publicação — LoftSocial"
+      <Modal open={modalPost} onClose={()=>{setModalPost(false);setFormPost({tipo:'Geral',conteudo:'',hashtags:'',video_url:'',card_data:null,sondagem:false,sondagem_pergunta:'',sondagem_opcoes:['','']})}} title="✏️ Nova Publicação — LoftSocial"
         footer={<><button className="btn btn-secondary" onClick={()=>setModalPost(false)}>Cancelar</button><button className="btn btn-primary" onClick={publicar} disabled={savingPost}>{savingPost?<Spinner/>:null}Publicar</button></>}>
         <div style={{display:'flex',gap:6,marginBottom:12,flexWrap:'wrap'}}>
           {TIPOS_POST.map(tipo=>(
-            <button key={tipo} onClick={()=>{
-              setFormPost(f=>({...f,tipo}))
-              if(tipo==='Resultado'&&provas.length){const ul=provas[0];setFormPost(f=>({...f,tipo,conteudo:`🏆 ${ul.nome} — ${ul.dist}km\n📍 ${ul.local_solta||''}\n📅 ${new Date(ul.data_reg).toLocaleDateString('pt-PT')}\n\n`,hashtags:'#prova #columbofilia'}))}
-              if(tipo==='Treino') setFormPost(f=>({...f,tipo,hashtags:'#treino #pomboscorreio'}))
-              if(tipo==='Reprodução') setFormPost(f=>({...f,tipo,hashtags:'#reproducao #borrachinhos'}))
-            }} style={{padding:'5px 12px',borderRadius:20,fontSize:11,fontWeight:600,cursor:'pointer',border:`1px solid ${formPost.tipo===tipo?tipoCor[tipo]:'#1B2D52'}`,fontFamily:'inherit',background:formPost.tipo===tipo?`${tipoCor[tipo]}22`:'none',color:formPost.tipo===tipo?tipoCor[tipo]:'#94a3b8'}}>
+            <button key={tipo} onClick={()=>setFormPost(f=>({...f,tipo,card_data:null,conteudo:'',hashtags:''}))}
+              style={{padding:'5px 12px',borderRadius:20,fontSize:11,fontWeight:600,cursor:'pointer',border:`1px solid ${formPost.tipo===tipo?tipoCor[tipo]:'#1B2D52'}`,fontFamily:'inherit',background:formPost.tipo===tipo?`${tipoCor[tipo]}22`:'none',color:formPost.tipo===tipo?tipoCor[tipo]:'#94a3b8'}}>
               {tipoIcon[tipo]} {tipo}
             </button>
           ))}
         </div>
+
+        {formPost.tipo==='Resultado'&&provas.length>0&&(
+          <div style={{marginBottom:10}}>
+            <div style={{fontSize:11,color:'#7A8699',marginBottom:6}}>🏆 Escolhe a prova:</div>
+            <div style={{display:'flex',gap:6,overflowX:'auto',paddingBottom:4}}>
+              {provas.slice(0,10).map(p=>{
+                const pombo=pombos.find(b=>b.id===p.pombo_id)
+                const medalha=p.lugar===1?'🥇':p.lugar===2?'🥈':p.lugar===3?'🥉':'🏅'
+                const sel=formPost.card_data?.prova_id===p.id
+                return (
+                  <button key={p.id} onClick={()=>{
+                    const cd={tipo:'prova',prova_id:p.id,lugar:p.lugar,total:p.total_pombos,distancia:p.distancia,velocidade:p.velocidade,percentil:p.percentil,local_largada:p.local_largada,data:p.data_reg?new Date(p.data_reg).toLocaleDateString('pt-PT'):'',pombo_nome:pombo?.nome,pombo_anilha:pombo?.anilha}
+                    const txt=`${medalha} ${p.lugar}º lugar${p.total_pombos?' de '+p.total_pombos:''}\n📏 ${p.distancia||0}km${p.velocidade?' · ⚡ '+p.velocidade+'m/min':''}${p.percentil?' · 📊 '+p.percentil+'%':''}\n${p.local_largada?'📍 '+p.local_largada+'\n':''}${pombo?'🕊️ '+pombo.nome+' ('+pombo.anilha+')':''}`
+                    setFormPost(f=>({...f,card_data:cd,conteudo:txt,hashtags:'#columbofilia #prova'+(p.distancia>500?' #fundo':p.distancia>300?' #meiofundo':' #velocidade')}))
+                  }}
+                    style={{flexShrink:0,padding:'6px 12px',background:sel?'rgba(212,175,55,.15)':'rgba(212,175,55,.06)',border:`1px solid ${sel?'rgba(212,175,55,.5)':'rgba(212,175,55,.2)'}`,borderRadius:8,fontSize:11,color:'#D4AF37',cursor:'pointer',textAlign:'left'}}>
+                    <div style={{fontWeight:700}}>{medalha} {p.lugar}º · {p.distancia}km</div>
+                    <div style={{fontSize:10,color:'#94a3b8',marginTop:1}}>{pombo?.nome||'?'} · {p.data_reg?new Date(p.data_reg).toLocaleDateString('pt-PT'):''}</div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {formPost.tipo==='Treino'&&treinos.length>0&&(
+          <div style={{marginBottom:10}}>
+            <div style={{fontSize:11,color:'#7A8699',marginBottom:6}}>🎯 Escolhe o treino:</div>
+            <div style={{display:'flex',gap:6,overflowX:'auto',paddingBottom:4}}>
+              {treinos.slice(0,8).map(t=>{
+                const sel=formPost.card_data?.treino_id===t.id
+                return (
+                  <button key={t.id} onClick={()=>{
+                    const cd={tipo:'treino',treino_id:t.id,distancia:t.distancia,local:t.local_largada||t.local,pombos:t.num_pombos,data:t.data?new Date(t.data).toLocaleDateString('pt-PT'):''}
+                    const txt=`🎯 Treino${t.distancia?' · '+t.distancia+'km':''}${t.local_largada?' · '+t.local_largada:''}\n${t.data?'📅 '+new Date(t.data).toLocaleDateString('pt-PT'):''}`
+                    setFormPost(f=>({...f,card_data:cd,conteudo:txt,hashtags:'#treino #columbofilia'}))
+                  }}
+                    style={{flexShrink:0,padding:'6px 12px',background:sel?'rgba(45,212,167,.15)':'rgba(45,212,167,.06)',border:`1px solid ${sel?'rgba(45,212,167,.5)':'rgba(45,212,167,.2)'}`,borderRadius:8,fontSize:11,color:'#2DD4A7',cursor:'pointer',textAlign:'left'}}>
+                    <div style={{fontWeight:700}}>📏 {t.distancia||'?'}km</div>
+                    <div style={{fontSize:10,color:'#94a3b8',marginTop:1}}>{t.data?new Date(t.data).toLocaleDateString('pt-PT'):''}</div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {formPost.tipo==='Reprodução'&&acasalamentos.length>0&&(
+          <div style={{marginBottom:10}}>
+            <div style={{fontSize:11,color:'#7A8699',marginBottom:6}}>🥚 Escolhe o casal:</div>
+            <div style={{display:'flex',gap:6,overflowX:'auto',paddingBottom:4}}>
+              {acasalamentos.slice(0,6).map(a=>{
+                const macho=pombos.find(p=>p.id===a.macho_id)
+                const femea=pombos.find(p=>p.id===a.femea_id)
+                const sel=formPost.card_data?.acast_id===a.id
+                return (
+                  <button key={a.id} onClick={()=>{
+                    const cd={tipo:'reproducao',acast_id:a.id,macho:macho?.nome||'?',femea:femea?.nome||'?',ovos:a.ovos,eclosoes:a.eclosoes,desmamados:a.desmamados}
+                    const txt=`🥚 Reprodução\n♂ ${macho?.nome||'?'} × ♀ ${femea?.nome||'?'}${a.ovos?'\n🥚 '+a.ovos+' ovos':''}`
+                    setFormPost(f=>({...f,card_data:cd,conteudo:txt,hashtags:'#reproducao #borrachinhos #columbofilia'}))
+                  }}
+                    style={{flexShrink:0,padding:'6px 12px',background:sel?'rgba(192,132,252,.15)':'rgba(192,132,252,.06)',border:`1px solid ${sel?'rgba(192,132,252,.5)':'rgba(192,132,252,.2)'}`,borderRadius:8,fontSize:11,color:'#c084fc',cursor:'pointer',textAlign:'left'}}>
+                    <div style={{fontWeight:700}}>{macho?.nome||'?'} × {femea?.nome||'?'}</div>
+                    <div style={{fontSize:10,color:'#94a3b8',marginTop:1}}>{a.ovos||0} ovos · {a.desmamados||0} desmamados</div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {formPost.tipo==='Pedigree'&&pombos.filter(p=>p.pai||p.mae).length>0&&(
+          <div style={{marginBottom:10}}>
+            <div style={{fontSize:11,color:'#7A8699',marginBottom:6}}>🌳 Escolhe o pombo:</div>
+            <div style={{display:'flex',gap:6,overflowX:'auto',paddingBottom:4}}>
+              {pombos.filter(p=>p.pai||p.mae).slice(0,8).map(p=>{
+                const pai=pombos.find(b=>b.id===p.pai)
+                const mae=pombos.find(b=>b.id===p.mae)
+                const sel=formPost.card_data?.pombo_id===p.id
+                return (
+                  <button key={p.id} onClick={()=>{
+                    const cd={tipo:'pombo',pombo_id:p.id,nome:p.nome,anilha:p.anilha,sexo:p.sexo,cor:p.cor,percentil:p.percentil,forma:p.forma,provas:p.provas,esp:p.esp,foto_url:p.foto_url}
+                    const txt=`🌳 Pedigree — ${p.nome} (${p.anilha})${pai?'\n👨 Pai: '+pai.nome+' ('+pai.anilha+')':''}${mae?'\n👩 Mãe: '+mae.nome+' ('+mae.anilha+')':''}`
+                    setFormPost(f=>({...f,card_data:cd,foto_url:p.foto_url||'',conteudo:txt,hashtags:'#pedigree #columbofilia'}))
+                  }}
+                    style={{flexShrink:0,padding:'6px 12px',background:sel?'rgba(52,211,153,.15)':'rgba(52,211,153,.06)',border:`1px solid ${sel?'rgba(52,211,153,.5)':'rgba(52,211,153,.2)'}`,borderRadius:8,fontSize:11,color:'#34d399',cursor:'pointer',textAlign:'left'}}>
+                    <div style={{fontWeight:700}}>{p.nome}</div>
+                    <div style={{fontSize:10,color:'#94a3b8',marginTop:1}}>{p.anilha}{pai?' · Pai: '+pai.nome:''}</div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {formPost.card_data&&(
+          <div style={{marginBottom:10,padding:'8px 10px',background:'rgba(45,212,167,.06)',border:'1px solid rgba(45,212,167,.2)',borderRadius:8,fontSize:11,color:'#2DD4A7',display:'flex',alignItems:'center',gap:8}}>
+            ✓ Card seleccionado — será publicado com o post
+            <button onClick={()=>setFormPost(f=>({...f,card_data:null}))} style={{marginLeft:'auto',background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:12}}>✕ Remover</button>
+          </div>
+        )}
+
         <div style={{display:'flex',gap:8,marginBottom:10}}>
           <div style={{width:36,height:36,borderRadius:'50%',background:'linear-gradient(135deg,#1E5FD9,#4C8DFF)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,fontWeight:700,color:'#fff',flexShrink:0,overflow:'hidden'}}>
             {perfil?.foto_perfil_url?<img src={perfil.foto_perfil_url} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:nome?.[0]?.toUpperCase()||'?'}
           </div>
-          <textarea className="input" rows={5} style={{resize:'none',flex:1}}
-            placeholder={formPost.tipo==='Resultado'?'Partilha o resultado da prova...':formPost.tipo==='Conquista'?'Que conquista queres partilhar?':`O que tens para partilhar com a LoftSocial? (${500-formPost.conteudo.length} restantes)`}
+          <textarea className="input" rows={4} style={{resize:'none',flex:1}}
+            placeholder={`Acrescenta um comentário... (${500-formPost.conteudo.length} restantes)`}
             value={formPost.conteudo} onChange={e=>setFormPost(f=>({...f,conteudo:e.target.value.slice(0,500)}))}/>
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:10}}>
           <span style={{fontSize:12,color:'#7A8699',flexShrink:0}}>🏷️ Tags:</span>
           <input className="input" placeholder="#columbofilia #velocidade #fundo" value={formPost.hashtags} onChange={e=>setFormPost(f=>({...f,hashtags:e.target.value}))} style={{fontSize:12}}/>
         </div>
-        {provas.length>0&&formPost.tipo==='Resultado'&&(
-          <div style={{marginBottom:10}}>
-            <div style={{fontSize:11,color:'#7A8699',marginBottom:6}}>🏆 Seleccionar prova para preencher automaticamente:</div>
-            <div style={{display:'flex',gap:6,overflowX:'auto',paddingBottom:4}}>
-              {provas.slice(0,8).map(p=>{
-                const pombo=pombos.find(b=>b.id===p.pombo_id)
-                const medalha=p.lugar===1?'🥇':p.lugar===2?'🥈':p.lugar===3?'🥉':'🏅'
-                return (
-                  <button key={p.id} onClick={()=>{
-                    const vel=p.velocidade?`\n⚡ ${p.velocidade}m/min`:''
-                    const pct=p.percentil?`\n📊 Percentil: ${p.percentil}%`:''
-                    const dist=p.distancia?`\n📏 ${p.distancia}km`:'';
-                    const total=p.total_pombos?` de ${p.total_pombos} pombos`:''
-                    const local=p.local_largada?`\n📍 Largada: ${p.local_largada}`:''
-                    const data=p.data_reg?`\n📅 ${new Date(p.data_reg).toLocaleDateString('pt-PT')}`:''
-                    const nomePombo=pombo?`🕊️ ${pombo.nome} (${pombo.anilha})\n`:'';
-                    setFormPost(f=>({...f,
-                      conteudo:`${medalha} ${p.lugar}º lugar${total}${dist}${vel}${pct}${local}${data}\n\n${nomePombo}`,
-                      hashtags:'#columbofilia #prova'+(p.distancia>500?' #fundo':p.distancia>300?' #meiofundo':' #velocidade')
-                    }))
-                  }}
-                    style={{flexShrink:0,padding:'6px 12px',background:'rgba(212,175,55,.08)',border:'1px solid rgba(212,175,55,.2)',borderRadius:8,fontSize:11,color:'#D4AF37',cursor:'pointer',textAlign:'left'}}>
-                    <div style={{fontWeight:700}}>{medalha} {p.lugar}º</div>
-                    <div style={{fontSize:10,color:'#94a3b8',marginTop:1}}>{pombo?.nome||'?'} · {p.distancia}km</div>
-                  </button>
-                )
-              })}
-            </div>
-            {formPost.conteudo&&formPost.tipo==='Resultado'&&(
-              <div style={{marginTop:6,padding:'8px 10px',background:'rgba(212,175,55,.06)',border:'1px solid rgba(212,175,55,.15)',borderRadius:8,fontSize:11,color:'#D4AF37'}}>
-                ✓ Template preenchido — podes editar antes de publicar
-              </div>
-            )}
-          </div>
-        )}
         <div style={{marginBottom:10}}>
           <button onClick={()=>setFormPost(f=>({...f,sondagem:!f.sondagem}))}
             style={{display:'flex',alignItems:'center',gap:8,background:formPost.sondagem?'rgba(76,141,255,.12)':'rgba(255,255,255,.04)',border:`1px solid ${formPost.sondagem?'rgba(76,141,255,.4)':'#1B2D52'}`,borderRadius:8,padding:'7px 12px',cursor:'pointer',width:'100%',fontFamily:'inherit'}}>
@@ -1081,33 +1232,7 @@ export default function Comunidade({ nav, params={} }) {
             </div>
           )}
         </div>
-        <div style={{marginBottom:10}}>
-          <div style={{fontSize:11,color:'#7A8699',marginBottom:6}}>📷 Foto (opcional):</div>
-          {formPost.foto_url?(
-            <div style={{position:'relative',display:'inline-block'}}>
-              <img src={formPost.foto_url} alt="" style={{width:'100%',maxHeight:180,objectFit:'cover',borderRadius:8,border:'1px solid #1B2D52'}}/>
-              <button onClick={()=>setFormPost(f=>({...f,foto_url:''}))}
-                style={{position:'absolute',top:4,right:4,background:'rgba(0,0,0,.7)',border:'none',borderRadius:'50%',width:22,height:22,color:'#fff',cursor:'pointer',fontSize:12,display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
-            </div>
-          ):(
-            <label style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',background:'rgba(255,255,255,.04)',border:'1px dashed #1B2D52',borderRadius:8,cursor:'pointer'}}>
-              <span style={{fontSize:18}}>📷</span>
-              <span style={{fontSize:12,color:'#7A8699'}}>Carregar foto</span>
-              <input type="file" accept="image/*" style={{display:'none'}} onChange={async e=>{
-                const file=e.target.files?.[0]; if(!file) return
-                try{
-                  const ext=file.name.split('.').pop()
-                  const path=`posts/${user.id}/${Date.now()}.${ext}`
-                  const {error}=await supabase.storage.from('fotos-pombos').upload(path,file,{upsert:true})
-                  if(error) throw error
-                  const {data}=supabase.storage.from('fotos-pombos').getPublicUrl(path)
-                  setFormPost(f=>({...f,foto_url:data.publicUrl}))
-                }catch(err){toast('Erro ao carregar foto','err')}
-              }}/>
-            </label>
-          )}
-        </div>
-        <div style={{marginBottom:10}}>
+                <div style={{marginBottom:10}}>
           <div style={{fontSize:11,color:'#7A8699',marginBottom:6}}>🎬 Vídeo YouTube (opcional):</div>
           <input className="input" placeholder="https://youtube.com/watch?v=..." value={formPost.video_url}
             onChange={e=>setFormPost(f=>({...f,video_url:e.target.value}))} style={{fontSize:12}}/>
