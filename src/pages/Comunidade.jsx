@@ -1098,9 +1098,9 @@ export default function Comunidade({ nav, params={} }) {
                 try{
                   const ext=file.name.split('.').pop()
                   const path=`posts/${user.id}/${Date.now()}.${ext}`
-                  const {error}=await supabase.storage.from('avatars').upload(path,file,{upsert:true})
+                  const {error}=await supabase.storage.from('fotos-pombos').upload(path,file,{upsert:true})
                   if(error) throw error
-                  const {data}=supabase.storage.from('avatars').getPublicUrl(path)
+                  const {data}=supabase.storage.from('fotos-pombos').getPublicUrl(path)
                   setFormPost(f=>({...f,foto_url:data.publicUrl}))
                 }catch(err){toast('Erro ao carregar foto','err')}
               }}/>
