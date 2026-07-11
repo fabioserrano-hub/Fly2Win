@@ -412,5 +412,4 @@ export default function App() {
       <CookieBanner/>
     </ToastProvider>
   )
-  )
 }
