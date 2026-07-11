@@ -611,12 +611,13 @@ export const IDIOMAS = [
   { code:'es', label:'🇪🇸 ES', nome:'Español' },
 ]
 
-export const IdiomaContext = createContext('pt')
+export const IdiomaContext = createContext({ idioma:'pt', setIdioma:()=>{} })
 
 export function useIdioma() {
-  const idioma = useContext(IdiomaContext)
+  const ctx = useContext(IdiomaContext)
+  const idioma = typeof ctx === 'string' ? ctx : ctx.idioma
   const t = (chave) => TRADUCOES[chave]?.[idioma] || TRADUCOES[chave]?.pt || chave
-  return { idioma, t, isBR: idioma==='br', isEN: idioma==='en', isES: idioma==='es', isPT: idioma==='pt' }
+  return { idioma, t, setIdioma: ctx.setIdioma||(() =>{}), isBR: idioma==='br', isEN: idioma==='en', isES: idioma==='es', isPT: idioma==='pt' }
 }
 
 export function useIdiomaState() {
