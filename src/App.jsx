@@ -132,7 +132,7 @@ function useSidebarCollapse() {
 }
 
 // ─── APP LAYOUT ───────────────────────────────────────
-function AppLayout({ setIdioma }) {
+function AppLayout({ setIdioma: _unused }) {
   const [renderErro, setRenderErro] = useState(null)
   if (renderErro) return (
     <div style={{position:'fixed',inset:0,background:'#050D1A',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:12,padding:20,fontFamily:'sans-serif'}}>
