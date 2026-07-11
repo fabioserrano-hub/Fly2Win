@@ -48,7 +48,7 @@ import Carteira from './pages/Carteira'
 import Exportacao from './pages/Exportacao'
 import PerfilPublico from './pages/PerfilPublico'
 import Onboarding from './components/Onboarding'
-import { IdiomaContext, useIdiomaState, useIdioma, IDIOMAS } from './hooks/useIdioma'
+import { IdiomaContext, useIdioma, IDIOMAS } from './hooks/useIdioma'
 import Perfil       from './pages/Perfil'
 import Documentos   from './pages/Documentos'
 import PaginaSucesso from './pages/PaginaSucesso'
@@ -132,7 +132,7 @@ function useSidebarCollapse() {
 }
 
 // ─── APP LAYOUT ───────────────────────────────────────
-function AppLayout({ setIdioma }) {
+function AppLayout({ onError }) {
   const [renderErro, setRenderErro] = useState(null)
   if (renderErro) return (
     <div style={{position:'fixed',inset:0,background:'#050D1A',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:12,padding:20,fontFamily:'sans-serif'}}>
@@ -319,11 +319,7 @@ const concluirOnboarding = () => { localStorage.setItem('cl_onboarding_done','1'
           </div>
           <div className="tb-right">
             {isAdmin && (
-              <select value={idioma} onChange={e=>{
-                  const novo=e.target.value
-                  localStorage.setItem('cl_idioma',novo)
-                  window.location.reload()
-                }}
+              <select value={idioma} onChange={e=>{localStorage.setItem('cl_idioma',e.target.value);window.location.reload()}}
                 style={{ background:'rgba(255,255,255,.06)',border:'1px solid var(--border)',borderRadius:8,padding:'5px 8px',cursor:'pointer',fontSize:11,fontWeight:700,color:'var(--text3)',fontFamily:'inherit',outline:'none' }}>
                 {IDIOMAS.map(l=><option key={l.code} value={l.code}>{l.label}</option>)}
               </select>
@@ -374,7 +370,7 @@ const concluirOnboarding = () => { localStorage.setItem('cl_onboarding_done','1'
 }
 
 // ─── APP CONTENT ──────────────────────────────────────
-function AppContent({ setIdioma }) {
+function AppContent() {
   const { user, loading } = useAuth()
   const [mostrarLanding, setMostrarLanding] = useState(true)
   const [erroApp, setErroApp] = useState(null)
@@ -401,22 +397,20 @@ function AppContent({ setIdioma }) {
     </div>
   )
 
-  if (user) return <AppLayout onError={setErroApp} setIdioma={setIdioma} />
+  if (user) return <AppLayout onError={setErroApp} />
   if (mostrarLanding) return <Landing onEntrar={()=>setMostrarLanding(false)} />
   return <Login />
 }
 
 // ─── ROOT ─────────────────────────────────────────────
 export default function App() {
-  const { idioma, setIdioma } = useIdiomaState()
   return (
-    <IdiomaContext.Provider value={idioma}>
-      <ToastProvider>
-        <AuthProvider>
-          <AppContent setIdioma={setIdioma} />
-        </AuthProvider>
-        <CookieBanner/>
-      </ToastProvider>
-    </IdiomaContext.Provider>
+    <ToastProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+      <CookieBanner/>
+    </ToastProvider>
+  )
   )
 }
