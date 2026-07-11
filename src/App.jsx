@@ -154,12 +154,15 @@ function AppLayout({ onError }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [mostrarOnboarding, setMostrarOnboarding] = useState(false)
   const [fotoPerfil, setFotoPerfil] = useState(null)
+  const [logoPerfil, setLogoPerfil] = useState(null)
 
-  // Carregar foto do perfil
   useEffect(() => {
     if (!user?.id) return
-    supabase.from('perfis').select('foto_perfil_url').eq('user_id', user.id).maybeSingle()
-      .then(({ data }) => { if (data?.foto_perfil_url) setFotoPerfil(data.foto_perfil_url) })
+    supabase.from('perfis').select('foto_perfil_url,logo_url').eq('user_id', user.id).maybeSingle()
+      .then(({ data }) => {
+        if (data?.foto_perfil_url) setFotoPerfil(data.foto_perfil_url)
+        if (data?.logo_url) setLogoPerfil(data.logo_url)
+      })
   }, [user?.id])
 useEffect(()=>{
   if(user && !localStorage.getItem('cl_onboarding_done')) setMostrarOnboarding(true)
@@ -299,11 +302,18 @@ const concluirOnboarding = () => { localStorage.setItem('cl_onboarding_done','1'
 
         <div className="user-area">
           <div className="user-card" onClick={() => nav('perfil')} style={{ cursor: 'pointer' }}>
-            <div className="user-avatar" style={{ overflow: 'hidden', flexShrink: 0 }}>
-              {fotoPerfil
-                ? <img src={fotoPerfil} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-                : initials
-              }
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <div className="user-avatar" style={{ overflow: 'hidden' }}>
+                {fotoPerfil
+                  ? <img src={fotoPerfil} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                  : initials
+                }
+              </div>
+              {logoPerfil && (
+                <div style={{ position: 'absolute', bottom: -4, right: -4, width: 16, height: 16, borderRadius: 4, background: '#050D1A', border: '1.5px solid rgba(212,175,55,.4)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src={logoPerfil} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }}/>
+                </div>
+              )}
             </div>
             <div style={{ flex:1, minWidth:0 }}>
               <div className="user-name" style={{ overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>
