@@ -20,18 +20,18 @@ const PRICE_IDS = {
 const PLANOS_INDIVIDUAL = [
   { id: 'trial', nome: 'Trial', icon: '🕊️', desc: '30 dias grátis — sem compromisso', precoMes: 0, precoAno: 0, diaLabel: '30 dias grátis',
     feats: ['Até 15 pombos', 'Todos os módulos visíveis', 'Backup dos dados incluído'], bloqueadas: ['Comunidade', 'IA', 'Relatórios'] },
-  { id: 'base', nome: 'Base', icon: '🐦', desc: 'Para o columbófilo activo', precoMes: 7.99, precoAno: 79.90, diaLabel: '€0,22/dia',
+  { id: 'base', nome: 'Base', icon: '🐦', desc: 'Para o columbófilo activo', precoMes: 9.99, precoAno: 99.90, diaLabel: '€0,33/dia',
     feats: ['Pombos ilimitados', 'Reprodução completa', 'Alimentação & tratamentos', 'Calendário & checklist', 'Comunidade'], bloqueadas: ['Relatório IA', 'Casais IA'] },
-  { id: 'profissional', nome: 'Pro', icon: '⭐', desc: 'Para o columbófilo exigente', precoMes: 9.99, precoAno: 99.90, diaLabel: '€0,27/dia',
+  { id: 'profissional', nome: 'Pro', icon: '⭐', desc: 'Para o columbófilo exigente', precoMes: 11.99, precoAno: 119.90, diaLabel: '€0,40/dia',
     feats: ['Tudo do Base', 'MeteoProva', 'Marketplace', 'Mensagens', 'Relatórios avançados'], bloqueadas: ['Relatório IA', 'Casais IA'], destaque: true },
-  { id: 'elite', nome: 'Elite AI', icon: '🏆', desc: 'O poder da IA ao serviço do teu pombal', precoMes: 15.99, precoAno: 159.90, diaLabel: '€0,38/dia',
+  { id: 'elite', nome: 'Elite AI', icon: '🏆', desc: 'O poder da IA ao serviço do teu pombal', precoMes: 15.99, precoAno: 159.90, diaLabel: '€0,53/dia',
     feats: ['Tudo do Pro', 'Relatório IA de época', 'Seleccionador de Casais IA', 'Suporte prioritário'], bloqueadas: [], gold: true },
 ]
 
 const PLANOS_GRUPO = [
-  { id: 'pro_grupo_3_5',   nome: 'Pro Grupo', faixa: '3-5 licenças',   icon: '⭐', precoMes: 9.49,  precoAno: 94.90,  diaLabel: '€0,32/lic/dia', quantidade: 3 },
-  { id: 'pro_grupo_6_12',  nome: 'Pro Grupo', faixa: '6-12 licenças',  icon: '⭐', precoMes: 8.49,  precoAno: 84.90,  diaLabel: '€0,28/lic/dia', quantidade: 6, destaque: true },
-  { id: 'pro_grupo_13',    nome: 'Pro Grupo', faixa: '13+ licenças',   icon: '⭐', precoMes: 7.49,  precoAno: 74.90,  diaLabel: '€0,25/lic/dia', quantidade: 13 },
+  { id: 'pro_grupo_3_5',   nome: 'Pro Grupo', faixa: '3-5 licenças',   icon: '⭐', precoMes: 10.79, precoAno: 107.90, diaLabel: '€0,36/lic/dia', quantidade: 3 },
+  { id: 'pro_grupo_6_12',  nome: 'Pro Grupo', faixa: '6-12 licenças',  icon: '⭐', precoMes: 9.59,  precoAno: 95.90,  diaLabel: '€0,32/lic/dia', quantidade: 6, destaque: true },
+  { id: 'pro_grupo_13',    nome: 'Pro Grupo', faixa: '13+ licenças',   icon: '⭐', precoMes: 8.39,  precoAno: 83.90,  diaLabel: '€0,28/lic/dia', quantidade: 13 },
   { id: 'elite_grupo_3_5', nome: 'Elite AI Grupo', faixa: '3-5 licenças',  icon: '🏆', precoMes: 14.39, precoAno: 143.90, diaLabel: '€0,48/lic/dia', quantidade: 3, gold: true },
   { id: 'elite_grupo_6_12',nome: 'Elite AI Grupo', faixa: '6-12 licenças', icon: '🏆', precoMes: 12.79, precoAno: 127.90, diaLabel: '€0,43/lic/dia', quantidade: 6, gold: true },
   { id: 'elite_grupo_13',  nome: 'Elite AI Grupo', faixa: '13+ licenças',  icon: '🏆', precoMes: 11.19, precoAno: 111.90, diaLabel: '€0,37/lic/dia', quantidade: 13, gold: true },
