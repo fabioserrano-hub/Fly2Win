@@ -1,4 +1,4 @@
-const CACHE = 'Fly2Win-v2'
+const CACHE = 'Fly2Win-v3'
 const STATIC = ['/','/?pwa=1','/manifest.json']
 
 // Instalar — cache dos estáticos
