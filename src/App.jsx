@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { ToastProvider, Spinner } from './components/ui'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { supabase, db } from './lib/supabase'
+import CookieBanner from './components/CookieBanner'
 
 // Pages
 import Landing      from './pages/Landing'
@@ -410,6 +411,7 @@ export default function App() {
         <AuthProvider>
           <AppContent setIdioma={setIdioma} />
         </AuthProvider>
+        <CookieBanner/>
       </ToastProvider>
     </IdiomaContext.Provider>
   )
