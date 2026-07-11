@@ -48,7 +48,7 @@ import Carteira from './pages/Carteira'
 import Exportacao from './pages/Exportacao'
 import PerfilPublico from './pages/PerfilPublico'
 import Onboarding from './components/Onboarding'
-import { IdiomaContext, useIdiomaState, useIdioma, IDIOMAS } from './hooks/useIdioma'
+import { IdiomaContext, useIdioma, IDIOMAS } from './hooks/useIdioma'
 import Perfil       from './pages/Perfil'
 import Documentos   from './pages/Documentos'
 import PaginaSucesso from './pages/PaginaSucesso'
@@ -132,7 +132,7 @@ function useSidebarCollapse() {
 }
 
 // ─── APP LAYOUT ───────────────────────────────────────
-function AppLayout({ setIdioma }) {
+function AppLayout({ onError }) {
   const [renderErro, setRenderErro] = useState(null)
   if (renderErro) return (
     <div style={{position:'fixed',inset:0,background:'#050D1A',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:12,padding:20,fontFamily:'sans-serif'}}>
@@ -153,6 +153,14 @@ function AppLayout({ setIdioma }) {
   const [navParams, setNavParams] = useState({})
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [mostrarOnboarding, setMostrarOnboarding] = useState(false)
+  const [fotoPerfil, setFotoPerfil] = useState(null)
+
+  // Carregar foto do perfil
+  useEffect(() => {
+    if (!user?.id) return
+    supabase.from('perfis').select('foto_perfil_url').eq('user_id', user.id).maybeSingle()
+      .then(({ data }) => { if (data?.foto_perfil_url) setFotoPerfil(data.foto_perfil_url) })
+  }, [user?.id])
 useEffect(()=>{
   if(user && !localStorage.getItem('cl_onboarding_done')) setMostrarOnboarding(true)
 },[user])
@@ -290,8 +298,13 @@ const concluirOnboarding = () => { localStorage.setItem('cl_onboarding_done','1'
         </nav>
 
         <div className="user-area">
-          <div className="user-card">
-            <div className="user-avatar">{initials}</div>
+          <div className="user-card" onClick={() => nav('perfil')} style={{ cursor: 'pointer' }}>
+            <div className="user-avatar" style={{ overflow: 'hidden', flexShrink: 0 }}>
+              {fotoPerfil
+                ? <img src={fotoPerfil} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                : initials
+              }
+            </div>
             <div style={{ flex:1, minWidth:0 }}>
               <div className="user-name" style={{ overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>
                 {user?.user_metadata?.nome||'Utilizador'}
@@ -319,7 +332,7 @@ const concluirOnboarding = () => { localStorage.setItem('cl_onboarding_done','1'
           </div>
           <div className="tb-right">
             {isAdmin && (
-              <select value={idioma} onChange={e=>setIdioma(e.target.value)}
+              <select value={idioma} onChange={e=>{localStorage.setItem('cl_idioma',e.target.value);window.location.reload()}}
                 style={{ background:'rgba(255,255,255,.06)',border:'1px solid var(--border)',borderRadius:8,padding:'5px 8px',cursor:'pointer',fontSize:11,fontWeight:700,color:'var(--text3)',fontFamily:'inherit',outline:'none' }}>
                 {IDIOMAS.map(l=><option key={l.code} value={l.code}>{l.label}</option>)}
               </select>
@@ -344,17 +357,14 @@ const concluirOnboarding = () => { localStorage.setItem('cl_onboarding_done','1'
             <button className="btn btn-icon" onClick={()=>setTema(t=>t==='dark'?'light':'dark')} style={{ fontSize:16 }}>
               {tema==='dark'?'☀️':'🌙'}
             </button>
-            <button className="btn btn-icon" onClick={()=>window.print()} title="Imprimir / Guardar PDF" style={{ fontSize:16 }}>🖨️</button>
-            <button className="btn btn-icon" onClick={()=>{
-              const info = {url:window.location.href, pagina:page, data:new Date().toISOString(), ua:navigator.userAgent.slice(0,100)}
-              const corpo = `Olá,\n\nEncontrei um erro na Fly2Win:\n\nDescrição: [DESCREVE O ERRO AQUI]\n\nInformação técnica:\n${JSON.stringify(info,null,2)}`
-              window.location.href = `mailto:suporte@fly2win.pt?subject=Erro na Fly2Win&body=${encodeURIComponent(corpo)}`
-            }} title="Reportar erro" style={{ fontSize:16 }}>🐛</button>
+            <button className="btn btn-icon" onClick={()=>window.print()} style={{ fontSize:16 }}>🖨️</button>
             <div className="tb-date" style={{ display:'flex',alignItems:'center',gap:10 }}>
               <button onClick={()=>nav('perfil')} style={{ display:'flex',alignItems:'center',gap:8,background:'none',border:'none',cursor:'pointer',padding:'4px 8px',borderRadius:8 }}
                 onMouseEnter={e=>e.currentTarget.style.background='rgba(76,141,255,.1)'}
                 onMouseLeave={e=>e.currentTarget.style.background='none'}>
-                <div style={{ width:30,height:30,borderRadius:'50%',background:'linear-gradient(135deg,#1E5FD9,#4C8DFF)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'#fff',flexShrink:0 }}>{initials}</div>
+                <div style={{ width:30,height:30,borderRadius:'50%',background:'linear-gradient(135deg,#1E5FD9,#4C8DFF)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:700,color:'#fff',flexShrink:0,overflow:'hidden',border:'2px solid rgba(76,141,255,.4)' }}>
+                  {fotoPerfil ? <img src={fotoPerfil} alt="" style={{ width:'100%',height:'100%',objectFit:'cover' }}/> : initials}
+                </div>
                 <span style={{ fontSize:13,fontWeight:600,color:'#fff',maxWidth:120,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>{user?.user_metadata?.nome?.split(' ')[0]||user?.email?.split('@')[0]||'Perfil'}</span>
               </button>
               <button onClick={()=>supabase.auth.signOut()} style={{ background:'none',border:'1px solid #1B2D52',cursor:'pointer',borderRadius:8,padding:'6px 10px',fontSize:12,color:'#7A8699',fontFamily:'inherit' }}
@@ -375,7 +385,7 @@ const concluirOnboarding = () => { localStorage.setItem('cl_onboarding_done','1'
 }
 
 // ─── APP CONTENT ──────────────────────────────────────
-function AppContent({ setIdioma }) {
+function AppContent() {
   const { user, loading } = useAuth()
   const [mostrarLanding, setMostrarLanding] = useState(true)
   const [erroApp, setErroApp] = useState(null)
@@ -402,22 +412,19 @@ function AppContent({ setIdioma }) {
     </div>
   )
 
-  if (user) return <AppLayout onError={setErroApp} setIdioma={setIdioma} />
+  if (user) return <AppLayout onError={setErroApp} />
   if (mostrarLanding) return <Landing onEntrar={()=>setMostrarLanding(false)} />
   return <Login />
 }
 
 // ─── ROOT ─────────────────────────────────────────────
 export default function App() {
-  const { idioma, setIdioma } = useIdiomaState()
   return (
-    <IdiomaContext.Provider value={idioma}>
-      <ToastProvider>
-        <AuthProvider>
-          <AppContent setIdioma={setIdioma} />
-        </AuthProvider>
-        <CookieBanner/>
-      </ToastProvider>
-    </IdiomaContext.Provider>
+    <ToastProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+      <CookieBanner/>
+    </ToastProvider>
   )
 }
