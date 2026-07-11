@@ -386,8 +386,18 @@ export default function Landing({ onEntrar }) {
             {PLANOS.filter(p=>p.id!=='base').map((p,i)=>{
               const g = GRUPOS[tabGrupo]
               const gp = g[p.id]
-              const preco = periodo==='anual' ? (gp.a/10).toFixed(2) : gp.m.toFixed(2)
+              const preco = periodo==='anual' ? (gp.a/12).toFixed(2) : gp.m.toFixed(2)
               const dia = periodo==='anual' ? gp.dA : gp.dM
+              // Range de licenças: "3–5" → [3,5], "6–12" → [6,12], "13+" → [13,20]
+              const labelParts = g.label.split(' ')[0] // "3–5", "6–12", "13+"
+              const [minLic, maxLic] = labelParts.includes('–')
+                ? labelParts.split('–').map(Number)
+                : [parseInt(labelParts), parseInt(labelParts)+7]
+              const totalMin = (parseFloat(preco)*minLic).toFixed(0)
+              const totalMax = (parseFloat(preco)*maxLic).toFixed(0)
+              const totalLabel = periodo==='anual'
+                ? `${(gp.a*minLic).toFixed(0)}–${(gp.a*maxLic).toFixed(0)}€/ano total`
+                : `${totalMin}–${totalMax}€/mês total`
               return (
                 <Reveal key={p.id} delay={i*80}>
                   <div style={{ padding:24, borderRadius:10, background:p.gold?`linear-gradient(160deg,${T.ocean},${T.depth})`:T.depth, border:`1px solid ${p.gold?T.goldD+'40':T.ghost+'25'}`, position:'relative' }}>
@@ -402,7 +412,7 @@ export default function Landing({ onEntrar }) {
                     <div style={{ padding:'10px 12px', background:`${T.gold}10`, border:`1px solid ${T.goldD}30`, borderRadius:8, marginBottom:16 }}>
                       <div style={{ fontSize:10, color:T.ghost, marginBottom:2 }}>Para {g.label.split(' ')[0]} licenças ({periodo})</div>
                       <div style={{ fontFamily:T.serif, fontSize:18, fontWeight:900, color:T.gold }}>
-                        {(parseFloat(preco)*parseInt(g.label)).toFixed(0)}–{(parseFloat(preco)*parseInt(g.label.split('–')[1]||g.label.replace('+',''))).toFixed(0)}€/mês total
+                        {totalLabel}
                       </div>
                     </div>
                     <button onClick={onEntrar} style={{ width:'100%', padding:'10px', borderRadius:7, fontSize:12, fontWeight:700, cursor:'pointer', border:'none', fontFamily:'inherit', background:p.gold?`linear-gradient(135deg,${T.gold},${T.goldD})`:T.steel, color:p.gold?T.void:T.white }}>Contactar →</button>
