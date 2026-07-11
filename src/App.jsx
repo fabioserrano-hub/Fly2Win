@@ -319,7 +319,11 @@ const concluirOnboarding = () => { localStorage.setItem('cl_onboarding_done','1'
           </div>
           <div className="tb-right">
             {isAdmin && (
-              <select value={idioma} onChange={e=>{setIdioma(e.target.value);localStorage.setItem('cl_idioma',e.target.value);setTimeout(()=>window.location.reload(),100)}}
+              <select value={idioma} onChange={e=>{
+                  const novo=e.target.value
+                  localStorage.setItem('cl_idioma',novo)
+                  window.location.reload()
+                }}
                 style={{ background:'rgba(255,255,255,.06)',border:'1px solid var(--border)',borderRadius:8,padding:'5px 8px',cursor:'pointer',fontSize:11,fontWeight:700,color:'var(--text3)',fontFamily:'inherit',outline:'none' }}>
                 {IDIOMAS.map(l=><option key={l.code} value={l.code}>{l.label}</option>)}
               </select>
