@@ -406,7 +406,7 @@ function AppContent({ setIdioma }) {
 export default function App() {
   const { idioma, setIdioma } = useIdiomaState()
   return (
-    <IdiomaContext.Provider value={idioma}>
+    <IdiomaContext.Provider value={{ idioma, setIdioma }}>
       <ToastProvider>
         <AuthProvider>
           <AppContent setIdioma={setIdioma} />
