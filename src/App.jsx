@@ -143,7 +143,7 @@ function AppLayout({ setIdioma }) {
   )
 
   const { user } = useAuth()
-  const { idioma, t } = useIdioma()
+  const { idioma, t, setIdioma } = useIdioma()
   const NAV = getNav(t)
   const { collapsed, toggle } = useSidebarCollapse()
   const isAdmin = true; const betaTester = false; const flags = {}
