@@ -23,7 +23,7 @@ const FORMATOS = {
 }
 
 // ─── DETALHE LIGA ─────────────────────────────────────
-function DetalheLigaClubes({ liga, user, meusClubes, onVoltar, toast }) {
+function DetalheLigaClubes({ liga, user, meusClubes, onVoltar, toast, temElite, nav }) {
   const [inscricoes, setInscricoes] = useState([])
   const [jornadas, setJornadas] = useState([])
   const [confrontos, setConfrontos] = useState([])
@@ -266,7 +266,7 @@ export default function LigaClubes({ nav }) {
     finally { setSaving(false) }
   }
 
-  if (ligaAberta) return <DetalheLigaClubes liga={ligaAberta} user={user} meusClubes={meusClubes} onVoltar={()=>{setLigaAberta(null);load()}} toast={toast}/>
+  if (ligaAberta) return <DetalheLigaClubes liga={ligaAberta} user={user} meusClubes={meusClubes} onVoltar={()=>{setLigaAberta(null);load()}} toast={toast} temElite={temElite} nav={nav}/>
 
   return (
     <div>
