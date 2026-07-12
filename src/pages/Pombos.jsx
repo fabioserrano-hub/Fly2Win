@@ -40,21 +40,22 @@ function anoNascimento(anilha) {
 }
 
 export function classificarPombo(p) {
-  if (p.estado === 'lesionado') return { tag:t('lesionado'), cor:'#f87171', prioridade:0 }
+  if (p.estado === 'lesionado') return { tag:'lesionado', cor:'#f87171', prioridade:0, i18n:'lesionado' }
   const idade = idadeDoPombo(p.anilha)
   const percentil = p.percentil || 0
   const provas = p.provas || 0
   if (provas >= 3 && percentil > 0 && percentil < 35) return { tag:'Em queda', cor:'#f87171', prioridade:1 }
   if (idade !== null && idade >= 1 && percentil >= 65 && provas >= 3) return { tag:'Pronto a reproduzir', cor:'#D4AF37', prioridade:3 }
-  if (p.estado === 'ativo' && (p.forma || 50) >= 60) return { tag:t('prontaCompetr'), cor:'#2DD4A7', prioridade:3 }
-  if (p.estado === 'reproducao') return { tag:t('emReproducao'), cor:'#c084fc', prioridade:3 }
+  if (p.estado === 'ativo' && (p.forma || 50) >= 60) return { tag:'prontaCompetr', cor:'#2DD4A7', prioridade:3, i18n:'prontaCompetr' }
+  if (p.estado === 'reproducao') return { tag:'emReproducao', cor:'#c084fc', prioridade:3, i18n:'emReproducao' }
   return { tag:'Em repouso', cor:'#7A8699', prioridade:4 }
 }
 
 // ── gráfico de peso ───────────────────────────────────────────────────────────
 function PesoChart({ registos }) {
+  const { t } = useIdioma()
   const pontos = registos.filter(r => r.peso).slice(0, 10).reverse()
-  if (pontos.length < 2) return <div style={{ fontSize:12, color:'#7A8699', textAlign:'center', padding:'16px 0' }}>t('semDadosPeso')</div>
+  if (pontos.length < 2) return <div style={{ fontSize:12, color:'#7A8699', textAlign:'center', padding:'16px 0' }}>{t('semDadosPeso')}</div>
   const pesos = pontos.map(p => p.peso)
   const min = Math.min(...pesos) - 10, max = Math.max(...pesos) + 10
   const w = 280, h = 70, pad = 8
