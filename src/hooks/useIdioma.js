@@ -892,3 +892,29 @@ export const TRADUCOES = {
 
 export const IDIOMAS = [
   { code:'pt', label:'🇵🇹 PT', nome:'Português (PT)' },
+  { code:'br', label:'🇧🇷 BR', nome:'Português (BR)' },
+  { code:'en', label:'🇬🇧 EN', nome:'English' },
+  { code:'es', label:'🇪🇸 ES', nome:'Español' },
+  { code:'nl', label:'🇳🇱 NL', nome:'Nederlands' },
+]
+
+export const IdiomaContext = createContext('pt')
+
+export function useIdioma() {
+  const idioma = (() => {
+    try { return localStorage.getItem('cl_idioma') || 'pt' } catch { return 'pt' }
+  })()
+  const t = (chave) => TRADUCOES[chave]?.[idioma] || TRADUCOES[chave]?.pt || chave
+  return { idioma, t, setIdioma: ()=>{}, isBR: idioma==='br', isEN: idioma==='en', isES: idioma==='es', isPT: idioma==='pt', isNL: idioma==='nl' }
+}
+
+export function useIdiomaState() {
+  const [idioma, setIdioma] = useState(() => {
+    try { return localStorage.getItem('cl_idioma') || 'pt' } catch { return 'pt' }
+  })
+  const trocar = (novo) => {
+    setIdioma(novo)
+    try { localStorage.setItem('cl_idioma', novo) } catch {}
+  }
+  return { idioma, setIdioma: trocar }
+}
