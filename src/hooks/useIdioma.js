@@ -898,14 +898,20 @@ export const IDIOMAS = [
   { code:'nl', label:'🇳🇱 NL', nome:'Nederlands' },
 ]
 
-export const IdiomaContext = createContext('pt')
+export const IdiomaContext = createContext({ idioma: 'pt', setIdioma: () => {} })
 
 export function useIdioma() {
-  const idioma = (() => {
+  const ctx = useContext(IdiomaContext)
+  // Se tiver context reactivo, usa-o; senão lê do localStorage
+  const idioma = ctx?.idioma || (() => {
     try { return localStorage.getItem('cl_idioma') || 'pt' } catch { return 'pt' }
   })()
+  const setIdioma = ctx?.setIdioma || ((novo) => {
+    try { localStorage.setItem('cl_idioma', novo) } catch {}
+    window.location.reload()
+  })
   const t = (chave) => TRADUCOES[chave]?.[idioma] || TRADUCOES[chave]?.pt || chave
-  return { idioma, t, setIdioma: ()=>{}, isBR: idioma==='br', isEN: idioma==='en', isES: idioma==='es', isPT: idioma==='pt', isNL: idioma==='nl' }
+  return { idioma, t, setIdioma, isBR: idioma==='br', isEN: idioma==='en', isES: idioma==='es', isPT: idioma==='pt', isNL: idioma==='nl' }
 }
 
 export function useIdiomaState() {
