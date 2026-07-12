@@ -268,7 +268,7 @@ export const TRADUCOES = {
   // ── Comunidade ──
   feed:             { pt:'Feed',               br:'Feed',              en:'Feed',              es:'Feed' , nl:'Feed' },
   publicar:         { pt:'Publicar',           br:'Publicar',          en:'Post',              es:'Publicar' , nl:'Publiceren' },
-  novoPost:         { pt:'O que pensas?',      br:'O que pensa?',      en:"What's on your mind?", es:"¿Qué piensas?" , nl:'O que pensas?' },
+  novoPost:         { pt:'O que pensas?',      br:'O que pensa?',      en:'What is on your mind?', es:'¿Qué piensas?', nl:'Wat denk je?' },
   gostos:           { pt:'Gostos',             br:'Curtidas',          en:'Likes',             es:'Me gusta' , nl:'Likes' },
   comentarios:      { pt:'Comentários',        br:'Comentários',       en:'Comments',          es:'Comentarios' , nl:'Comments' },
   partilhar2:       { pt:'Partilhar',          br:'Compartilhar',      en:'Share',             es:'Compartir' , nl:'Delen' },
@@ -407,7 +407,7 @@ export const TRADUCOES = {
   editEvento:       { pt:'Editar Evento',       br:'Editar Evento',     en:'Edit Event',        es:'Editar Evento' , nl:'Edit Event' },
   evento:           { pt:'Evento',              br:'Evento',            en:'Event',             es:'Evento' , nl:'Event' },
   eventos:          { pt:'Eventos',             br:'Eventos',           en:'Events',            es:'Eventos' , nl:'Events' },
-  eventosHoje2:     { pt:'Eventos hoje',        br:'Eventos hoje',      en:"Today's events",   es:'Eventos hoy' , nl:'Eventos hoje' },
+  eventosHoje2:     { pt:'Eventos hoje',        br:'Eventos hoje',      en:'Events today',   es:'Eventos hoy' , nl:'Eventos hoje' },
   provaOficial:     { pt:'Prova Oficial',       br:'Corrida Oficial',   en:'Official Race',     es:'Carrera Oficial' , nl:'Official Race' },
   treino2:          { pt:'Treino',              br:'Treino',            en:'Training',          es:'Entrenamiento' , nl:'Training' },
   veterinario3:     { pt:'Veterinário',         br:'Veterinário',       en:'Veterinary',        es:'Veterinario' , nl:'Veterinary' },
@@ -546,7 +546,7 @@ export const TRADUCOES = {
   vagasRestantes:   { pt:'vagas restantes',     br:'vagas restantes',   en:'spots remaining',   es:'plazas restantes' , nl:'spots remaining' },
   garantirVaga:     { pt:'Garantir vaga',       br:'Garantir vaga',     en:'Secure your spot',  es:'Asegurar plaza' , nl:'Secure your spot' },
   precoGarantido:   { pt:'Preço garantido para sempre', br:'Preço garantido para sempre', en:'Price locked forever', es:'Precio garantizado para siempre' , nl:'Price locked forever' },
-  jaFundador:       { pt:'Já és Fundador!',     br:'Já é Fundador!',    en:"You're already a Founder!", es:"¡Ya eres Fundador!" , nl:'Já és Fundador!' },
+  jaFundador:       { pt:'Já és Fundador!',     br:'Já é Fundador!',    en:'You are already a Founder!', es:"¡Ya eres Fundador!" , nl:'Já és Fundador!' },
   vagasEsgotadas:   { pt:'Vagas esgotadas',     br:'Vagas esgotadas',   en:'All spots taken',   es:'Plazas agotadas' , nl:'All spots taken' },
 
   // ── Clubes Personalizados ──
@@ -884,4 +884,4 @@ export const TRADUCOES = {
   vento:          { pt:'Vento',          br:'Vento',           en:'Wind',            es:'Viento',          nl:'Wind' },
   humidade:       { pt:'Humidade',       br:'Humidade',        en:'Humidity',        es:'Humedad',         nl:'Vochtigheid' },
   previsao:       { pt:'Previsão',       br:'Previsão',        en:'Forecast',        es:'Previsión',       nl:'Voorspelling' },
-  condicoes:      { pt:'Condições',      br:'Condições',       
+  condicoes:      { pt:'Condições',      br:'Condições',       en
