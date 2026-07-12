@@ -341,12 +341,10 @@ const concluirOnboarding = () => { localStorage.setItem('cl_onboarding_done','1'
             <span className="tb-search-kbd">⌘K</span>
           </div>
           <div className="tb-right">
-            {isAdmin && (
-              <select value={idioma} onChange={e=>{localStorage.setItem('cl_idioma',e.target.value);window.location.reload()}}
-                style={{ background:'rgba(255,255,255,.06)',border:'1px solid var(--border)',borderRadius:8,padding:'5px 8px',cursor:'pointer',fontSize:11,fontWeight:700,color:'var(--text3)',fontFamily:'inherit',outline:'none' }}>
-                {IDIOMAS.map(l=><option key={l.code} value={l.code}>{l.label}</option>)}
-              </select>
-            )}
+            <select value={idioma} onChange={e=>{localStorage.setItem('cl_idioma',e.target.value);window.location.reload()}}
+              style={{ background:'rgba(255,255,255,.06)',border:'1px solid var(--border)',borderRadius:8,padding:'5px 8px',cursor:'pointer',fontSize:11,fontWeight:700,color:'var(--text3)',fontFamily:'inherit',outline:'none' }}>
+              {IDIOMAS.map(l=><option key={l.code} value={l.code}>{l.label}</option>)}
+            </select>
             <div style={{ position:'relative' }}>
               <button onClick={()=>setPainelNotif(p=>!p)}
                 style={{ background:'none',border:'1px solid var(--border)',borderRadius:8,padding:'5px 8px',cursor:'pointer',fontSize:16,color:naoLidas>0?'#D4AF37':'var(--text4)',position:'relative' }}>
