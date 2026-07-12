@@ -4,6 +4,23 @@ import { useState, useEffect, createContext, useContext } from 'react'
 // ─── DICIONÁRIO COMPLETO ────────────────────────────────────────
 // Abrange: sidebar, títulos, botões, labels, mensagens de UI
 export const TRADUCOES = {
+  // -- Pombos extra --
+  novoPombo:          { pt:'Novo Pombo',        br:'Novo Pombo',         en:'New Pigeon',          es:'Nueva Paloma' },
+  vendidos:           { pt:'Vendidos',           br:'Vendidos',           en:'Sold',                es:'Vendidos' },
+  semPombos:          { pt:'Sem pombos',         br:'Sem pombos',         en:'No pigeons',          es:'Sin palomas' },
+  nenhumPombosCategoria: { pt:'Nenhum pombo nesta categoria', br:'Nenhum pombo nesta categoria', en:'No pigeons in this category', es:'Sin palomas en esta categoría' },
+  forma:              { pt:'Forma',              br:'Forma',              en:'Form',                es:'Forma' },
+  kmTotal:            { pt:'km Total',           br:'km Total',           en:'Total km',            es:'km Total' },
+  melhorPos:          { pt:'Melhor Pos.',        br:'Melhor Pos.',        en:'Best Pos.',           es:'Mejor Pos.' },
+  partilharComunidade:{ pt:'Partilhar na Comunidade', br:'Partilhar na Comunidade', en:'Share to Community', es:'Compartir en Comunidad' },
+  pdf:                { pt:'PDF',                br:'PDF',                en:'PDF',                 es:'PDF' },
+  redes:              { pt:'Redes',              br:'Redes',              en:'Social',              es:'Redes' },
+  topPerformers:      { pt:'🏆 Top Performers',  br:'🏆 Top Performers',  en:'🏆 Top Performers',   es:'🏆 Top Performers' },
+  prontaCompetr:      { pt:'Pronto a competir',  br:'Pronto a competir',  en:'Ready to compete',    es:'Listo para competir' },
+  emReproducao:       { pt:'Em reprodução',      br:'Em reprodução',      en:'Breeding',            es:'En reproducción' },
+  lesionado:          { pt:'Lesionado',          br:'Lesionado',          en:'Injured',             es:'Lesionado' },
+  inactivo:           { pt:'Inactivo',           br:'Inactivo',           en:'Inactive',            es:'Inactivo' },
+
   // -- Dashboard --
   bomDia:           { pt:'Bom dia',          br:'Bom dia',           en:'Good morning',      es:'Buenos días' },
   boaTarde:         { pt:'Boa tarde',         br:'Boa tarde',         en:'Good afternoon',    es:'Buenas tardes' },
