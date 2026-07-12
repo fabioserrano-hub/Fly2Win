@@ -40,21 +40,21 @@ function anoNascimento(anilha) {
 }
 
 export function classificarPombo(p) {
-  if (p.estado === 'lesionado') return { tag:'Lesionado', cor:'#f87171', prioridade:0 }
+  if (p.estado === 'lesionado') return { tag:t('lesionado'), cor:'#f87171', prioridade:0 }
   const idade = idadeDoPombo(p.anilha)
   const percentil = p.percentil || 0
   const provas = p.provas || 0
   if (provas >= 3 && percentil > 0 && percentil < 35) return { tag:'Em queda', cor:'#f87171', prioridade:1 }
   if (idade !== null && idade >= 1 && percentil >= 65 && provas >= 3) return { tag:'Pronto a reproduzir', cor:'#D4AF37', prioridade:3 }
-  if (p.estado === 'ativo' && (p.forma || 50) >= 60) return { tag:'Pronto a competir', cor:'#2DD4A7', prioridade:3 }
-  if (p.estado === 'reproducao') return { tag:'Em reprodução', cor:'#c084fc', prioridade:3 }
+  if (p.estado === 'ativo' && (p.forma || 50) >= 60) return { tag:t('prontaCompetr'), cor:'#2DD4A7', prioridade:3 }
+  if (p.estado === 'reproducao') return { tag:t('emReproducao'), cor:'#c084fc', prioridade:3 }
   return { tag:'Em repouso', cor:'#7A8699', prioridade:4 }
 }
 
 // ── gráfico de peso ───────────────────────────────────────────────────────────
 function PesoChart({ registos }) {
   const pontos = registos.filter(r => r.peso).slice(0, 10).reverse()
-  if (pontos.length < 2) return <div style={{ fontSize:12, color:'#7A8699', textAlign:'center', padding:'16px 0' }}>'+t('semDadosPeso')+'</div>
+  if (pontos.length < 2) return <div style={{ fontSize:12, color:'#7A8699', textAlign:'center', padding:'16px 0' }}>t('semDadosPeso')</div>
   const pesos = pontos.map(p => p.peso)
   const min = Math.min(...pesos) - 10, max = Math.max(...pesos) + 10
   const w = 280, h = 70, pad = 8
@@ -442,7 +442,7 @@ export default function Pombos({ nav, params }) {
           {/* percentil + forma */}
           <div style={{ display:'flex', gap:8, marginBottom:4 }}>
             <div style={{ flex:1 }}>
-              <div style={{ fontSize:9, color:'#475569', marginBottom:2 }}>PERCENTIL</div>
+              <div style={{ fontSize:9, color:'#475569', marginBottom:2 }}>{t('percentil').toUpperCase()}</div>
               <div style={{ display:'flex', alignItems:'center', gap:4 }}>
                 <div className="progress" style={{ flex:1 }}><div className="progress-bar" style={{ width:`${p.percentil||0}%`, background:pc }} /></div>
                 <span style={{ fontSize:10, fontWeight:700, color:pc, flexShrink:0 }}>{p.percentil||0}%</span>
@@ -450,7 +450,7 @@ export default function Pombos({ nav, params }) {
             </div>
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:4 }}>
-            <div style={{ fontSize:9, color:'#475569', flexShrink:0 }}>FORMA</div>
+            <div style={{ fontSize:9, color:'#475569', flexShrink:0 }}>{t('forma').toUpperCase()}</div>
             <div className="progress" style={{ flex:1 }}><div className="progress-bar" style={{ width:`${p.forma||50}%`, background:fc }} /></div>
             <span style={{ fontSize:10, fontWeight:700, color:fc, flexShrink:0 }}>{p.forma||50}%</span>
           </div>
@@ -519,12 +519,12 @@ export default function Pombos({ nav, params }) {
       <GuiaAuto modulo="pombos"/>
       <div className="section-header">
         <div><div className="section-title">{t('pombos')}</div><div className="section-sub">{efectivo.length+' '+t('noEfectivo')+' · '+externos.length+' '+t('externos')}</div></div>
-        <button className="btn btn-primary" onClick={openNew}>＋ Novo Pombo</button>
+        <button className="btn btn-primary" onClick={openNew}>{'+' + t('novoPombo')}</button>
       </div>
 
       {/* tabs principais */}
       <div style={{ display:'flex', gap:4, background:'#101F40', borderRadius:10, padding:4, marginBottom:16, overflowX:'auto' }}>
-        {[['efectivo',`🐦 Efectivo (${efectivo.length})`],['externos',`🔄 Externos (${externos.length})`],['vendidos',`💰 Vendidos (${vendidos.length})`]].map(([tab,label])=>(
+        {[['efectivo',`🐦 ${t('efectivo')} (${efectivo.length})`],['externos',`🔄 ${t('externos')} (${externos.length})`],['vendidos',`💰 ${t('vendidos')} (${vendidos.length})`]].map(([tab,label])=>(
           <button key={tab} onClick={()=>setTabPrincipal(tab)} style={{ padding:'8px 14px', borderRadius:6, fontSize:13, fontWeight:500, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap', background:tabPrincipal===tab?'#1E5FD9':'none', color:tabPrincipal===tab?'#fff':'#94a3b8' }}>{label}</button>
         ))}
       </div>
@@ -557,12 +557,12 @@ export default function Pombos({ nav, params }) {
 
       {/* lista */}
       {loading ? <div style={{ display:'flex', justifyContent:'center', padding:60 }}><Spinner lg /></div>
-        : filtered.length === 0 ? <EmptyState icon="🐦" title="Sem pombos" desc="Nenhum pombo nesta categoria" action={tabPrincipal==='efectivo'?<button className="btn btn-primary" onClick={openNew}>＋ Novo Pombo</button>:null} />
+        : filtered.length === 0 ? <EmptyState icon="🐦" title={t('semPombos')} desc={t('nenhumPombosCategoria')} action={tabPrincipal==='efectivo'?<button className="btn btn-primary" onClick={openNew}>{'+' + t('novoPombo')}</button>:null} />
         : tabPrincipal === 'efectivo' ? (() => {
             const comP = filtered.map(p => ({ p, c:classificarPombo(p) }))
             const grupos = [
               { label:'🚨 Precisam de atenção', items:comP.filter(x=>x.c.prioridade<=1) },
-              { label:'🕊️ Efectivo', items:comP.filter(x=>x.c.prioridade>1) },
+              { label:`🕊️ ${t('efectivo')}`, items:comP.filter(x=>x.c.prioridade>1) },
             ].filter(g=>g.items.length>0)
             return (
               <div style={{ display:'flex', flexDirection:'column', gap:22 }}>
@@ -741,7 +741,7 @@ export default function Pombos({ nav, params }) {
       </Modal>
 
       {/* ══ MODAL FORM ════════════════════════════════════════════════════════ */}
-      <Modal open={modal==='form'} onClose={close} title={selected?`✏️ ${selected.nome}`:'🐦 Novo Pombo'} wide
+      <Modal open={modal==='form'} onClose={close} title={selected?`✏️ ${selected.nome}`:t('novoPombo')} wide
         footer={<><button className="btn btn-secondary" onClick={close}>{t('cancelar')}</button><button className="btn btn-primary" onClick={save} disabled={saving}>{saving?<Spinner/>:null}{selected?t('guardar'):'Adicionar'}</button></>}>
         <div className="form-grid">
           <div className="col-2" style={{ display:'flex', alignItems:'center', gap:16 }}>
@@ -821,7 +821,7 @@ export default function Pombos({ nav, params }) {
               <button className="btn btn-secondary btn-sm" onClick={()=>{ setModal(null); setTimeout(()=>setModalMover(true),100) }}>🏠 Mover</button>
               <div style={{ flex:1 }} />
               <button className="btn btn-secondary" onClick={close}>{t('fechar')}</button>
-              <button className="btn btn-primary" onClick={()=>openEdit(selected)}>✏️ Editar</button>
+              <button className="btn btn-primary" onClick={()=>openEdit(selected)}>{t('editar')}</button>
             </div>
           }>
 
