@@ -898,36 +898,39 @@ export const IDIOMAS = [
   { code:'nl', label:'🇳🇱 NL', nome:'Nederlands' },
 ]
 
-export const IdiomaContext = createContext({ idioma: 'pt', setIdioma: () => {} })
+// Store global de idioma — fora do React
+const _listeners = new Set()
+let _idioma = (() => { try { return localStorage.getItem('cl_idioma') || 'pt' } catch { return 'pt' } })()
+
+function _setIdioma(novo) {
+  _idioma = novo
+  try { localStorage.setItem('cl_idioma', novo) } catch {}
+  _listeners.forEach(fn => fn(novo))
+}
+
+export const IdiomaContext = createContext(null)
 
 export function useIdioma() {
-  const [idioma, setIdiomaState] = useState(() => {
-    try { return localStorage.getItem('cl_idioma') || 'pt' } catch { return 'pt' }
-  })
+  const [idioma, setIdiomaState] = useState(_idioma)
 
   useEffect(() => {
-    const handler = () => {
-      try {
-        const novo = localStorage.getItem('cl_idioma') || 'pt'
-        setIdiomaState(novo)
-      } catch {}
-    }
-    window.addEventListener('storage', handler)
-    window.addEventListener('cl_idioma_change', handler)
-    return () => {
-      window.removeEventListener('storage', handler)
-      window.removeEventListener('cl_idioma_change', handler)
-    }
+    const fn = (novo) => setIdiomaState(novo)
+    _listeners.add(fn)
+    return () => _listeners.delete(fn)
   }, [])
 
-  const setIdioma = (novo) => {
-    try { localStorage.setItem('cl_idioma', novo) } catch {}
-    setIdiomaState(novo)
-    window.dispatchEvent(new Event('cl_idioma_change'))
-  }
-
   const t = (chave) => TRADUCOES[chave]?.[idioma] || TRADUCOES[chave]?.pt || chave
-  return { idioma, t, setIdioma, isBR: idioma==='br', isEN: idioma==='en', isES: idioma==='es', isPT: idioma==='pt', isNL: idioma==='nl' }
+  return { idioma, t, setIdioma: _setIdioma, isBR: idioma==='br', isEN: idioma==='en', isES: idioma==='es', isPT: idioma==='pt', isNL: idioma==='nl' }
+}
+
+export function useIdiomaState() {
+  const [idioma, setIdiomaState] = useState(_idioma)
+  useEffect(() => {
+    const fn = (novo) => setIdiomaState(novo)
+    _listeners.add(fn)
+    return () => _listeners.delete(fn)
+  }, [])
+  return { idioma, setIdioma: _setIdioma }
 }
 
 export function useIdiomaState() {
