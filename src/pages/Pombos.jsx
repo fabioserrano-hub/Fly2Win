@@ -596,7 +596,7 @@ export default function Pombos({ nav, params }) {
                 setModalPartilha(false)
                 const esp = (pomboPartilha.esp||[]).map(e=>ESP_ICON[e]+' '+e).join(' ')
                 const obsStr = pomboPartilha.obs ? '\n"' + pomboPartilha.obs + '"' : ''
-                const conteudo = (pomboPartilha.emoji||'🐦') + ' ' + pomboPartilha.nome + ' — ' + pomboPartilha.anilha + '\n\n📊 t('percentil')+':' ' + (pomboPartilha.percentil||0) + '%\n💪 Forma: ' + (pomboPartilha.forma||50) + '%\n🏆 Provas: ' + (pomboPartilha.provas||0) + (esp?'\n'+esp:'') + obsStr
+                const conteudo = (pomboPartilha.emoji||'🐦') + ' ' + pomboPartilha.nome + ' — ' + pomboPartilha.anilha + '\n\n📊 ' + t('percentil') + ': ' + (pomboPartilha.percentil||0) + '%\n💪 Forma: ' + (pomboPartilha.forma||50) + '%\n🏆 Provas: ' + (pomboPartilha.provas||0) + (esp?'\n'+esp:'') + obsStr
                 nav?.('comunidade', { prefillPost: { tipo:'Geral', conteudo, foto_url: pomboPartilha.foto_url||null, pomboId: pomboPartilha.id } })
               }}>🌐 Publicar na LoftSocial →</button>
             </div>
@@ -1141,7 +1141,7 @@ export default function Pombos({ nav, params }) {
                             <div style={{ fontFamily:"'Space Mono',monospace", fontSize:10, color:'#D4AF37' }}>{ped.anilha}</div>
                             <div style={{ fontSize:12, fontWeight:600, color:'#fff' }}>{ped.nome}</div>
                             {ped.cor&&<div style={{ fontSize:10, color:'#7A8699' }}>{ped.cor}</div>}
-                            {ped.percentil>0&&<div style={{ fontSize:10, color:'#2DD4A7' }}>t('percentil')+':' {ped.percentil}%</div>}
+                            {ped.percentil>0&&<div style={{ fontSize:10, color:'#2DD4A7' }}>{t('percentil')}: {ped.percentil}%</div>}
                           </div>
                         ) : <div style={{ fontFamily:"'Space Mono',monospace", fontSize:11, color:'#475569' }}>{raw||'—'}</div>}
                       </div>
@@ -1151,9 +1151,9 @@ export default function Pombos({ nav, params }) {
                   {(selected.criador||selected.data_aquisicao||selected.valor_aquisicao)&&(
                     <div style={{ background:'#101F40', borderRadius:10, padding:'10px 12px' }}>
                       <div style={{ fontSize:11, fontWeight:600, color:'#94a3b8', marginBottom:6 }}>📦 ORIGEM</div>
-                      {selected.criador&&<div style={{ fontSize:12, color:'#cbd5e1' }}>t('criador')+':' {selected.criador}</div>}
-                      {selected.data_aquisicao&&<div style={{ fontSize:12, color:'#cbd5e1' }}>t('data')+':' {new Date(selected.data_aquisicao).toLocaleDateString('pt-PT')}</div>}
-                      {selected.valor_aquisicao&&<div style={{ fontSize:12, color:'#D4AF37' }}>t('valor')+':' {selected.valor_aquisicao}€</div>}
+                      {selected.criador&&<div style={{ fontSize:12, color:'#cbd5e1' }}>{t('criador')}: {selected.criador}</div>}
+                      {selected.data_aquisicao&&<div style={{ fontSize:12, color:'#cbd5e1' }}>{t('data')}: {new Date(selected.data_aquisicao).toLocaleDateString('pt-PT')}</div>}
+                      {selected.valor_aquisicao&&<div style={{ fontSize:12, color:'#D4AF37' }}>{t('valor')}: {selected.valor_aquisicao}€</div>}
                       {selected.obs_aquisicao&&<div style={{ fontSize:11, color:'#7A8699' }}>{selected.obs_aquisicao}</div>}
                     </div>
                   )}
