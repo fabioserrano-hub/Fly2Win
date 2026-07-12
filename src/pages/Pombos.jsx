@@ -54,7 +54,7 @@ export function classificarPombo(p) {
 // ── gráfico de peso ───────────────────────────────────────────────────────────
 function PesoChart({ registos }) {
   const pontos = registos.filter(r => r.peso).slice(0, 10).reverse()
-  if (pontos.length < 2) return <div style={{ fontSize:12, color:'#7A8699', textAlign:'center', padding:'16px 0' }}>Sem dados suficientes de peso (mínimo 2 registos)</div>
+  if (pontos.length < 2) return <div style={{ fontSize:12, color:'#7A8699', textAlign:'center', padding:'16px 0' }}>'+t('semDadosPeso')+'</div>
   const pesos = pontos.map(p => p.peso)
   const min = Math.min(...pesos) - 10, max = Math.max(...pesos) + 10
   const w = 280, h = 70, pad = 8
@@ -267,13 +267,13 @@ export default function Pombos({ nav, params }) {
       link.download = `${selected.nome||'pombo'}_fly2win.png`
       link.href = canvas.toDataURL('image/png')
       link.click()
-      toast('Imagem guardada! ✅', 'ok')
+      toast(t('imagemGuardada'), 'ok')
     } catch(e) { toast('Erro: '+e.message, 'err') }
     finally { setGerandoImg(false) }
   }
 
   const moverPombo = async () => {
-    if (!pombalDestino) { toast('Selecciona um pombal', 'warn'); return }
+    if (!pombalDestino) { toast(t('seleccionaPombal'), 'warn'); return }
     try {
       await db.updatePombo(selected.id, { pombal: pombalDestino })
       toast(`Movido para ${pombalDestino}!`, 'ok')
@@ -383,7 +383,7 @@ export default function Pombos({ nav, params }) {
   const close = () => { setModal(null); setSelected(null); setPhotoFile(null); setPhotoPreview(null); setHistoricoProvas([]); setHistoricoSaude([]); setHistoricoTreinos([]); setPedigreeInfo(null); setIrmaos([]); setDescendentes([]) }
 
   const save = async () => {
-    if (!form.nome.trim()) { toast('Nome obrigatório', 'warn'); return }
+    if (!form.nome.trim()) { toast(t('nomeObrigatorio'), 'warn'); return }
     setSaving(true)
     try {
       const anilhaFinal = anilhaNum ? `${anilhaPais}-${anilhaAno}-${anilhaNum.padStart(5,'0')}` : form.anilha.trim()
@@ -393,7 +393,7 @@ export default function Pombos({ nav, params }) {
       else saved = await db.createPombo(payload)
       if (photoFile && saved?.id && user?.id) {
         try { const url = await db.uploadFoto(user.id, saved.id, photoFile); await db.updatePombo(saved.id, { foto_url:url }) }
-        catch (e) { toast('Foto não guardada', 'warn') }
+        catch (e) { toast(t('fotoNaoGuardada'), 'warn') }
       }
       toast(selected ? 'Actualizado!' : form.nome + ' adicionado!', 'ok'); close(); load()
       if (!selected && user?.id) {
@@ -406,7 +406,7 @@ export default function Pombos({ nav, params }) {
   }
 
   const del = async () => {
-    try { await db.deletePombo(confirm.id); toast('Eliminado', 'ok'); setConfirm(null); load() }
+    try { await db.deletePombo(confirm.id); toast(t('eliminado'), 'ok'); setConfirm(null); load() }
     catch (e) { toast('Erro: ' + e.message, 'err') }
   }
 
@@ -518,7 +518,7 @@ export default function Pombos({ nav, params }) {
     <div>
       <GuiaAuto modulo="pombos"/>
       <div className="section-header">
-        <div><div className="section-title">Pombos</div><div className="section-sub">{efectivo.length} no efectivo · {externos.length} externos</div></div>
+        <div><div className="section-title">{t('pombos')}</div><div className="section-sub">{efectivo.length+' '+t('noEfectivo')+' · '+externos.length+' '+t('externos')}</div></div>
         <button className="btn btn-primary" onClick={openNew}>＋ Novo Pombo</button>
       </div>
 
@@ -532,7 +532,7 @@ export default function Pombos({ nav, params }) {
       {/* filtros efectivo */}
       {tabPrincipal === 'efectivo' && (
         <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:14 }}>
-          <input className="input" placeholder="🔍 Pesquisar por nome ou anilha..." value={search} onChange={e=>setSearch(e.target.value)} />
+          <input className="input" placeholder={'🔍 '+t('pesquisarNomeAnilha')} value={search} onChange={e=>setSearch(e.target.value)} />
           <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
             {FILTROS.map(f=><button key={f.id} onClick={()=>setFiltro(f.id)} className={`chip${filtro===f.id?' active':''}`} style={{ fontSize:11 }}>{f.label}</button>)}
             {pombais.length > 0 && <>
@@ -553,7 +553,7 @@ export default function Pombos({ nav, params }) {
         </div>
       )}
 
-      {tabPrincipal !== 'efectivo' && <input className="input" style={{ marginBottom:16 }} placeholder="🔍 Pesquisar..." value={search} onChange={e=>setSearch(e.target.value)} />}
+      {tabPrincipal !== 'efectivo' && <input className="input" style={{ marginBottom:16 }} placeholder={'🔍 '+t('pesquisar')+'...'} value={search} onChange={e=>setSearch(e.target.value)} />}
 
       {/* lista */}
       {loading ? <div style={{ display:'flex', justifyContent:'center', padding:60 }}><Spinner lg /></div>
@@ -586,17 +586,17 @@ export default function Pombos({ nav, params }) {
         <Modal open={modalPartilha} onClose={()=>setModalPartilha(false)} title="🌐 Partilhar na Comunidade"
           footer={
             <div style={{ display:'flex', gap:8, width:'100%' }}>
-              <button className="btn btn-secondary" onClick={()=>setModalPartilha(false)}>Cancelar</button>
+              <button className="btn btn-secondary" onClick={()=>setModalPartilha(false)}>{t('cancelar')}</button>
               <div style={{ flex:1 }}/>
               <button className="btn btn-secondary btn-sm" onClick={()=>{
                 const txt = pomboPartilha.nome + ' (' + pomboPartilha.anilha + ')\n🏆 ' + (pomboPartilha.provas||0) + ' provas · 📊 ' + (pomboPartilha.percentil||0) + '% percentil · 💪 ' + (pomboPartilha.forma||50) + '% forma\n#columbofilia #pomboscorreio'
-                navigator.clipboard?.writeText(txt).then(()=>toast('Copiado!','ok'))
+                navigator.clipboard?.writeText(txt).then(()=>toast(t('copiado'), 'ok'))
               }}>📋 Copiar</button>
               <button className="btn btn-primary" onClick={()=>{
                 setModalPartilha(false)
                 const esp = (pomboPartilha.esp||[]).map(e=>ESP_ICON[e]+' '+e).join(' ')
                 const obsStr = pomboPartilha.obs ? '\n"' + pomboPartilha.obs + '"' : ''
-                const conteudo = (pomboPartilha.emoji||'🐦') + ' ' + pomboPartilha.nome + ' — ' + pomboPartilha.anilha + '\n\n📊 Percentil: ' + (pomboPartilha.percentil||0) + '%\n💪 Forma: ' + (pomboPartilha.forma||50) + '%\n🏆 Provas: ' + (pomboPartilha.provas||0) + (esp?'\n'+esp:'') + obsStr
+                const conteudo = (pomboPartilha.emoji||'🐦') + ' ' + pomboPartilha.nome + ' — ' + pomboPartilha.anilha + '\n\n📊 t('percentil')+':' ' + (pomboPartilha.percentil||0) + '%\n💪 Forma: ' + (pomboPartilha.forma||50) + '%\n🏆 Provas: ' + (pomboPartilha.provas||0) + (esp?'\n'+esp:'') + obsStr
                 nav?.('comunidade', { prefillPost: { tipo:'Geral', conteudo, foto_url: pomboPartilha.foto_url||null, pomboId: pomboPartilha.id } })
               }}>🌐 Publicar na LoftSocial →</button>
             </div>
@@ -658,7 +658,7 @@ export default function Pombos({ nav, params }) {
 
       {/* ══ MODAL MOVER POMBAL ═══════════════════════════════════════════ */}
       <Modal open={modalMover} onClose={()=>setModalMover(false)} title="🏠 Mover para Pombal"
-        footer={<><button className="btn btn-secondary" onClick={()=>setModalMover(false)}>Cancelar</button><button className="btn btn-primary" onClick={moverPombo}>Mover</button></>}>
+        footer={<><button className="btn btn-secondary" onClick={()=>setModalMover(false)}>{t('cancelar')}</button><button className="btn btn-primary" onClick={moverPombo}>{t('mover')}</button></>}>
         <div style={{fontSize:13,color:'#94a3b8',marginBottom:12}}>Mover <strong style={{color:'#fff'}}>{selected?.nome}</strong> para:</div>
         <select className="input" value={pombalDestino} onChange={e=>setPombalDestino(e.target.value)}>
           <option value="">— Seleccionar pombal —</option>
@@ -671,7 +671,7 @@ export default function Pombos({ nav, params }) {
       <Modal open={modalCartao} onClose={()=>setModalCartao(false)} title="🖼️ Cartão para Redes Sociais"
         footer={
           <div style={{display:'flex',gap:8,width:'100%'}}>
-            <button className="btn btn-secondary" onClick={()=>setModalCartao(false)}>Fechar</button>
+            <button className="btn btn-secondary" onClick={()=>setModalCartao(false)}>{t('fechar')}</button>
             <div style={{flex:1}}/>
             <button className="btn btn-primary" onClick={gerarImagemRedes} disabled={gerandoImg}>
               {gerandoImg?<Spinner/>:'⬇️ Guardar PNG'}
@@ -742,7 +742,7 @@ export default function Pombos({ nav, params }) {
 
       {/* ══ MODAL FORM ════════════════════════════════════════════════════════ */}
       <Modal open={modal==='form'} onClose={close} title={selected?`✏️ ${selected.nome}`:'🐦 Novo Pombo'} wide
-        footer={<><button className="btn btn-secondary" onClick={close}>Cancelar</button><button className="btn btn-primary" onClick={save} disabled={saving}>{saving?<Spinner/>:null}{selected?t('guardar'):'Adicionar'}</button></>}>
+        footer={<><button className="btn btn-secondary" onClick={close}>{t('cancelar')}</button><button className="btn btn-primary" onClick={save} disabled={saving}>{saving?<Spinner/>:null}{selected?t('guardar'):'Adicionar'}</button></>}>
         <div className="form-grid">
           <div className="col-2" style={{ display:'flex', alignItems:'center', gap:16 }}>
             <div style={{ width:72, height:72, borderRadius:14, border:'2px dashed #243860', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden', cursor:'pointer', flexShrink:0 }} onClick={()=>document.getElementById('photo-up').click()}>
@@ -753,7 +753,7 @@ export default function Pombos({ nav, params }) {
               <button className="btn btn-secondary btn-sm" onClick={()=>document.getElementById('photo-up').click()}>📸 Foto</button>
             </div>
           </div>
-          <Field label="Anel *">
+          <Field label={t('anilha')+' *'}>
             <div style={{ display:'flex', gap:4 }}>
               <select className="input" style={{ width:72 }} value={anilhaPais} onChange={e=>setAnilhaPais(e.target.value)}>{paises.map(p=><option key={p}>{p}</option>)}</select>
               <select className="input" style={{ width:88 }} value={anilhaAno} onChange={e=>setAnilhaAno(e.target.value)}>{anos.map(a=><option key={a}>{a}</option>)}</select>
@@ -761,25 +761,25 @@ export default function Pombos({ nav, params }) {
             </div>
             <div style={{ fontSize:11, color:'#2DD4A7', marginTop:4 }}>🏷️ {anilhaPais}-{anilhaAno}-{(anilhaNum||'?????').padStart(5,'0')}</div>
           </Field>
-          <Field label="Nome *"><input className="input" placeholder="Nome do pombo" value={form.nome} onChange={e=>sf('nome',e.target.value)} /></Field>
-          <Field label="Sexo"><select className="input" value={form.sexo} onChange={e=>sf('sexo',e.target.value)}><option value="M">♂ Macho</option><option value="F">♀ Fêmea</option></select></Field>
-          <Field label="Estado"><select className="input" value={form.estado} onChange={e=>sf('estado',e.target.value)}>{['ativo','reproducao','lesionado','inativo'].map(s=><option key={s}>{s}</option>)}</select></Field>
-          <Field label="Situação"><select className="input" value={form.estado_ext} onChange={e=>sf('estado_ext',e.target.value)}>{ESTADOS_EXT.map(s=><option key={s}>{s}</option>)}</select></Field>
-          <Field label="Cor">
-            <input className="input" list="cores-pombo-list" placeholder="Ex: Azul barrado" value={form.cor} onChange={e=>sf('cor',e.target.value)} />
+          <Field label={t('nome')+' *'}><input className="input" placeholder={t('nomePombo')} value={form.nome} onChange={e=>sf('nome',e.target.value)} /></Field>
+          <Field label={t('sexo')}><select className="input" value={form.sexo} onChange={e=>sf('sexo',e.target.value)}><option value="M">{t('macho')}</option><option value="F">{t('femea')}</option></select></Field>
+          <Field label={t('estado')}><select className="input" value={form.estado} onChange={e=>sf('estado',e.target.value)}>{['ativo','reproducao','lesionado','inativo'].map(s=><option key={s}>{s}</option>)}</select></Field>
+          <Field label={t('situacao')}><select className="input" value={form.estado_ext} onChange={e=>sf('estado_ext',e.target.value)}>{ESTADOS_EXT.map(s=><option key={s}>{s}</option>)}</select></Field>
+          <Field label={t('cor')}>
+            <input className="input" list="cores-pombo-list" placeholder={t('exCor')} value={form.cor} onChange={e=>sf('cor',e.target.value)} />
             <datalist id="cores-pombo-list">{CORES_POMBO.map(c=><option key={c} value={c} />)}</datalist>
           </Field>
-          <Field label="Peso (g)"><input className="input" type="number" placeholder="420" value={form.peso} onChange={e=>sf('peso',e.target.value)} /></Field>
-          <Field label="Pombal"><select className="input" value={form.pombal} onChange={e=>sf('pombal',e.target.value)}><option value="">— Sem pombal —</option>{pombais.map(pb=><option key={pb.id}>{pb.nome}</option>)}</select></Field>
-          <div className="col-2"><Field label="Especialidades"><div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:4 }}>{ESPS.map(([v,l])=><button key={v} type="button" className={`chip${form.esp.includes(v)?' active':''}`} onClick={()=>toggleEsp(v)} style={{ color:form.esp.includes(v)?'#fff':ESP_COR[v] }}>{ESP_ICON[v]} {l}</button>)}</div></Field></div>
-          <Field label="Pai">
+          <Field label={t('peso')}><input className="input" type="number" placeholder="420" value={form.peso} onChange={e=>sf('peso',e.target.value)} /></Field>
+          <Field label={t('pombal')}><select className="input" value={form.pombal} onChange={e=>sf('pombal',e.target.value)}><option value="">— Sem pombal —</option>{pombais.map(pb=><option key={pb.id}>{pb.nome}</option>)}</select></Field>
+          <div className="col-2"><Field label={t('especialidades')}><div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:4 }}>{ESPS.map(([v,l])=><button key={v} type="button" className={`chip${form.esp.includes(v)?' active':''}`} onClick={()=>toggleEsp(v)} style={{ color:form.esp.includes(v)?'#fff':ESP_COR[v] }}>{ESP_ICON[v]} {l}</button>)}</div></Field></div>
+          <Field label={t('pai')}>
             <select className="input" style={{ marginBottom:4 }} value="" onChange={e=>{ if(e.target.value) sf('pai',e.target.value) }}>
               <option value="">— Seleccionar do efectivo —</option>
               {pombos.filter(p=>p.sexo==='M'&&p.id!==selected?.id).map(p=><option key={p.id} value={p.anilha}>{p.nome} ({p.anilha})</option>)}
             </select>
             <input className="input" style={{ fontSize:11 }} placeholder="PT-0000-00000" value={form.pai} onChange={e=>sf('pai',e.target.value.toUpperCase())} />
           </Field>
-          <Field label="Mãe">
+          <Field label={t('mae')}>
             <select className="input" style={{ marginBottom:4 }} value="" onChange={e=>{ if(e.target.value) sf('mae',e.target.value) }}>
               <option value="">— Seleccionar do efectivo —</option>
               {pombos.filter(p=>p.sexo==='F'&&p.id!==selected?.id).map(p=><option key={p.id} value={p.anilha}>{p.nome} ({p.anilha})</option>)}
@@ -789,9 +789,9 @@ export default function Pombos({ nav, params }) {
           <div className="col-2" style={{ borderTop:'1px solid #1e3050', paddingTop:12, marginTop:4 }}>
             <div style={{ fontSize:12, fontWeight:600, color:'#94a3b8', marginBottom:10 }}>📦 Origem / Aquisição</div>
           </div>
-          <Field label="Criador / Origem"><input className="input" placeholder="Nome do criador" value={form.criador} onChange={e=>sf('criador',e.target.value)} /></Field>
-          <Field label="Data de Aquisição"><input className="input" type="date" value={form.data_aquisicao} onChange={e=>sf('data_aquisicao',e.target.value)} /></Field>
-          <Field label="Valor de Aquisição (€)"><input className="input" type="number" step="0.01" placeholder="0.00" value={form.valor_aquisicao} onChange={e=>sf('valor_aquisicao',e.target.value)} /></Field>
+          <Field label={t('criadorOrigem')}><input className="input" placeholder={t('nomeCriador')} value={form.criador} onChange={e=>sf('criador',e.target.value)} /></Field>
+          <Field label={t('dataAquisicao')}><input className="input" type="date" value={form.data_aquisicao} onChange={e=>sf('data_aquisicao',e.target.value)} /></Field>
+          <Field label={t('valorAquisicao')}><input className="input" type="number" step="0.01" placeholder="0.00" value={form.valor_aquisicao} onChange={e=>sf('valor_aquisicao',e.target.value)} /></Field>
           <Field label="Obs. Aquisição"><input className="input" placeholder="Notas..." value={form.obs_aquisicao} onChange={e=>sf('obs_aquisicao',e.target.value)} /></Field>
           {form.estado_ext !== 'proprio' && (
             <>
@@ -801,10 +801,10 @@ export default function Pombos({ nav, params }) {
               <Field label="Destino"><input className="input" placeholder="Nome do destinatário" value={form.destino_nome} onChange={e=>sf('destino_nome',e.target.value)} /></Field>
               <Field label="Data"><input className="input" type="date" value={form.destino_data} onChange={e=>sf('destino_data',e.target.value)} /></Field>
               <Field label="Valor (€)"><input className="input" type="number" step="0.01" placeholder="0.00" value={form.destino_valor} onChange={e=>sf('destino_valor',e.target.value)} /></Field>
-              <Field label="Observações"><input className="input" placeholder="Notas..." value={form.destino_obs} onChange={e=>sf('destino_obs',e.target.value)} /></Field>
+              <Field label={t('observacoes')}><input className="input" placeholder="Notas..." value={form.destino_obs} onChange={e=>sf('destino_obs',e.target.value)} /></Field>
             </>
           )}
-          <div className="col-2"><Field label="Observações"><textarea className="input" rows={2} style={{ resize:'none' }} value={form.obs} onChange={e=>sf('obs',e.target.value)} /></Field></div>
+          <div className="col-2"><Field label={t('observacoes')}><textarea className="input" rows={2} style={{ resize:'none' }} value={form.obs} onChange={e=>sf('obs',e.target.value)} /></Field></div>
         </div>
       </Modal>
 
@@ -820,7 +820,7 @@ export default function Pombos({ nav, params }) {
               <button className="btn btn-secondary btn-sm" onClick={()=>{ setModal(null); setTimeout(()=>setModalCartao(true),100) }}>🖼️ Redes</button>
               <button className="btn btn-secondary btn-sm" onClick={()=>{ setModal(null); setTimeout(()=>setModalMover(true),100) }}>🏠 Mover</button>
               <div style={{ flex:1 }} />
-              <button className="btn btn-secondary" onClick={close}>Fechar</button>
+              <button className="btn btn-secondary" onClick={close}>{t('fechar')}</button>
               <button className="btn btn-primary" onClick={()=>openEdit(selected)}>✏️ Editar</button>
             </div>
           }>
@@ -1141,7 +1141,7 @@ export default function Pombos({ nav, params }) {
                             <div style={{ fontFamily:"'Space Mono',monospace", fontSize:10, color:'#D4AF37' }}>{ped.anilha}</div>
                             <div style={{ fontSize:12, fontWeight:600, color:'#fff' }}>{ped.nome}</div>
                             {ped.cor&&<div style={{ fontSize:10, color:'#7A8699' }}>{ped.cor}</div>}
-                            {ped.percentil>0&&<div style={{ fontSize:10, color:'#2DD4A7' }}>Percentil: {ped.percentil}%</div>}
+                            {ped.percentil>0&&<div style={{ fontSize:10, color:'#2DD4A7' }}>t('percentil')+':' {ped.percentil}%</div>}
                           </div>
                         ) : <div style={{ fontFamily:"'Space Mono',monospace", fontSize:11, color:'#475569' }}>{raw||'—'}</div>}
                       </div>
@@ -1151,9 +1151,9 @@ export default function Pombos({ nav, params }) {
                   {(selected.criador||selected.data_aquisicao||selected.valor_aquisicao)&&(
                     <div style={{ background:'#101F40', borderRadius:10, padding:'10px 12px' }}>
                       <div style={{ fontSize:11, fontWeight:600, color:'#94a3b8', marginBottom:6 }}>📦 ORIGEM</div>
-                      {selected.criador&&<div style={{ fontSize:12, color:'#cbd5e1' }}>Criador: {selected.criador}</div>}
-                      {selected.data_aquisicao&&<div style={{ fontSize:12, color:'#cbd5e1' }}>Data: {new Date(selected.data_aquisicao).toLocaleDateString('pt-PT')}</div>}
-                      {selected.valor_aquisicao&&<div style={{ fontSize:12, color:'#D4AF37' }}>Valor: {selected.valor_aquisicao}€</div>}
+                      {selected.criador&&<div style={{ fontSize:12, color:'#cbd5e1' }}>t('criador')+':' {selected.criador}</div>}
+                      {selected.data_aquisicao&&<div style={{ fontSize:12, color:'#cbd5e1' }}>t('data')+':' {new Date(selected.data_aquisicao).toLocaleDateString('pt-PT')}</div>}
+                      {selected.valor_aquisicao&&<div style={{ fontSize:12, color:'#D4AF37' }}>t('valor')+':' {selected.valor_aquisicao}€</div>}
                       {selected.obs_aquisicao&&<div style={{ fontSize:11, color:'#7A8699' }}>{selected.obs_aquisicao}</div>}
                     </div>
                   )}
@@ -1191,7 +1191,7 @@ export default function Pombos({ nav, params }) {
                     ))}
                   </div>
                   {historicoProvas.length===0
-                    ?<div style={{ textAlign:'center', color:'#7A8699', padding:'24px 0', fontSize:13 }}>Sem provas registadas para este pombo</div>
+                    ?<div style={{ textAlign:'center', color:'#7A8699', padding:'24px 0', fontSize:13 }}>{t('semProvasPombo')}</div>
                     :<div style={{ display:'flex', flexDirection:'column', gap:6 }}>
                         {historicoProvas.map(r=>{
                           const pct = r.posicao&&r.races?.n_pombos ? Math.round((r.posicao/r.races.n_pombos)*100) : null
@@ -1225,7 +1225,7 @@ export default function Pombos({ nav, params }) {
                     <PesoChart registos={historicoSaude} />
                   </div>
                   {historicoSaude.length===0
-                    ?<div style={{ textAlign:'center', color:'#7A8699', padding:'16px 0', fontSize:13 }}>Sem registos de saúde</div>
+                    ?<div style={{ textAlign:'center', color:'#7A8699', padding:'16px 0', fontSize:13 }}>{t('semRegistosSaude')}</div>
                     :<div style={{ display:'flex', flexDirection:'column', gap:6 }}>
                         {historicoSaude.map(s=>(
                           <div key={s.id} style={{ display:'flex', gap:10, padding:'8px 12px', background:'#101F40', borderRadius:10, alignItems:'flex-start' }}>
@@ -1294,7 +1294,7 @@ export default function Pombos({ nav, params }) {
                       </div>
                     </div>
                   )}
-                  {irmãos.length===0&&descendentes.length===0&&<div style={{ textAlign:'center', color:'#475569', padding:'16px 0', fontSize:13 }}>Sem familiares registados no efectivo</div>}
+                  {irmãos.length===0&&descendentes.length===0&&<div style={{ textAlign:'center', color:'#475569', padding:'16px 0', fontSize:13 }}>{t('semFamiliares')}</div>}
                   <button className="btn btn-secondary btn-sm" style={{ alignSelf:'flex-start' }} onClick={()=>{ close(); nav?.('pedigree',{pomboId:selected.id}) }}>🌳 Ver Pedigree Completo →</button>
                 </div>
               )}
@@ -1303,7 +1303,7 @@ export default function Pombos({ nav, params }) {
               {tabDetail==='treinos'&&(
                 <div>
                   {historicoTreinos.length===0
-                    ?<div style={{ textAlign:'center', color:'#7A8699', padding:'24px 0', fontSize:13 }}>Sem treinos registados para este pombo</div>
+                    ?<div style={{ textAlign:'center', color:'#7A8699', padding:'24px 0', fontSize:13 }}>{t('semTreinosPombo')}</div>
                     :(()=>{
                         const comVel=historicoTreinos.filter(t=>t.velocidade)
                         const velM=comVel.length?Math.round(comVel.reduce((s,t)=>s+t.velocidade,0)/comVel.length):null
@@ -1336,7 +1336,7 @@ export default function Pombos({ nav, params }) {
 
       {/* ══ CONFIRM ═══════════════════════════════════════════════════════════ */}
       <Modal open={!!confirm} onClose={()=>setConfirm(null)} title="Eliminar pombo"
-        footer={<><button className="btn btn-secondary" onClick={()=>setConfirm(null)}>Cancelar</button><button className="btn btn-danger" onClick={del}>Eliminar</button></>}>
+        footer={<><button className="btn btn-secondary" onClick={()=>setConfirm(null)}>{t('cancelar')}</button><button className="btn btn-danger" onClick={del}>{t('eliminar')}</button></>}>
         <p style={{ fontSize:14, color:'#cbd5e1' }}>Eliminar "{confirm?.nome}"?</p>
       </Modal>
     </div>
