@@ -933,13 +933,3 @@ export function useIdiomaState() {
   return { idioma, setIdioma: _setIdioma }
 }
 
-export function useIdiomaState() {
-  const [idioma, setIdioma] = useState(() => {
-    try { return localStorage.getItem('cl_idioma') || 'pt' } catch { return 'pt' }
-  })
-  const trocar = (novo) => {
-    setIdioma(novo)
-    try { localStorage.setItem('cl_idioma', novo) } catch {}
-  }
-  return { idioma, setIdioma: trocar }
-}
