@@ -236,7 +236,7 @@ export default function Dashboard({ nav }) {
             <div onClick={() => nav('checklist')} style={{ background:'rgba(248,113,113,.07)', border:'1px solid rgba(248,113,113,.2)', borderRadius:10, padding:'10px 14px', cursor:'pointer', display:'flex', gap:10, alignItems:'center' }}>
               <span style={{ fontSize:18 }}>⏰</span>
               <div style={{ flex:1 }}>
-                <div style={{ fontSize:12, fontWeight:600, color:'#f87171' }}>{data.tarefasAtraso.length} tarefa(s) em atraso</div>
+                <div style={{ fontSize:12, fontWeight:600, color:'#f87171' }}>{data.tarefasAtraso.length} {t('tarefasAtraso')}</div>
                 <div style={{ fontSize:11, color:'#7A8699' }}>{data.tarefasAtraso.slice(0,2).map(t=>t.titulo).join(' · ')}</div>
               </div>
               <span style={{ color:'#475569', fontSize:12 }}>→</span>
@@ -294,14 +294,14 @@ export default function Dashboard({ nav }) {
         <div onClick={() => nav('provas')} style={{ background:'linear-gradient(135deg,rgba(212,175,55,.1),rgba(11,24,48,.9))', border:'1px solid rgba(212,175,55,.3)', borderRadius:14, padding:'14px 16px', cursor:'pointer', position:'relative', overflow:'hidden' }}>
           <div style={{ position:'absolute', top:0, left:0, bottom:0, width:3, background:'#D4AF37' }} />
           <div style={{ paddingLeft:8 }}>
-            <div style={{ fontSize:10, color:'#D4AF37', fontWeight:700, textTransform:'uppercase', letterSpacing:.5, marginBottom:6 }}>📦 Dia de Encestamento — Prova Amanhã</div>
+            <div style={{ fontSize:10, color:'#D4AF37', fontWeight:700, textTransform:'uppercase', letterSpacing:.5, marginBottom:6 }}>{t('diaEncestamento')}</div>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
               <div>
                 <div style={{ fontSize:14, fontWeight:700, color:'#fff' }}>{data.provaEncestamentoHoje.nome}</div>
-                <div style={{ fontSize:11, color:'#7A8699' }}>{data.provaEncestamentoHoje.tipo} · {data.provaEncestamentoHoje.dist}km · solta amanhã</div>
+                <div style={{ fontSize:11, color:'#7A8699' }}>{data.provaEncestamentoHoje.tipo} · {data.provaEncestamentoHoje.dist}km · {t('soltaAmanha')}</div>
               </div>
               <div style={{ background:'rgba(212,175,55,.15)', border:'1px solid rgba(212,175,55,.3)', borderRadius:8, padding:'8px 14px', textAlign:'center', flexShrink:0 }}>
-                <div style={{ fontSize:11, color:'#D4AF37', fontWeight:700 }}>📦 Encestar agora</div>
+                <div style={{ fontSize:11, color:'#D4AF37', fontWeight:700 }}>{t('encestarAgora')}</div>
               </div>
             </div>
           </div>
@@ -313,14 +313,14 @@ export default function Dashboard({ nav }) {
         <div onClick={() => nav('provas')} style={{ background:'linear-gradient(135deg,rgba(248,113,113,.1),rgba(11,24,48,.9))', border:'1px solid rgba(248,113,113,.3)', borderRadius:14, padding:'14px 16px', cursor:'pointer', position:'relative', overflow:'hidden' }}>
           <div style={{ position:'absolute', top:0, left:0, bottom:0, width:3, background:'#f87171' }} />
           <div style={{ paddingLeft:8 }}>
-            <div style={{ fontSize:10, color:'#f87171', fontWeight:700, textTransform:'uppercase', letterSpacing:.5, marginBottom:6 }}>🚨 Prova Hoje</div>
+            <div style={{ fontSize:10, color:'#f87171', fontWeight:700, textTransform:'uppercase', letterSpacing:.5, marginBottom:6 }}>{t('provaHojeLabel')}</div>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:8 }}>
               <div>
                 <div style={{ fontSize:14, fontWeight:700, color:'#fff' }}>{data.provaHoje.nome}</div>
                 <div style={{ fontSize:11, color:'#7A8699' }}>{data.provaHoje.tipo} · {data.provaHoje.dist}km</div>
               </div>
               <button onClick={e => { e.stopPropagation(); nav('provas') }} style={{ background:'rgba(248,113,113,.15)', border:'1px solid rgba(248,113,113,.3)', borderRadius:8, padding:'8px 14px', cursor:'pointer', fontFamily:'inherit', textAlign:'center', flexShrink:0 }}>
-                <div style={{ fontSize:11, color:'#f87171', fontWeight:700 }}>🏆 Registar Chegadas</div>
+                <div style={{ fontSize:11, color:'#f87171', fontWeight:700 }}>{t('registarChegadas')}</div>
               </button>
             </div>
           </div>
@@ -333,7 +333,7 @@ export default function Dashboard({ nav }) {
         <div style={{ padding:'14px 16px 12px', borderBottom:'1px solid rgba(255,255,255,.05)' }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
             <div>
-              <div style={{ fontSize:10, color:'#4C8DFF', fontWeight:700, textTransform:'uppercase', letterSpacing:.5, marginBottom:3 }}>☀️ Hoje no Pombal</div>
+              <div style={{ fontSize:10, color:'#4C8DFF', fontWeight:700, textTransform:'uppercase', letterSpacing:.5, marginBottom:3 }}>{t('hojeNoPombal')}</div>
               {data.planoAtivo ? (
                 <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
                   <div style={{ fontSize:14, fontWeight:700, color:'#fff' }}>{data.planoAtivo.nome}</div>
@@ -342,7 +342,7 @@ export default function Dashboard({ nav }) {
                   </div>
                 </div>
               ) : (
-                <div style={{ fontSize:13, color:'#475569' }}>Sem plano de tratamento activo</div>
+                <div style={{ fontSize:13, color:'#475569' }}>{t('semPlanoTratamento')}</div>
               )}
             </div>
             <div style={{ display:'flex', gap:6, alignItems:'center' }}>
@@ -451,7 +451,7 @@ export default function Dashboard({ nav }) {
       {/* ── ACÇÕES RÁPIDAS ───────────────────────────────────────────────────── */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8 }}>
         {[
-          { icon:'🏆', label:'Registar\nChegada', page:'provas', cor:'#D4AF37' },
+          { icon:'🏆', label:t('registarChegada'), page:'provas', cor:'#D4AF37' },
           { icon:'🏥', label:t('regSaude'), page:'saude', cor:'#A855F7' },
           { icon:'🌾', label:t('alimentTratam'), page:'alimentacao', cor:'#2DD4A7' },
           { icon:'✅', label:t('checklist'), page:'checklist', cor:'#4C8DFF' },
@@ -500,7 +500,7 @@ export default function Dashboard({ nav }) {
                   </div>
                   <div style={{ textAlign:'right' }}>
                     <div style={{ fontFamily:"'Fraunces',serif", fontSize:16, fontWeight:900, color: pct >= 80 ? '#2DD4A7' : pct >= 60 ? '#D4AF37' : '#94a3b8' }}>{pct}%</div>
-                    <div style={{ fontSize:9, color:'#475569' }}>{p.n_provas || 0} provas</div>
+                    <div style={{ fontSize:9, color:'#475569' }}>{p.n_provas || 0} {t('provasLabel')}</div>
                   </div>
                   {/* mini barra */}
                   <div style={{ width:40, height:4, background:'#1B2D52', borderRadius:2, overflow:'hidden', flexShrink:0 }}>
