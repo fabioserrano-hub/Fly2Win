@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
+import { useIdioma } from '../hooks/useIdioma'
 
-// ─── Conteúdo dos guias por módulo ───────────────────────────
-const GUIAS = {
+// ─── Conteúdo dos guias por módulo (PT) ───────────────────────────
+const GUIAS_PT = {
   dashboard: {
     titulo:'🕊️ Pombal Hoje',
     passos:[
@@ -294,9 +295,65 @@ const GUIAS = {
   },
 }
 
+
+
+// ─── Guias EN ─────────────────────────────────────────────────
+const GUIAS_EN = {
+  dashboard: {
+    titulo:'🕊️ Loft Today',
+    passos:[
+      { icon:'📊', titulo:'Your daily panel', desc:'The Dashboard shows the status of your loft in real time — fit pigeons, upcoming races, health alerts and daily tasks.' },
+      { icon:'🏁', titulo:'Contextual banners', desc:'When there is a race today, basketing tomorrow or pigeons in a race, a banner appears automatically with relevant information.' },
+      { icon:'⚡', titulo:'Quick access', desc:'Use the shortcuts at the bottom of the dashboard to go directly to the most used modules — Pigeons, Races, Health and Feeding.' },
+    ],
+    dica:'LoftSocial also sends personalised messages based on your data — expected hatches, upcoming races and fit pigeons.',
+  },
+  pombos: {
+    titulo:'🐦 Pigeons',
+    passos:[
+      { icon:'➕', titulo:'Add pigeons', desc:'Click "New Pigeon" and fill in the ring, name, sex and specialty. The photo is optional but improves identification.' },
+      { icon:'📊', titulo:'Percentile and form', desc:'The percentile is calculated automatically based on race results. Form is recorded manually in Form Tracking.' },
+      { icon:'🔍', titulo:'Filters and sorting', desc:'Filter by loft, specialty or status. Sort by percentile, form, name or total km flown.' },
+      { icon:'📋', titulo:'Pigeon detail', desc:'Click a pigeon to see the 5 tabs: Info, Races, Health, Family and Training. Here you have the complete history.' },
+    ],
+    dica:'Pigeons with 3+ races and percentile below 25% automatically appear as "Disposal candidates" in Analytics.',
+  },
+}
+
+// ─── Guias ES ─────────────────────────────────────────────────
+const GUIAS_ES = {
+  dashboard: {
+    titulo:'🕊️ Palomar Hoy',
+    passos:[
+      { icon:'📊', titulo:'Tu panel diario', desc:'El Dashboard muestra el estado del palomar en tiempo real — palomas aptas, próximas carreras, alertas de salud y tareas del día.' },
+      { icon:'🏁', titulo:'Banners contextuales', desc:'Cuando hay una carrera hoy, encestamiento mañana o palomas en carrera, aparece automáticamente un banner con información relevante.' },
+      { icon:'⚡', titulo:'Acceso rápido', desc:'Usa los atajos en la parte inferior del dashboard para ir directamente a los módulos más usados — Palomas, Carreras, Salud y Alimentación.' },
+    ],
+    dica:'LoftSocial también envía mensajes personalizados basados en tus datos — eclosiones previstas, próximas carreras y palomas en forma.',
+  },
+  pombos: {
+    titulo:'🐦 Palomas',
+    passos:[
+      { icon:'➕', titulo:'Añadir palomas', desc:'Haz clic en "Nueva Paloma" y rellena anilla, nombre, sexo y especialidad. La foto es opcional pero mejora la identificación.' },
+      { icon:'📊', titulo:'Percentil y forma', desc:'El percentil se calcula automáticamente en base a los resultados de carrera. La forma se registra manualmente en Rastreo de Forma.' },
+      { icon:'🔍', titulo:'Filtros y ordenación', desc:'Filtra por palomar, especialidad o estado. Ordena por percentil, forma, nombre o km totales volados.' },
+      { icon:'📋', titulo:'Detalle de la paloma', desc:'Haz clic en una paloma para ver las 5 pestañas: Info, Carreras, Salud, Familia y Entrenamientos. Aquí tienes el historial completo.' },
+    ],
+    dica:'Las palomas con 3+ carreras y percentil por debajo del 25% aparecen automáticamente como "Candidatas a baja" en Analíticas.',
+  },
+}
+
+// ─── Selector de guia por idioma ──────────────────────────────
+function getGuias(idioma) {
+  if (idioma === 'en') return { ...GUIAS_PT, ...GUIAS_EN }
+  if (idioma === 'es') return { ...GUIAS_PT, ...GUIAS_ES }
+  return GUIAS_PT
+}
+
 // ─── Componente de guia ───────────────────────────────────────
 export function GuiaModulo({ modulo, onFechar }) {
-  const guia = GUIAS[modulo]
+  const { idioma } = useIdioma()
+  const guia = getGuias(idioma)[modulo]
   if (!guia) return null
 
   return (
@@ -360,8 +417,9 @@ export function useGuia(modulo) {
 
 // ─── Botão de ajuda reutilizável ──────────────────────────────
 export function BotaoGuia({ modulo }) {
+  const { idioma } = useIdioma()
   const [aberto, setAberto] = useState(false)
-  const guia = GUIAS[modulo]
+  const guia = getGuias(idioma)[modulo]
   if (!guia) return null
   return (
     <>
@@ -376,9 +434,10 @@ export function BotaoGuia({ modulo }) {
 // ─── Modal de guia com opção "não mostrar mais" ───────────────
 export function GuiaAuto({ modulo }) {
   const key = `cl_guia_visto_${modulo}`
+  const { idioma } = useIdioma()
   const [aberto, setAberto] = useState(false)
   const [naoMostrar, setNaoMostrar] = useState(false)
-  const guia = GUIAS[modulo]
+  const guia = getGuias(idioma)[modulo]
 
   useEffect(()=>{
     try {
