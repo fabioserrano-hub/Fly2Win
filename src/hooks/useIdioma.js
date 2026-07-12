@@ -901,15 +901,31 @@ export const IDIOMAS = [
 export const IdiomaContext = createContext({ idioma: 'pt', setIdioma: () => {} })
 
 export function useIdioma() {
-  const ctx = useContext(IdiomaContext)
-  // Se tiver context reactivo, usa-o; senão lê do localStorage
-  const idioma = ctx?.idioma || (() => {
+  const [idioma, setIdiomaState] = useState(() => {
     try { return localStorage.getItem('cl_idioma') || 'pt' } catch { return 'pt' }
-  })()
-  const setIdioma = ctx?.setIdioma || ((novo) => {
-    try { localStorage.setItem('cl_idioma', novo) } catch {}
-    window.location.reload()
   })
+
+  useEffect(() => {
+    const handler = () => {
+      try {
+        const novo = localStorage.getItem('cl_idioma') || 'pt'
+        setIdiomaState(novo)
+      } catch {}
+    }
+    window.addEventListener('storage', handler)
+    window.addEventListener('cl_idioma_change', handler)
+    return () => {
+      window.removeEventListener('storage', handler)
+      window.removeEventListener('cl_idioma_change', handler)
+    }
+  }, [])
+
+  const setIdioma = (novo) => {
+    try { localStorage.setItem('cl_idioma', novo) } catch {}
+    setIdiomaState(novo)
+    window.dispatchEvent(new Event('cl_idioma_change'))
+  }
+
   const t = (chave) => TRADUCOES[chave]?.[idioma] || TRADUCOES[chave]?.pt || chave
   return { idioma, t, setIdioma, isBR: idioma==='br', isEN: idioma==='en', isES: idioma==='es', isPT: idioma==='pt', isNL: idioma==='nl' }
 }
