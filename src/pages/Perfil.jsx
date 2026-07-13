@@ -12,6 +12,96 @@ const REDES = [
   { id:'youtube', icon:'📺', label:'YouTube', placeholder:'https://youtube.com/...' },
 ]
 
+// Módulos que o utilizador pode ocultar (os "Só Admin" não aparecem aqui)
+const MODULOS_CONFIGURÁVEIS = [
+  { id:'pombais',     icon:'🏠', label:'Pombais',         desc:'Gestão dos teus pombais' },
+  { id:'treinos',     icon:'🎯', label:'Treinos',          desc:'Registo de treinos' },
+  { id:'calendario',  icon:'📅', label:'Calendário',       desc:'Calendário de provas e eventos' },
+  { id:'checklist',   icon:'✅', label:'Checklist',        desc:'Tarefas diárias do pombal' },
+  { id:'saude',       icon:'🏥', label:'Saúde',            desc:'Tratamentos e saúde dos pombos' },
+  { id:'reproducao',  icon:'🥚', label:'Reprodução',       desc:'Gestão de casais e ninhadas' },
+  { id:'casais',      icon:'🧬', label:'Casais IA',        desc:'Seleccionador de casais por IA' },
+  { id:'alimentacao', icon:'🌾', label:'Alimentação',      desc:'Planos de alimentação' },
+  { id:'financas',    icon:'💰', label:'Finanças',         desc:'Controlo financeiro' },
+  { id:'analiticas',  icon:'📊', label:'Analíticas',       desc:'Analíticas avançadas' },
+  { id:'forma',       icon:'💪', label:'Rastreio Forma',   desc:'Evolução da forma dos pombos' },
+  { id:'epoca',       icon:'🏁', label:'Época',            desc:'Resumo de época' },
+  { id:'meteorologia',icon:'🌦️', label:'Meteorologia',    desc:'Previsão do tempo para provas' },
+  { id:'comunidade',  icon:'🌐', label:'Comunidade',       desc:'Rede social columbófila' },
+  { id:'mensagens',   icon:'💬', label:'Mensagens',        desc:'Mensagens directas' },
+  { id:'clubes_pers', icon:'🎽', label:'Clubes & Equipes', desc:'Clubes personalizados' },
+  { id:'forum',       icon:'💬', label:'Fórum',            desc:'Fórum de discussão' },
+  { id:'marketplace', icon:'🛒', label:'Marketplace',      desc:'Compra e venda de pombos' },
+  { id:'carteira',    icon:'💎', label:'Carteira',         desc:'Carteira de pontos e prémios' },
+  { id:'conquistas',  icon:'🎖️', label:'Conquistas',      desc:'Badges e conquistas' },
+]
+
+const STORAGE_KEY = 'cl_modulos_ocultos'
+
+function TabMenu({ toast }) {
+  const [ocultos, setOcultos] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') } catch { return [] }
+  })
+
+  const toggle = (id) => {
+    const novos = ocultos.includes(id)
+      ? ocultos.filter(x => x !== id)
+      : [...ocultos, id]
+    setOcultos(novos)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(novos))
+    toast(ocultos.includes(id) ? '✅ Módulo activado' : '👁️ Módulo ocultado', 'ok')
+    // Disparar evento para o App actualizar o menu
+    window.dispatchEvent(new Event('cl_menu_change'))
+  }
+
+  const repor = () => {
+    setOcultos([])
+    localStorage.removeItem(STORAGE_KEY)
+    toast('Menu reposto para o padrão', 'ok')
+    window.dispatchEvent(new Event('cl_menu_change'))
+  }
+
+  return (
+    <div className="card card-p">
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+        <div>
+          <div style={{ fontSize:14, fontWeight:700, color:'#fff', marginBottom:2 }}>📋 Personalizar menu</div>
+          <div style={{ fontSize:11, color:'#7A8699' }}>Oculta os módulos que não usas para simplificar o menu lateral</div>
+        </div>
+        {ocultos.length > 0 && (
+          <button onClick={repor} className="btn btn-secondary btn-sm">↺ Repor</button>
+        )}
+      </div>
+
+      <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+        {MODULOS_CONFIGURÁVEIS.map(m => {
+          const activo = !ocultos.includes(m.id)
+          return (
+            <div key={m.id} onClick={() => toggle(m.id)}
+              style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 12px', background: activo ? '#0B1830' : 'rgba(255,255,255,.03)', borderRadius:10, border:`1px solid ${activo ? '#1B2D52' : 'rgba(255,255,255,.06)'}`, cursor:'pointer', opacity: activo ? 1 : 0.5, transition:'all .15s' }}>
+              <span style={{ fontSize:18, width:24, textAlign:'center', flexShrink:0 }}>{m.icon}</span>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:13, fontWeight:600, color: activo ? '#fff' : '#7A8699' }}>{m.label}</div>
+                <div style={{ fontSize:11, color:'#475569' }}>{m.desc}</div>
+              </div>
+              {/* Toggle */}
+              <div style={{ width:42, height:24, borderRadius:12, background: activo ? '#2DD4A7' : '#1B2D52', position:'relative', transition:'background .2s', flexShrink:0 }}>
+                <div style={{ position:'absolute', top:3, left: activo ? 21 : 3, width:18, height:18, borderRadius:'50%', background:'#fff', transition:'left .2s' }}/>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {ocultos.length > 0 && (
+        <div style={{ marginTop:12, padding:'8px 12px', background:'rgba(76,141,255,.06)', border:'1px solid rgba(76,141,255,.15)', borderRadius:8, fontSize:11, color:'#7A8699' }}>
+          {ocultos.length} módulo(s) oculto(s) · O menu lateral actualiza automaticamente
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Perfil({ nav }) {
   const { user, signOut } = useAuth()
   const toast = useToast()
@@ -203,7 +293,7 @@ export default function Perfil({ nav }) {
 
       {/* Tabs */}
       <div style={{ display:'flex', gap:3, background:'#0A1628', borderRadius:10, padding:3, marginBottom:14, overflowX:'auto' }}>
-        {[['pessoal','👤 Pessoal'],['pombal','🏠 Pombal'],['publico','🌐 Público'],['palmares','🏆 Palmarés'],['notif','🔔 Notificações'],['dados','💾 Dados']].map(([k,l])=>(
+        {[['pessoal','👤 Pessoal'],['pombal','🏠 Pombal'],['publico','🌐 Público'],['palmares','🏆 Palmarés'],['notif','🔔 Notificações'],['menu','📋 Menu'],['dados','💾 Dados']].map(([k,l])=>(
           <button key={k} onClick={()=>setTab(k)} style={{ flex:'none', padding:'8px 12px', borderRadius:8, fontSize:11, fontWeight:600, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap', background:tab===k?'linear-gradient(135deg,#B8960C,#7A6020)':'none', color:tab===k?'#fff':'#475569' }}>{l}</button>
         ))}
       </div>
@@ -328,6 +418,9 @@ export default function Perfil({ nav }) {
           </div>
         </div>
       )}
+
+      {/* MENU */}
+      {tab==='menu'&&<TabMenu toast={toast}/>}
 
       {/* DADOS */}
       {tab==='dados'&&(
