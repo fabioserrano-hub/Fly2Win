@@ -56,7 +56,7 @@ export function classificarPombo(p) {
 function anilhaPlaceholder(anilha) {
   if (!anilha) return '?'
   const nums = anilha.replace(/[^0-9]/g, '')
-  return nums.slice(-4) || anilha.slice(-4) || '?'
+  return nums.slice(-3) || anilha.slice(-3) || '?'
 }
 
 // Componente placeholder de pombo sem foto
@@ -72,14 +72,14 @@ function FotoPlaceholder({ anilha, nome, sexo, size = '100%', fontSize }) {
   return (
     <div style={{ width:size, height:size, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:bg, borderRadius:'inherit', padding:'8px 4px', gap:2 }}>
       {nome && (
-        <span style={{ fontFamily:"'Fraunces',serif", fontWeight:700, fontSize:11, color:corTexto, opacity:.7, textAlign:'center', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'90%', lineHeight:1.2 }}>
+        <span style={{ fontFamily:"'Fraunces',serif", fontWeight:800, fontSize:16, color:corTexto, opacity:.9, textAlign:'center', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:'92%', lineHeight:1.2, letterSpacing:.3 }}>
           {nome}
         </span>
       )}
-      <div style={{ display:'flex', alignItems:'center', gap:2 }}>
-        <span style={{ fontFamily:'serif', fontSize:nome?16:14, color:corAspas, lineHeight:1 }}>"</span>
-        <span style={{ fontFamily:"'Fraunces',serif", fontWeight:900, fontSize:nome ? (digits.length<=3?22:18) : (digits.length<=3?32:digits.length<=4?28:22), color:corTexto, letterSpacing:1, textShadow:`0 0 20px ${corTexto}60`, lineHeight:1 }}>{digits}</span>
-        <span style={{ fontFamily:'serif', fontSize:nome?16:14, color:corAspas, lineHeight:1 }}>"</span>
+      <div style={{ display:'flex', alignItems:'center', gap:3 }}>
+        <span style={{ fontFamily:'serif', fontSize:nome?20:18, color:corAspas, lineHeight:1 }}>"</span>
+        <span style={{ fontFamily:"'Fraunces',serif", fontWeight:900, fontSize:nome ? 28 : 38, color:corTexto, letterSpacing:2, textShadow:`0 0 24px ${corTexto}70`, lineHeight:1 }}>{digits}</span>
+        <span style={{ fontFamily:'serif', fontSize:nome?20:18, color:corAspas, lineHeight:1 }}>"</span>
       </div>
     </div>
   )
