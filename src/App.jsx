@@ -48,7 +48,7 @@ import Carteira from './pages/Carteira'
 import Exportacao from './pages/Exportacao'
 import PerfilPublico from './pages/PerfilPublico'
 import Onboarding from './components/Onboarding'
-import { IdiomaContext, useIdioma, useIdiomaState, IDIOMAS } from './hooks/useIdioma'
+import { IdiomaContext, useIdioma, IDIOMAS } from './hooks/useIdioma'
 import Perfil       from './pages/Perfil'
 import Documentos   from './pages/Documentos'
 import PaginaSucesso from './pages/PaginaSucesso'
@@ -143,11 +143,23 @@ function AppLayout({ onError }) {
   )
 
   const { user } = useAuth()
-  const { idioma, t, setIdioma } = useIdioma()
+  const { idioma, t } = useIdioma()
   const NAV = getNav(t)
   const { collapsed, toggle } = useSidebarCollapse()
   const isAdmin = true; const betaTester = false; const flags = {}
   const notifs = []; const naoLidas = 0; const marcarLida = ()=>{}; const marcarTodasLidas = ()=>{}
+
+  // Módulos ocultos pelo utilizador
+  const [modulosOcultos, setModulosOcultos] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('cl_modulos_ocultos') || '[]') } catch { return [] }
+  })
+  useEffect(() => {
+    const handler = () => {
+      try { setModulosOcultos(JSON.parse(localStorage.getItem('cl_modulos_ocultos') || '[]')) } catch {}
+    }
+    window.addEventListener('cl_menu_change', handler)
+    return () => window.removeEventListener('cl_menu_change', handler)
+  }, [])
   const [painelNotif, setPainelNotif] = useState(false)
   const [page, setPage] = useState('dashboard')
   const [navParams, setNavParams] = useState({})
@@ -284,7 +296,8 @@ const concluirOnboarding = () => { localStorage.setItem('cl_onboarding_done','1'
               <div className="nav-group-items">
                 {items.filter(item => {
                   if (isAdmin||betaTester) return true
-                  if (Object.keys(flags).length===0) return true
+                  if (Object.keys(flags).length===0 && modulosOcultos.length===0) return true
+                  if (modulosOcultos.includes(item.id)) return false
                   return flags[item.id] !== false
                 }).map(item => (
                   <div key={item.id} className={`nav-item${page===item.id?' active':''}`} onClick={()=>nav(item.id)}>
@@ -342,7 +355,7 @@ const concluirOnboarding = () => { localStorage.setItem('cl_onboarding_done','1'
           </div>
           <div className="tb-right">
             {true && (
-              <select value={idioma} onChange={e => setIdioma(e.target.value)}
+              <select value={idioma} onChange={e=>{localStorage.setItem('cl_idioma',e.target.value);window.location.reload()}}
                 style={{ background:'rgba(255,255,255,.06)',border:'1px solid var(--border)',borderRadius:8,padding:'5px 8px',cursor:'pointer',fontSize:11,fontWeight:700,color:'var(--text3)',fontFamily:'inherit',outline:'none' }}>
                 {IDIOMAS.map(l=><option key={l.code} value={l.code}>{l.label}</option>)}
               </select>
@@ -429,15 +442,12 @@ function AppContent() {
 
 // ─── ROOT ─────────────────────────────────────────────
 export default function App() {
-  const { idioma, setIdioma } = useIdiomaState()
   return (
-    <IdiomaContext.Provider value={{ idioma, setIdioma }}>
     <ToastProvider>
       <AuthProvider>
         <AppContent />
       </AuthProvider>
       <CookieBanner/>
     </ToastProvider>
-    </IdiomaContext.Provider>
   )
 }
