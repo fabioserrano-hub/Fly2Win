@@ -147,7 +147,7 @@ function AppLayout({ onError }) {
   const NAV = getNav(t)
   const { collapsed, toggle } = useSidebarCollapse()
   const isAdmin = true; const betaTester = false; const flags = {}
-  const notifs = []; const naoLidas = 0; const marcarLida = ()=>{}; const marcarTodasLidas = ()=>{}
+  const notifs = []
 
   // Módulos ocultos pelo utilizador
   const [modulosOcultos, setModulosOcultos] = useState(() => {
@@ -159,7 +159,7 @@ function AppLayout({ onError }) {
     }
     window.addEventListener('cl_menu_change', handler)
     return () => window.removeEventListener('cl_menu_change', handler)
-  }, [])
+  }, []); const naoLidas = 0; const marcarLida = ()=>{}; const marcarTodasLidas = ()=>{}
   const [painelNotif, setPainelNotif] = useState(false)
   const [page, setPage] = useState('dashboard')
   const [navParams, setNavParams] = useState({})
@@ -295,9 +295,9 @@ const concluirOnboarding = () => { localStorage.setItem('cl_onboarding_done','1'
               </div>
               <div className="nav-group-items">
                 {items.filter(item => {
-                  if (isAdmin||betaTester) return true
-                  if (Object.keys(flags).length===0 && modulosOcultos.length===0) return true
                   if (modulosOcultos.includes(item.id)) return false
+                  if (isAdmin||betaTester) return true
+                  if (Object.keys(flags).length===0) return true
                   return flags[item.id] !== false
                 }).map(item => (
                   <div key={item.id} className={`nav-item${page===item.id?' active':''}`} onClick={()=>nav(item.id)}>
