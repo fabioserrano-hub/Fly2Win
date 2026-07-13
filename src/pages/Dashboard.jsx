@@ -3,6 +3,7 @@ import { supabase, db } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
 import { useIdioma } from '../hooks/useIdioma'
 import { GuiaAuto, BotaoGuia } from '../components/GuiaModulo'
+import { BarraProgresso } from '../components/Onboarding'
 import { useToast, Spinner } from '../components/ui'
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -202,6 +203,8 @@ export default function Dashboard({ nav }) {
 
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+
+      <BarraProgresso nav={nav} uid={user?.id}/>
 
       {/* ── HERO: saudação + data ──────────────────────────────────────────── */}
       <div style={{ background:'linear-gradient(135deg,#050D1A 0%,#0B1830 60%,#0D1F3C 100%)', border:'1px solid rgba(212,175,55,.2)', borderRadius:16, padding:'18px 18px 14px', position:'relative', overflow:'hidden' }}>
