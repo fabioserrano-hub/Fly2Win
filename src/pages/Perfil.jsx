@@ -12,7 +12,8 @@ const REDES = [
   { id:'youtube', icon:'📺', label:'YouTube', placeholder:'https://youtube.com/...' },
 ]
 
-// Módulos que o utilizador pode ocultar (os "Só Admin" não aparecem aqui)
+
+// Módulos configuráveis pelo utilizador
 const MODULOS_CONFIGURÁVEIS = [
   { id:'pombais',     icon:'🏠', label:'Pombais',         desc:'Gestão dos teus pombais' },
   { id:'treinos',     icon:'🎯', label:'Treinos',          desc:'Registo de treinos' },
@@ -36,57 +37,92 @@ const MODULOS_CONFIGURÁVEIS = [
   { id:'conquistas',  icon:'🎖️', label:'Conquistas',      desc:'Badges e conquistas' },
 ]
 
-const STORAGE_KEY = 'cl_modulos_ocultos'
+const MODO_SIMPLES = ['pombais','treinos','calendario','checklist','saude','reproducao','alimentacao']
 
 function TabMenu({ toast }) {
   const [ocultos, setOcultos] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') } catch { return [] }
+    try { return JSON.parse(localStorage.getItem('cl_modulos_ocultos') || '[]') } catch { return [] }
   })
+  const [modoSimples, setModoSimples] = useState(() => !!localStorage.getItem('cl_modo_simples'))
 
   const toggle = (id) => {
-    const novos = ocultos.includes(id)
-      ? ocultos.filter(x => x !== id)
-      : [...ocultos, id]
+    const novos = ocultos.includes(id) ? ocultos.filter(x => x !== id) : [...ocultos, id]
     setOcultos(novos)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(novos))
-    toast(ocultos.includes(id) ? '✅ Módulo activado' : '👁️ Módulo ocultado', 'ok')
-    // Disparar evento para o App actualizar o menu
+    localStorage.setItem('cl_modulos_ocultos', JSON.stringify(novos))
     window.dispatchEvent(new Event('cl_menu_change'))
+  }
+
+  const activarModoSimples = () => {
+    const novosOcultos = MODULOS_CONFIGURÁVEIS.filter(m => !MODO_SIMPLES.includes(m.id)).map(m => m.id)
+    setOcultos(novosOcultos)
+    setModoSimples(true)
+    localStorage.setItem('cl_modulos_ocultos', JSON.stringify(novosOcultos))
+    localStorage.setItem('cl_modo_simples', '1')
+    window.dispatchEvent(new Event('cl_menu_change'))
+    toast('Modo simplificado activado', 'ok')
+  }
+
+  const desactivarModoSimples = () => {
+    setOcultos([])
+    setModoSimples(false)
+    localStorage.removeItem('cl_modulos_ocultos')
+    localStorage.removeItem('cl_modo_simples')
+    window.dispatchEvent(new Event('cl_menu_change'))
+    toast('Menu completo restaurado', 'ok')
   }
 
   const repor = () => {
-    setOcultos([])
-    localStorage.removeItem(STORAGE_KEY)
-    toast('Menu reposto para o padrão', 'ok')
+    setOcultos([]); setModoSimples(false)
+    localStorage.removeItem('cl_modulos_ocultos')
+    localStorage.removeItem('cl_modo_simples')
     window.dispatchEvent(new Event('cl_menu_change'))
+    toast('Menu reposto para o padrão', 'ok')
   }
 
   return (
-    <div className="card card-p">
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+    <div className="card card-p" style={{ display:'flex', flexDirection:'column', gap:14 }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
         <div>
           <div style={{ fontSize:14, fontWeight:700, color:'#fff', marginBottom:2 }}>📋 Personalizar menu</div>
-          <div style={{ fontSize:11, color:'#7A8699' }}>Oculta os módulos que não usas para simplificar o menu lateral</div>
+          <div style={{ fontSize:11, color:'#7A8699' }}>Oculta os módulos que não usas</div>
         </div>
-        {ocultos.length > 0 && (
-          <button onClick={repor} className="btn btn-secondary btn-sm">↺ Repor</button>
+        {(ocultos.length > 0 || modoSimples) && (
+          <button onClick={repor} className="btn btn-secondary btn-sm">↺ Repor tudo</button>
         )}
       </div>
 
-      <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+      {/* Modo Simplificado */}
+      <div style={{ padding:'12px 14px', background: modoSimples ? 'rgba(45,212,167,.08)' : 'rgba(76,141,255,.06)', border:`1px solid ${modoSimples ? 'rgba(45,212,167,.3)' : 'rgba(76,141,255,.15)'}`, borderRadius:10 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          <div>
+            <div style={{ fontSize:13, fontWeight:700, color: modoSimples ? '#2DD4A7' : '#fff', marginBottom:2 }}>
+              {modoSimples ? '✅ Modo simplificado activo' : '⚡ Modo simplificado'}
+            </div>
+            <div style={{ fontSize:11, color:'#7A8699' }}>
+              Mostra só o essencial: Pombos, Provas, Saúde, Alimentação, Checklist e Calendário
+            </div>
+          </div>
+          {modoSimples
+            ? <button onClick={desactivarModoSimples} className="btn btn-secondary btn-sm">Desactivar</button>
+            : <button onClick={activarModoSimples} className="btn btn-primary btn-sm">Activar</button>
+          }
+        </div>
+      </div>
+
+      {/* Lista de módulos */}
+      <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
         {MODULOS_CONFIGURÁVEIS.map(m => {
           const activo = !ocultos.includes(m.id)
           return (
             <div key={m.id} onClick={() => toggle(m.id)}
-              style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 12px', background: activo ? '#0B1830' : 'rgba(255,255,255,.03)', borderRadius:10, border:`1px solid ${activo ? '#1B2D52' : 'rgba(255,255,255,.06)'}`, cursor:'pointer', opacity: activo ? 1 : 0.5, transition:'all .15s' }}>
-              <span style={{ fontSize:18, width:24, textAlign:'center', flexShrink:0 }}>{m.icon}</span>
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:13, fontWeight:600, color: activo ? '#fff' : '#7A8699' }}>{m.label}</div>
-                <div style={{ fontSize:11, color:'#475569' }}>{m.desc}</div>
+              style={{ display:'flex', alignItems:'center', gap:12, padding:'9px 12px', background: activo ? '#0B1830' : 'rgba(255,255,255,.02)', borderRadius:9, border:`1px solid ${activo ? '#1B2D52' : 'rgba(255,255,255,.05)'}`, cursor:'pointer', opacity: activo ? 1 : 0.45, transition:'all .15s' }}>
+              <span style={{ fontSize:17, width:22, textAlign:'center', flexShrink:0 }}>{m.icon}</span>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:12, fontWeight:600, color: activo ? '#fff' : '#7A8699' }}>{m.label}</div>
+                <div style={{ fontSize:10, color:'#475569' }}>{m.desc}</div>
               </div>
-              {/* Toggle */}
-              <div style={{ width:42, height:24, borderRadius:12, background: activo ? '#2DD4A7' : '#1B2D52', position:'relative', transition:'background .2s', flexShrink:0 }}>
-                <div style={{ position:'absolute', top:3, left: activo ? 21 : 3, width:18, height:18, borderRadius:'50%', background:'#fff', transition:'left .2s' }}/>
+              <div style={{ width:40, height:22, borderRadius:11, background: activo ? '#2DD4A7' : '#1B2D52', position:'relative', transition:'background .2s', flexShrink:0 }}>
+                <div style={{ position:'absolute', top:2, left: activo ? 19 : 2, width:18, height:18, borderRadius:'50%', background:'#fff', transition:'left .2s' }}/>
               </div>
             </div>
           )
@@ -94,8 +130,8 @@ function TabMenu({ toast }) {
       </div>
 
       {ocultos.length > 0 && (
-        <div style={{ marginTop:12, padding:'8px 12px', background:'rgba(76,141,255,.06)', border:'1px solid rgba(76,141,255,.15)', borderRadius:8, fontSize:11, color:'#7A8699' }}>
-          {ocultos.length} módulo(s) oculto(s) · O menu lateral actualiza automaticamente
+        <div style={{ padding:'8px 12px', background:'rgba(76,141,255,.06)', border:'1px solid rgba(76,141,255,.15)', borderRadius:8, fontSize:11, color:'#7A8699' }}>
+          {ocultos.length} módulo(s) oculto(s) · Menu lateral actualiza automaticamente
         </div>
       )}
     </div>
