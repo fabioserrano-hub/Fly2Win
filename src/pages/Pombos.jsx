@@ -51,6 +51,27 @@ export function classificarPombo(p) {
   return { tag:'Em repouso', cor:'#7A8699', prioridade:4 }
 }
 
+
+// Extrai os últimos 3-4 dígitos numéricos da anilha para usar como placeholder
+function anilhaPlaceholder(anilha) {
+  if (!anilha) return '?'
+  const nums = anilha.replace(/[^0-9]/g, '')
+  return nums.slice(-4) || anilha.slice(-4) || '?'
+}
+
+// Componente placeholder de pombo sem foto
+function FotoPlaceholder({ anilha, sexo, size = '100%', fontSize }) {
+  const digits = anilhaPlaceholder(anilha)
+  const cor = sexo === 'F' ? 'rgba(192,132,252,.15)' : 'rgba(76,141,255,.12)'
+  const corTexto = sexo === 'F' ? '#c084fc' : '#4C8DFF'
+  const fs = fontSize || (digits.length <= 3 ? 28 : digits.length <= 4 ? 24 : 20)
+  return (
+    <div style={{ width:size, height:size, display:'flex', alignItems:'center', justifyContent:'center', background:cor, borderRadius:'inherit' }}>
+      <span style={{ fontFamily:"'Fraunces',serif", fontWeight:900, fontSize:fs, color:corTexto, letterSpacing:-1, userSelect:'none' }}>{digits}</span>
+    </div>
+  )
+}
+
 // ── gráfico de peso ───────────────────────────────────────────────────────────
 function PesoChart({ registos }) {
   const { t } = useIdioma()
@@ -160,7 +181,14 @@ export default function Pombos({ nav, params }) {
         } catch {}
       } else {
         ctx.fillStyle='#101F40'; ctx.beginPath(); ctx.roundRect(20,14,fotoW,fotoH,16); ctx.fill()
-        ctx.font='180px serif'; ctx.textAlign='center'; ctx.fillText(selected.emoji||'🐦',20+fotoW/2,S/2+60)
+        const digits = anilhaPlaceholder(selected.anilha)
+        ctx.fillStyle = selected.sexo==='F' ? 'rgba(192,132,252,.3)' : 'rgba(76,141,255,.3)'
+        ctx.fillRect(20, 20, fotoW, S-40)
+        ctx.fillStyle = selected.sexo==='F' ? '#c084fc' : '#4C8DFF'
+        ctx.font = 'bold 120px serif'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText(digits, 20+fotoW/2, S/2)
       }
 
       // ─── CONTEÚDO: coluna direita ──────────────────────────────────────────
@@ -428,7 +456,7 @@ export default function Pombos({ nav, params }) {
     return (
       <div className="pombo-card" onClick={() => openDetail(p)} style={c.prioridade <= 1 ? { borderColor: c.cor + '44' } : undefined}>
         <div className="pombo-photo" style={{ height:160, position:'relative' }}>
-          {p.foto_url ? <img src={p.foto_url} alt={p.nome} /> : <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100%', fontSize:40 }}>{p.emoji}</div>}
+          {p.foto_url ? <img src={p.foto_url} alt={p.nome} /> : <FotoPlaceholder anilha={p.anilha} sexo={p.sexo} fontSize={p.anilha?undefined:40}/>}
           <div style={{ position:'absolute', top:6, right:6, background:'rgba(0,0,0,.6)', borderRadius:6, padding:'2px 6px', fontSize:11, fontWeight:700, color:'#fff' }}>{p.sexo === 'M' ? '♂' : '♀'}</div>
           {espPrincipal && <div style={{ position:'absolute', top:6, left:6, background:`${ESP_COR[espPrincipal]}22`, border:`1px solid ${ESP_COR[espPrincipal]}66`, borderRadius:6, padding:'2px 6px', fontSize:10, fontWeight:700, color:ESP_COR[espPrincipal] }}>{ESP_ICON[espPrincipal]}</div>}
           {p.estado_ext && p.estado_ext !== 'proprio' && <div style={{ position:'absolute', bottom:6, left:6, background:'rgba(0,0,0,.7)', borderRadius:6, padding:'2px 6px', fontSize:10, fontWeight:700, color:'#D4AF37' }}>{p.estado_ext.toUpperCase()}</div>}
@@ -468,7 +496,7 @@ export default function Pombos({ nav, params }) {
         onMouseEnter={e=>e.currentTarget.style.borderColor='#4C8DFF44'}
         onMouseLeave={e=>e.currentTarget.style.borderColor=c.prioridade<=1?c.cor+'33':'#1B2D52'}>
         <div style={{ width:36, height:36, borderRadius:8, background:'#101F40', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, overflow:'hidden', flexShrink:0 }}>
-          {p.foto_url ? <img src={p.foto_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : p.emoji||'🐦'}
+          {p.foto_url ? <img src={p.foto_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : <FotoPlaceholder anilha={p.anilha} sexo={p.sexo} size='100%'/>}
         </div>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ display:'flex', gap:6, alignItems:'center', flexWrap:'wrap' }}>
@@ -501,7 +529,7 @@ export default function Pombos({ nav, params }) {
     <div className="card card-p" style={{ cursor:'pointer' }} onClick={() => openDetail(p)}>
       <div style={{ display:'flex', alignItems:'center', gap:12 }}>
         <div style={{ width:44, height:44, borderRadius:10, background:'#101F40', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, overflow:'hidden', flexShrink:0 }}>
-          {p.foto_url ? <img src={p.foto_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : p.emoji||'🐦'}
+          {p.foto_url ? <img src={p.foto_url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : <FotoPlaceholder anilha={p.anilha} sexo={p.sexo} size='100%'/>}
         </div>
         <div style={{ flex:1 }}>
           <div style={{ fontSize:13, fontWeight:600, color:'#fff' }}>{p.nome}</div>
@@ -611,7 +639,7 @@ export default function Pombos({ nav, params }) {
                 {pomboPartilha.foto_url
                   ? <img src={pomboPartilha.foto_url} alt={pomboPartilha.nome}
                       style={{ position:'absolute', top:0, left:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'center' }}/>
-                  : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:72 }}>{pomboPartilha.emoji||'🐦'}</div>
+                  : <FotoPlaceholder anilha={pomboPartilha.anilha} sexo={pomboPartilha.sexo} fontSize={48}/>
                 }
                 <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'40%', background:'linear-gradient(to top, rgba(0,0,0,0.6), transparent)', pointerEvents:'none' }} />
                 {(pomboPartilha.esp||[])[0]&&(
@@ -689,7 +717,7 @@ export default function Pombos({ nav, params }) {
                   <div style={{width:88,height:88,borderRadius:12,overflow:'hidden',flexShrink:0,background:'#101F40',border:'2px solid rgba(212,175,55,.3)'}}>
                     {selected.foto_url
                       ?<img src={selected.foto_url} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}} crossOrigin="anonymous"/>
-                      :<div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:38}}>{selected.emoji||'🐦'}</div>
+                      :<FotoPlaceholder anilha={selected.anilha} sexo={selected.sexo} fontSize={32}/>
                     }
                   </div>
                   <div style={{flex:1,minWidth:0}}>
@@ -747,7 +775,7 @@ export default function Pombos({ nav, params }) {
         <div className="form-grid">
           <div className="col-2" style={{ display:'flex', alignItems:'center', gap:16 }}>
             <div style={{ width:72, height:72, borderRadius:14, border:'2px dashed #243860', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden', cursor:'pointer', flexShrink:0 }} onClick={()=>document.getElementById('photo-up').click()}>
-              {photoPreview?<img src={photoPreview} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />:<span style={{ fontSize:32 }}>{form.emoji}</span>}
+              {photoPreview?<img src={photoPreview} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }} />:<FotoPlaceholder anilha={form.anilha} sexo={form.sexo} fontSize={24}/>}
             </div>
             <div>
               <input type="file" id="photo-up" accept="image/*" style={{ display:'none' }} onChange={e=>{ const f=e.target.files[0]; if(f){setPhotoFile(f);setPhotoPreview(URL.createObjectURL(f))} }} />
