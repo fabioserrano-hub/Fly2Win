@@ -249,6 +249,12 @@ export default function Comunidade({ nav, params={} }) {
   const { temPro } = useLicenca()
   const { user }   = useAuth()
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  useEffect(() => {
+    const fn = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', fn)
+    return () => window.removeEventListener('resize', fn)
+  }, [])
   const [tab, setTab]         = useState('feed')
   const [posts, setPosts]     = useState([])
   const [ranking, setRanking] = useState([])
