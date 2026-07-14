@@ -102,6 +102,12 @@ function PieChart({ data, size=100 }) {
 export default function Analiticas({ nav }) {
   const toast = useToast()
   const { t } = useIdioma()
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  useEffect(() => {
+    const fn = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', fn)
+    return () => window.removeEventListener('resize', fn)
+  }, [])
   const [loading, setLoading]       = useState(true)
   const [pombos, setPombos]         = useState([])
   const [provas, setProvas]         = useState([])
