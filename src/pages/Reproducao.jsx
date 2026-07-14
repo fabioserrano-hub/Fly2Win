@@ -18,6 +18,13 @@ export default function Reproducao({ nav, params }) {
   const toast = useToast()
   const { t } = useIdioma()
   const [acasalamentos, setAcasalamentos] = useState([])
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  useEffect(() => {
+    const fn = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', fn)
+    return () => window.removeEventListener('resize', fn)
+  }, [])
+
   const [pombos, setPombos] = useState([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('cacifos')
