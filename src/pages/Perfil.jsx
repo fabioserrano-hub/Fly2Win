@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase, db } from '../lib/supabase'
 import { useAuth } from '../hooks/useAuth'
-import { useToast, Spinner, Field, Modal } from '../components/ui'
+import { useToast, TabBar, Spinner, Field, Modal } from '../components/ui'
 import { useIdioma } from '../hooks/useIdioma'
 import { BotaoQR } from '../components/QRCode'
 import { GuiaAuto, BotaoGuia } from '../components/GuiaModulo'
@@ -328,11 +328,7 @@ export default function Perfil({ nav }) {
       </div>
 
       {/* Tabs */}
-      <div style={{ display:'flex', gap:3, background:'#0A1628', borderRadius:10, padding:3, marginBottom:14, overflowX:'auto' }}>
-        {[['pessoal','👤 Pessoal'],['pombal','🏠 Pombal'],['publico','🌐 Público'],['palmares','🏆 Palmarés'],['notif','🔔 Notificações'],['menu','📋 Menu'],['dados','💾 Dados']].map(([k,l])=>(
-          <button key={k} onClick={()=>setTab(k)} style={{ flex:'none', padding:'8px 12px', borderRadius:8, fontSize:11, fontWeight:600, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap', background:tab===k?'linear-gradient(135deg,#B8960C,#7A6020)':'none', color:tab===k?'#fff':'#475569' }}>{l}</button>
-        ))}
-      </div>
+      <TabBar tabs={[['pessoal','👤 Pessoal'],['pombal','🏠 Pombal'],['publico','🌐 Público'],['palmares','🏆 Palmarés'],['notif','🔔 Notificações'],['menu','📋 Menu'],['dados','💾 Dados']]} active={tab} onChange={setTab} gold/>
 
       {/* PESSOAL */}
       {tab==='pessoal'&&(
