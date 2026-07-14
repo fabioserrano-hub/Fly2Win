@@ -123,3 +123,35 @@ export function Field({ label, children }) {
 export function Badge({ v = 'gray', children }) {
   return <span className={`badge badge-${v}`}>{children}</span>
 }
+
+// ─── TAB BAR ──────────────────────────────────────────
+export function TabBar({ tabs, active, onChange, gold = false }) {
+  return (
+    <div style={{
+      display:'flex', gap:4, overflowX:'auto', padding:'4px 0 8px', marginBottom:8,
+      scrollbarWidth:'none', WebkitOverflowScrolling:'touch',
+    }}>
+      <style>{`.tabbar-scroll::-webkit-scrollbar{display:none}`}</style>
+      {tabs.map(([id, label]) => {
+        const isActive = active === id
+        return (
+          <button key={id} onClick={() => onChange(id)} style={{
+            flex:'none', padding:'10px 18px', borderRadius:10,
+            fontSize:13, fontWeight: isActive ? 700 : 500,
+            cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap',
+            border: isActive ? 'none' : '1px solid rgba(255,255,255,.08)',
+            background: isActive
+              ? gold ? 'linear-gradient(135deg,#D4AF37,#B8960C)' : 'linear-gradient(135deg,#1E5FD9,#1456C0)'
+              : 'rgba(255,255,255,.05)',
+            color: isActive ? '#fff' : '#cbd5e1',
+            boxShadow: isActive ? '0 2px 8px rgba(0,0,0,.3)' : 'none',
+            transform: isActive ? 'translateY(-1px)' : 'none',
+            transition:'all .15s', minHeight:40,
+          }}>
+            {label}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
