@@ -164,6 +164,12 @@ export default function Saude({ nav, params }) {
   const { t }  = useIdioma()
   const { user } = useAuth()
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  useEffect(() => {
+    const fn = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', fn)
+    return () => window.removeEventListener('resize', fn)
+  }, [])
   const [registos, setRegistos]   = useState([])
   const [pombos, setPombos]       = useState([])
   const [vacinas, setVacinas]     = useState([])
