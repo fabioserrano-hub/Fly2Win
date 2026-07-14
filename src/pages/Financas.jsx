@@ -234,7 +234,7 @@ export default function Financas({ nav }) {
       {/* tabs */}
       <div style={{ display:'flex', gap:4, background:'#101F40', borderRadius:8, padding:4, marginBottom:16, overflowX:'auto' }}>
         {TABS.map(([k,l])=>(
-          <button key={k} onClick={()=>setTab(k)} style={{ flex:1, padding:'8px 10px', borderRadius:6, fontSize:12, fontWeight:500, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap', background:tab===k?'#1E5FD9':'none', color:tab===k?'#fff':'#94a3b8' }}>{l}</button>
+          <button key={k} onClick={()=>setTab(k)} style={{ flex:'none', padding:'10px 18px', borderRadius:10, fontSize:13, fontWeight:tab===k?700:500, cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap', border:tab===k?'none':'1px solid rgba(255,255,255,.08)', background:tab===k?'linear-gradient(135deg,#1E5FD9,#1456C0)':'rgba(255,255,255,.05)', color:tab===k?'#fff':'#cbd5e1', boxShadow:tab===k?'0 2px 8px rgba(0,0,0,.3)':'none', transform:tab===k?'translateY(-1px)':'none', transition:'all .15s', minHeight:40 }}>{l}</button>
         ))}
       </div>
 
@@ -270,7 +270,7 @@ export default function Financas({ nav }) {
 
           {/* KPIs hero */}
           <div style={{ background:'linear-gradient(135deg,#0B1830,#0D1F3C)', border:'1px solid #1B2D52', borderRadius:14, padding:'16px' }}>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:14 }}>
+            <div style={{ display:'grid', gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(3,1fr)', gap:10, marginBottom:14 }}>
               {[
                 { label:'Receitas', val:rec, cor:'#2DD4A7', icon:'💰', tendencia:periodo==='mes'?(rec-recAnt):null },
                 { label:'Despesas', val:dep, cor:'#f87171', icon:'💸', tendencia:periodo==='mes'?(dep-depAnt):null },
