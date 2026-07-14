@@ -489,7 +489,7 @@ export default function Leiloes({ nav }) {
             </button>
           </div>
         </div>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,marginTop:14,position:'relative'}}>
+        <div style={{display:'grid',gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(4,1fr)',gap:8,marginTop:14,position:'relative'}}>
           {[
             {v:leiloes.length,l:'Activos',cor:'#2DD4A7'},
             {v:leiloes.filter(l=>l.subtipo==='descendente').length,l:'Descendentes',cor:'#10B981'},
@@ -512,7 +512,7 @@ export default function Leiloes({ nav }) {
           ['meus',`📋 Os meus (${meusLeiloes.length})`],
           ['encerrados','⏰ Encerrados'],
         ].map(([k,l])=>(
-          <button key={k} onClick={()=>setTab(k)} style={{flex:1,padding:'7px 3px',borderRadius:8,fontSize:10,fontWeight:600,cursor:'pointer',border:'none',fontFamily:'inherit',whiteSpace:'nowrap',background:tab===k?'linear-gradient(135deg,#B8960C,#D4AF37)':'none',color:tab===k?'#050D1A':'#475569'}}>{l}</button>
+          <button key={k} onClick={()=>setTab(k)} style={{ flex:'none', padding:'10px 18px', borderRadius:10, fontSize:13, fontWeight:tab===k?700:500, cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap', border:tab===k?'none':'1px solid rgba(255,255,255,.08)', background:tab===k?'linear-gradient(135deg,#D4AF37,#B8960C)':'rgba(255,255,255,.05)', color:tab===k?'#050D1A':'#cbd5e1', boxShadow:tab===k?'0 2px 8px rgba(0,0,0,.3)':'none', transform:tab===k?'translateY(-1px)':'none', transition:'all .15s', minHeight:40 }}>{l}</button>
         ))}
       </div>
 
