@@ -678,7 +678,7 @@ export default function Comunidade({ nav, params={} }) {
       {/* TABS */}
       <div style={{display:'flex',gap:3,background:'#0A1628',borderRadius:10,padding:3,marginBottom:14,overflowX:'auto'}}>
         {[['feed','📰','Feed'],['explorar','🔍','Explorar'],['mapa','🗺️','Mapa'],['grupos','👥','Grupos'],['forum','💬','Fórum'],['desafios','🎯','Desafios'],['notifs','🔔',nNaoLidas?`(${nNaoLidas})`:'Notif.'],['ranking','🏆','Ranking']].map(([k,icon,l])=>(
-          <button key={k} onClick={()=>setTab(k)} style={{flex:'1',minWidth:56,padding:'10px 6px',borderRadius:10,cursor:'pointer',border:'none',fontFamily:'inherit',background:tab===k?'linear-gradient(135deg,#1E5FD9,#1456C0)':'rgba(255,255,255,.04)',color:tab===k?'#fff':'#7A8699',display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
+          <button key={k} onClick={()=>setTab(k)} style={{flex:'1',minWidth:56,padding:'10px 6px',borderRadius:10,cursor:'pointer',border:'none',fontFamily:'inherit',background:tab===k?'linear-gradient(135deg,#1E5FD9,#1456C0)':'rgba(255,255,255,.04)',color:tab===k?'#fff':'#cbd5e1',display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
             <div>{icon}</div><div style={{fontSize:9}}>{l}</div>
           </button>
         ))}
@@ -996,7 +996,7 @@ export default function Comunidade({ nav, params={} }) {
             <div>
               <div style={{display:'flex',gap:4,marginBottom:12,overflowX:'auto'}}>
                 {[['geral','🏆 Geral'],...ESPECIALIDADES_RANKING.map(e=>[e,e])].map(([k,l])=>(
-                  <button key={k} onClick={()=>setTabRanking(k)} style={{flexShrink:0,padding:'5px 12px',borderRadius:20,fontSize:11,fontWeight:500,cursor:'pointer',border:'none',fontFamily:'inherit',background:tabRanking===k?'#1E5FD9':'#101F40',color:tabRanking===k?'#fff':'#94a3b8'}}>{l}</button>
+                  <button key={k} onClick={()=>setTabRanking(k)} style={{ flex:'none', padding:'10px 16px', borderRadius:10, fontSize:13, fontWeight:tabRanking===k?700:500, cursor:'pointer', fontFamily:'inherit', border:tabRanking===k?'none':'1px solid rgba(255,255,255,.08)', background:tabRanking===k?'linear-gradient(135deg,#1E5FD9,#1456C0)':'rgba(255,255,255,.05)', color:tabRanking===k?'#fff':'#cbd5e1', minHeight:40, transition:'all .15s' }}>{l}</button>
                 ))}
               </div>
               <div style={{fontSize:11,color:'#7A8699',marginBottom:12}}>50pts/badge · 30pts/desafio · 10pts/publicação · 2pts/like</div>
@@ -1058,7 +1058,7 @@ export default function Comunidade({ nav, params={} }) {
                 {perfil?.pombal_nome&&<div style={{fontSize:11,color:'#4C8DFF'}}>🏠 {perfil.pombal_nome}</div>}
               </div>
             </div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:12}}>
+            <div style={{display:'grid',gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(3,1fr)',gap:8,marginBottom:12}}>
               {[['🐦',pombos.filter(p=>!p.estado_ext||p.estado_ext==='proprio').length,'Pombos'],['🏆',provas.length,'Provas'],['📊',Math.round(pombos.filter(p=>p.percentil>0).reduce((s,p)=>s+(p.percentil||0),0)/Math.max(1,pombos.filter(p=>p.percentil>0).length))+'%','Percentil']].map(([icon,val,label])=>(
                 <div key={label} style={{background:'rgba(255,255,255,.05)',borderRadius:8,padding:'8px 4px',textAlign:'center'}}>
                   <div style={{fontSize:14}}>{icon}</div>
