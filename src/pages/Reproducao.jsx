@@ -148,7 +148,7 @@ export default function Reproducao({ nav, params }) {
       </div>
 
       {/* KPIs */}
-      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,marginBottom:16}}>
+      <div style={{display:'grid',gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(4,1fr)',gap:8,marginBottom:16}}>
         {[['❤️', t('casaisActivos'),ativos.length,'#f87171'],['🥚','Em Incubação',ativos.filter(a=>a.data_postura&&!a.data_eclosao_real).length,'#4C8DFF'],['🐣','Eclosões Previstas',eclosoesProximas.length,'#D4AF37'],['🐦','Nascidos',totalNascidos,'#2DD4A7']].map(([icon,label,val,cor])=>(
           <div key={label} className="card card-p" style={{textAlign:'center',borderTop:`2px solid ${cor}`}}>
             <div style={{fontSize:18,marginBottom:2}}>{icon}</div>
@@ -174,7 +174,7 @@ export default function Reproducao({ nav, params }) {
       {/* Tabs */}
       <div style={{display:'flex',gap:4,background:'#101F40',borderRadius:8,padding:4,marginBottom:16}}>
         {[['cacifos','🏠 Cacifos'],['lista','📋 Lista'],['timeline','⏱️ Timeline'],['cuidados','💡 Cuidados']].map(([t,l])=>(
-          <button key={t} onClick={()=>setTab(t)} style={{flex:1,padding:'8px 8px',borderRadius:6,fontSize:11,fontWeight:500,cursor:'pointer',border:'none',fontFamily:'inherit',background:tab===t?'#1E5FD9':'none',color:tab===t?'#fff':'#94a3b8'}}>{l}</button>
+          <button key={t} onClick={()=>setTab(t)} style={{flex:1,padding:'8px 8px',borderRadius:6,fontSize:11,fontWeight:500,cursor:'pointer',border:'none',fontFamily:'inherit',background:tab===t?'#1E5FD9':'none',color:tab===t?'#fff':'#cbd5e1'}}>{l}</button>
         ))}
       </div>
 
@@ -182,35 +182,99 @@ export default function Reproducao({ nav, params }) {
       {tab==='cacifos' && (
         <div>
           <div style={{fontSize:11,color:'#7A8699',marginBottom:10}}>Toque num cacifo vazio para registar casal · Verde = activo · Azul = concluído · Cinzento = vazio</div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
+          <div style={{display:'grid',gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(4,1fr)',gap:10}}>
             {cacifosGrid.map(n=>{
               const aca = acasalamentos.find(a=>a.cacifo===n&&a.estado==='em_progresso')
               const conc = !aca && acasalamentos.find(a=>a.cacifo===n&&a.estado==='concluido')
               const fase = aca ? getFase(aca) : null
               const paiNome = aca ? pombos.find(p=>p.id===aca.pai_id)?.nome||'?' : null
               const maeNome = aca ? pombos.find(p=>p.id===aca.mae_id)?.nome||'?' : null
+              const paiFoto = aca ? pombos.find(p=>p.id===aca.pai_id)?.foto_url : null
+              const maeFoto = aca ? pombos.find(p=>p.id===aca.mae_id)?.foto_url : null
+              // Progresso de incubação (0-28 dias)
+              const progresso = (() => {
+                if (!aca?.data_postura) return 0
+                const dias = Math.floor((new Date()-new Date(aca.data_postura))/(1000*60*60*24))
+                return Math.min(100, Math.round(dias/28*100))
+              })()
               return (
                 <div key={n} onClick={()=>aca?setExpandido(expandido===aca.id?null:aca.id):openNew(n)}
-                  style={{background:aca?'rgba(45,212,167,.07)':conc?'rgba(76,141,255,.05)':'#101F40', border:`2px solid ${aca?'#2DD4A7':conc?'#1E5FD9':'#1B2D52'}`, borderRadius:12, padding:'12px 12px 10px', cursor:'pointer', transition:'all .2s', position:'relative', minHeight:aca?100:72}}>
-                  {/* Número do cacifo */}
-                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:aca?6:0}}>
-                    <div style={{fontSize:10,fontWeight:700,color:aca?'#2DD4A7':conc?'#4C8DFF':'#475569',letterSpacing:.5}}>CACIFO</div>
-                    <div style={{fontSize:18,fontWeight:900,color:aca?'#D4AF37':conc?'#4C8DFF':'#2a3a5a',lineHeight:1}}>#{n}</div>
-                  </div>
-                  {aca && <>
-                    <div style={{fontSize:12,color:'#fff',fontWeight:700,lineHeight:1.3,marginBottom:1}}>{paiNome}</div>
-                    <div style={{fontSize:11,color:'#94a3b8',marginBottom:6}}>♀ {maeNome}</div>
-                    <div style={{display:'inline-flex',alignItems:'center',gap:4,background:'rgba(0,0,0,.2)',borderRadius:6,padding:'3px 7px'}}>
-                      <span style={{fontSize:11,color:fase?.cor,fontWeight:600}}>{fase?.label}</span>
+                  style={{
+                    background: aca
+                      ? 'linear-gradient(145deg,#0a1f14,#071510)'
+                      : conc ? 'linear-gradient(145deg,#0d1a2e,#070e1a)'
+                      : 'linear-gradient(145deg,#0d1428,#070c18)',
+                    border: `2px solid ${aca?'#2DD4A7':conc?'#1E5FD9':'rgba(255,255,255,.06)'}`,
+                    borderRadius:14, cursor:'pointer', transition:'all .2s',
+                    position:'relative', overflow:'hidden', minHeight:aca?130:80,
+                    boxShadow: aca ? '0 4px 20px rgba(45,212,167,.15)' : conc ? '0 4px 20px rgba(76,141,255,.1)' : 'none'
+                  }}>
+                  {/* Barra de progresso topo */}
+                  {aca?.data_postura && (
+                    <div style={{position:'absolute',top:0,left:0,right:0,height:3,background:'rgba(255,255,255,.06)'}}>
+                      <div style={{height:'100%',width:`${progresso}%`,background:`linear-gradient(90deg,#2DD4A7,#D4AF37)`,borderRadius:2,transition:'width .5s'}}/>
                     </div>
-                    {aca.n_nascidos>0 && <div style={{fontSize:11,color:'#D4AF37',marginTop:4,fontWeight:600}}>🐣 {aca.n_nascidos} nascido(s)</div>}
-                    {aca.data_eclosao_prev && <div style={{fontSize:10,color:'#7A8699',marginTop:2}}>Eclosão: {fmtData(aca.data_eclosao_prev)}</div>}
+                  )}
+                  {/* Número do cacifo — badge canto */}
+                  <div style={{position:'absolute',top:8,right:8,background:aca?'rgba(45,212,167,.15)':conc?'rgba(76,141,255,.15)':'rgba(255,255,255,.05)',borderRadius:8,padding:'2px 7px',display:'flex',alignItems:'center',gap:3}}>
+                    <span style={{fontSize:9,color:aca?'#2DD4A7':conc?'#4C8DFF':'#475569',fontWeight:700,letterSpacing:.5}}>#{n}</span>
+                  </div>
+                  <div style={{padding:'12px 12px 10px'}}>
+                  {aca && <>
+                    {/* Avatares dos pombos */}
+                    <div style={{display:'flex',gap:4,marginBottom:8,marginTop:4}}>
+                      {[{foto:paiFoto,nome:paiNome,sexo:'M'},{foto:maeFoto,nome:maeNome,sexo:'F'}].map((p,i)=>(
+                        <div key={i} style={{width:32,height:32,borderRadius:8,overflow:'hidden',border:`1.5px solid ${i===0?'#4C8DFF':'#c084fc'}`,flexShrink:0,background:i===0?'rgba(76,141,255,.15)':'rgba(192,132,252,.15)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                          {p.foto ? <img src={p.foto} style={{width:'100%',height:'100%',objectFit:'cover'}}/> :
+                            <span style={{fontSize:10,fontWeight:900,color:i===0?'#7EC8FF':'#E9B8FF',fontFamily:"'Fraunces',serif"}}>
+                              {p.nome?.[0]?.toUpperCase()||'?'}
+                            </span>}
+                        </div>
+                      ))}
+                      <div style={{display:'flex',flexDirection:'column',justifyContent:'center',marginLeft:2}}>
+                        <div style={{fontSize:11,fontWeight:700,color:'#fff',lineHeight:1.2}}>{paiNome}</div>
+                        <div style={{fontSize:10,color:'#94a3b8',lineHeight:1.2}}>♀ {maeNome}</div>
+                      </div>
+                    </div>
+                    {/* Status badge */}
+                    <div style={{display:'inline-flex',alignItems:'center',gap:4,background:`${fase?.cor}18`,border:`1px solid ${fase?.cor}40`,borderRadius:20,padding:'3px 8px',marginBottom:aca.data_eclosao_prev?4:0}}>
+                      <div style={{width:5,height:5,borderRadius:'50%',background:fase?.cor}}/>
+                      <span style={{fontSize:10,color:fase?.cor,fontWeight:700}}>{fase?.label}</span>
+                    </div>
+                    {/* Progresso incubação */}
+                    {aca.data_postura && progresso < 100 && (
+                      <div style={{marginTop:4}}>
+                        <div style={{display:'flex',justifyContent:'space-between',fontSize:9,color:'#475569',marginBottom:2}}>
+                          <span>Incubação</span><span>{progresso}%</span>
+                        </div>
+                        <div style={{height:3,background:'rgba(255,255,255,.06)',borderRadius:2}}>
+                          <div style={{height:'100%',width:`${progresso}%`,background:'linear-gradient(90deg,#2DD4A7,#D4AF37)',borderRadius:2}}/>
+                        </div>
+                      </div>
+                    )}
+                    {aca.n_nascidos>0 && <div style={{fontSize:11,color:'#D4AF37',marginTop:4,fontWeight:700}}>🐣 {aca.n_nascidos} nascido(s)</div>}
+                    {aca.data_eclosao_prev && !aca.n_nascidos && (
+                      <div style={{fontSize:10,color:'#7A8699',marginTop:2}}>
+                        📅 Eclosão: <span style={{color:'#D4AF37'}}>{fmtData(aca.data_eclosao_prev)}</span>
+                      </div>
+                    )}
                   </>}
-                  {conc && <>
-                    <div style={{fontSize:11,color:'#4C8DFF',fontWeight:600,marginTop:4}}>🏁 Concluído</div>
-                    {conc.n_nascidos>0&&<div style={{fontSize:10,color:'#D4AF37'}}>🐣 {conc.n_nascidos} nascido(s)</div>}
-                  </>}
-                  {!aca && !conc && <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:40,fontSize:22,color:'#1B2D52'}}>＋</div>}
+                  {conc && (
+                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:60,gap:4}}>
+                      <div style={{fontSize:22}}>🏁</div>
+                      <div style={{fontSize:11,color:'#4C8DFF',fontWeight:700}}>Concluído</div>
+                      {conc.n_nascidos>0&&<div style={{fontSize:10,color:'#D4AF37'}}>🐣 {conc.n_nascidos} nascido(s)</div>}
+                    </div>
+                  )}
+                  {!aca && !conc && (
+                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:56,gap:6}}>
+                      <div style={{width:28,height:28,borderRadius:'50%',background:'rgba(255,255,255,.04)',border:'1.5px dashed rgba(255,255,255,.12)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                        <span style={{fontSize:16,color:'rgba(255,255,255,.2)'}}>+</span>
+                      </div>
+                      <span style={{fontSize:9,color:'rgba(255,255,255,.2)',letterSpacing:.5,fontWeight:600}}>VAZIO</span>
+                    </div>
+                  )}
+                  </div>
                   {aca && expandido===aca.id && (
                     <div style={{position:'absolute',top:'100%',left:0,right:0,zIndex:50,background:'#0B1830',border:'1px solid #2DD4A7',borderRadius:12,padding:12,marginTop:6,boxShadow:'0 8px 32px rgba(0,0,0,.6)'}}>
                       <div style={{fontSize:12,fontWeight:700,color:'#fff',marginBottom:8}}>{aca.pai_nome} × {aca.mae_nome}</div>
