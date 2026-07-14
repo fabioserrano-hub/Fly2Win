@@ -229,7 +229,7 @@ export default function Analiticas({ nav }) {
             {anos.map(a=><option key={a} value={a}>{a}</option>)}
           </select></div>
         </div>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:8, marginTop:12 }}>
+        <div style={{ display:'grid', gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(4,1fr)', gap:8, marginTop:12 }}>
           {[
             [efectivo.length,'🐦','Efectivo','#4C8DFF'],
             [provasAno.length,'🏆','Provas','#D4AF37'],
@@ -247,7 +247,7 @@ export default function Analiticas({ nav }) {
       {/* Tabs */}
       <div style={{ display:'flex', gap:3, background:'#0A1628', borderRadius:10, padding:3, marginBottom:14, overflowX:'auto' }}>
         {TABS.map(([k,l])=>(
-          <button key={k} onClick={()=>setTab(k)} style={{ flex:1, padding:'7px 4px', borderRadius:8, fontSize:10, fontWeight:600, cursor:'pointer', border:'none', fontFamily:'inherit', whiteSpace:'nowrap', background:tab===k?'linear-gradient(135deg,#1E5FD9,#1456C0)':'none', color:tab===k?'#fff':'#475569' }}>{l}</button>
+          <button key={k} onClick={()=>setTab(k)} style={{ flex:'none', padding:'10px 18px', borderRadius:10, fontSize:13, fontWeight:tab===k?700:500, cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap', border:tab===k?'none':'1px solid rgba(255,255,255,.08)', background:tab===k?'linear-gradient(135deg,#1E5FD9,#1456C0)':'rgba(255,255,255,.05)', color:tab===k?'#fff':'#cbd5e1', boxShadow:tab===k?'0 2px 8px rgba(0,0,0,.3)':'none', transform:tab===k?'translateY(-1px)':'none', transition:'all .15s', minHeight:40 }}>{l}</button>
         ))}
       </div>
 
@@ -294,7 +294,7 @@ export default function Analiticas({ nav }) {
                 <div style={{ fontWeight:700, color:'#fff', fontSize:13 }}>💰 Finanças {anoFiltro}</div>
                 <button className="btn btn-secondary btn-sm" onClick={()=>nav?.('financas')}>Ver detalhe →</button>
               </div>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8, marginBottom:12 }}>
+              <div style={{ display:'grid', gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(3,1fr)', gap:8, marginBottom:12 }}>
                 {[
                   { v:'+'+recTotal.toFixed(0)+'€', l:'Receitas', cor:'#2DD4A7' },
                   { v:'-'+depTotal.toFixed(0)+'€', l:'Despesas', cor:'#f87171' },
@@ -359,7 +359,7 @@ export default function Analiticas({ nav }) {
                 <div style={{ fontWeight:700, color:'#fff', fontSize:13 }}>🏥 Saúde do Efectivo</div>
                 <button className="btn btn-secondary btn-sm" onClick={()=>nav?.('saude')}>Ver →</button>
               </div>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8 }}>
+              <div style={{ display:'grid', gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(3,1fr)', gap:8 }}>
                 {[
                   { v:aptosCount, l:'Aptos', cor:'#2DD4A7' },
                   { v:inaptoCount, l:'Inaptos', cor:'#f87171' },
@@ -437,7 +437,7 @@ export default function Analiticas({ nav }) {
           {provasAno.length===0
             ?<EmptyState icon="🏆" title={`Sem provas em ${anoFiltro}`} desc="Regista provas para ver analíticas" action={<button className="btn btn-primary" onClick={()=>nav?.('provas')}>Ir a Provas</button>} />
             :<>
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8 }}>
+              <div style={{ display:'grid', gridTemplateColumns:isMobile?'repeat(2,1fr)':'repeat(3,1fr)', gap:8 }}>
                 {[[vitorias,'🥇','Vitórias','#D4AF37'],[podios,'🏅','Pódios','#4C8DFF'],[kmTotal+'km','📍','km Total','#A855F7']].map(([v,i,l,c])=>(
                   <div key={l} className="card card-p" style={{ textAlign:'center', borderTop:`2px solid ${c}` }}>
                     <div style={{ fontSize:20, fontWeight:700, color:c }}>{v}</div>
