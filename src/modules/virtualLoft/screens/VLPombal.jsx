@@ -56,7 +56,9 @@ function EventoBanner({ evento }) {
   )
 }
 
-export default function HubPombal({ carreira, onNavegar, onApagarCarreira, onAvancarSemana, idioma = 'pt' }) {
+export default function HubPombal(props) {
+  const { carreira, onNavegar, onApagarCarreira, idioma = 'pt' } = props
+  const onAvancarSemana = props.onAvancarSemana || props['onAvançarSemana']
   const t = useT(idioma)
   const [menuAberto, setMenuAberto] = useState(false)
 
@@ -209,15 +211,9 @@ export default function HubPombal({ carreira, onNavegar, onApagarCarreira, onAva
         </div>
 
         {/* ── AVANÇAR SEMANA ── */}
-        <button onClick={() => {
-          if (typeof onAvancarSemana === 'function') {
-            onAvancarSemana()
-          } else {
-            alert('Erro: onAvancarSemana não é função: ' + typeof onAvancarSemana)
-          }
-        }}
+        <button onClick={() => onAvancarSemana?.()}
           style={{ width:'100%', padding:'14px', borderRadius:12, border:'none', background:'linear-gradient(135deg,#D4AF37,#B8960C)', color:'#050D1A', fontSize:14, fontWeight:800, cursor:'pointer', fontFamily:'inherit', letterSpacing:.3 }}>
-          ⏭️ S{carreira?.semana} → S{(carreira?.semana||0)+1} | {typeof onAvancarSemana}
+          ⏭️ {idioma==='en'?'Advance Week':idioma==='es'?'Avanzar Semana':'Avançar Semana'} →
         </button>
 
         {/* ── APAGAR ── */}
