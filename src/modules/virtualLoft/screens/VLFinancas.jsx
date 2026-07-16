@@ -6,7 +6,7 @@ function lerLS(){try{return JSON.parse(localStorage.getItem('vl_carreira'))}catc
 function gravarLS(d){try{localStorage.setItem('vl_carreira',JSON.stringify(d))}catch{}}
 function GoldLine(){return <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,#C9A84C,transparent)',opacity:.7}}/>}
 
-const CATEGORIAS = {
+const CATEGORIAS = { 
   pt: {
     receitas: ['Prémio de prova','Venda de pombo','Patrocínio','Subsídio','Outro'],
     despesas: ['Salários','Alimentação','Veterinário','Construção','Compra de pombo','Inscrição em prova','Outro'],
