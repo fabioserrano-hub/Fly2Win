@@ -1,6 +1,12 @@
 // src/modules/virtualLoft/screens/HubPombal.jsx
 import { useState, useEffect } from 'react'
 import { useT } from '../data/traducoes'
+import VLPombos from './VLPombos'
+import VLTreinos from './VLTreinos'
+import VLPombal from './VLPombal'
+import VLStaff from './VLStaff'
+import VLProvas from './VLProvas'
+import VLFinancas from './VLFinancas'
 
 const MODULOS = [
   { id:'pombos',   icon:'🐦', cor:'#4C8DFF',  corBg:'rgba(76,141,255,.1)'  },
@@ -78,6 +84,7 @@ export default function HubPombal(props) {
   const onGuardar = props.onGuardar || props.onAvancarSemana || props['onAvançarSemana']
 
   const [carreiraLocal, setCarreiraLocal] = useState(carreira)
+  const [moduloAtivo, setModuloAtivo] = useState(null)
 
   // Sincronizar com prop quando muda externamente
   useEffect(() => { setCarreiraLocal(carreira) }, [carreira])
@@ -118,6 +125,38 @@ export default function HubPombal(props) {
     ? Math.round(c.pombos.reduce((s,p) => s + p.rating, 0) / c.pombos.length * 10) / 10
     : 0
   const melhores = [...(c.pombos || [])].sort((a,b) => b.rating - a.rating).slice(0,3)
+
+  // Render de módulos
+  if (moduloAtivo) {
+    const modProps = {
+      carreira: carreiraLocal,
+      onVoltar: () => setModuloAtivo(null),
+      onGuardar: (dados) => {
+        try { localStorage.setItem('vl_carreira', JSON.stringify(dados)) } catch {}
+        setCarreiraLocal({ ...dados })
+        if (typeof props.onGuardar === 'function') props.onGuardar(dados)
+      },
+      idioma,
+    }
+    if (moduloAtivo === 'pombos')   return <VLPombos   {...modProps} />
+    if (moduloAtivo === 'treinos')  return <VLTreinos  {...modProps} />
+    if (moduloAtivo === 'pombal')   return <VLPombal   {...modProps} />
+    if (moduloAtivo === 'staff')    return <VLStaff    {...modProps} />
+    if (moduloAtivo === 'provas')   return <VLProvas   {...modProps} />
+    if (moduloAtivo === 'financas') return <VLFinancas {...modProps} />
+    return (
+      <div style={{ minHeight:'100vh', background:'#030812', color:'#fff', display:'flex', flexDirection:'column', fontFamily:'inherit' }}>
+        <div style={{ padding:'14px 16px', borderBottom:'1px solid rgba(255,255,255,.05)', display:'flex', alignItems:'center', gap:10 }}>
+          <button onClick={() => setModuloAtivo(null)} style={{ background:'rgba(255,255,255,.06)', border:'none', borderRadius:8, width:32, height:32, color:'#7A8699', cursor:'pointer', fontSize:16 }}>←</button>
+          <div style={{ fontSize:16, fontWeight:800 }}>{moduloAtivo}</div>
+        </div>
+        <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:12 }}>
+          <div style={{ fontSize:48 }}>🚧</div>
+          <div style={{ fontSize:14, fontWeight:700, color:'#D4AF37' }}>Em breve</div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div style={{ minHeight:'100vh', background:'#030812', color:'#fff', fontFamily:'inherit' }}>
@@ -185,7 +224,7 @@ export default function HubPombal(props) {
               ⭐ {idioma==='en'?'SQUAD HIGHLIGHTS':idioma==='es'?'MEJORES PALOMAS':'MELHORES POMBOS'}
             </div>
             {melhores.map((p, i) => (
-              <div key={p.id} onClick={() => onNavegar?.('pombos')}
+              <div key={p.id} onClick={() => setModuloAtivo('pombos')}
                 style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderBottom: i < melhores.length-1 ? '1px solid rgba(255,255,255,.04)' : 'none', cursor:'pointer' }}>
                 <div style={{ width:24, height:24, borderRadius:6, background:['#D4AF37','rgba(148,163,184,.3)','rgba(180,83,9,.3)'][i], display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:900, color:['#050D1A','#94a3b8','#b45309'][i], flexShrink:0 }}>
                   {i+1}
@@ -219,7 +258,7 @@ export default function HubPombal(props) {
 
             return (
               <div key={m.id}
-                onClick={() => !emBreve && onNavegar?.(m.id)}
+                onClick={() => !emBreve && setModuloAtivo(m.id)}
                 style={{ background: emBreve ? 'rgba(255,255,255,.02)' : m.corBg, border:`1px solid ${emBreve ? 'rgba(255,255,255,.05)' : m.cor+'30'}`, borderRadius:14, padding:'16px 14px', cursor: emBreve ? 'default' : 'pointer', transition:'all .15s', opacity: emBreve ? .5 : 1, position:'relative', overflow:'hidden' }}>
                 {!emBreve && <div style={{ position:'absolute', top:0, left:0, right:0, height:2, background:m.cor, opacity:.6 }}/>}
                 <div style={{ fontSize:26, marginBottom:8 }}>{m.icon}</div>
