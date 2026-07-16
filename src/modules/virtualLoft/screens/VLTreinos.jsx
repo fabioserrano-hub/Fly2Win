@@ -53,11 +53,23 @@ const PLANOS_SUGERIDOS = {
 }
 
 export default function VLTreinos({ carreira, onVoltar, onGuardar, idioma = 'pt' }) {
+  // Ler sempre do localStorage para ter dados mais recentes
+  const [carreiraLocal, setCarreiraLocal] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('vl_carreira')) || carreira } catch { return carreira }
+  })
+  const c = carreiraLocal
+
+  const salvarLocal = (dados) => {
+    try { localStorage.setItem('vl_carreira', JSON.stringify(dados)) } catch {}
+    setCarreiraLocal({ ...dados })
+    onGuardar?.(dados)
+  }
+
   const tipos = TIPOS_TREINO[idioma] || TIPOS_TREINO.pt
   const dias = DIAS[idioma] || DIAS.pt
   const planosSugeridos = PLANOS_SUGERIDOS[idioma] || PLANOS_SUGERIDOS.pt
 
-  const planoInicial = carreira.plano_treino || Array(7).fill('descanso')
+  const planoInicial = c.plano_treino || Array(7).fill('descanso')
   const [plano, setPlano] = useState(planoInicial)
   const [diaEditando, setDiaEditando] = useState(null)
   const [guardado, setGuardado] = useState(false)
@@ -65,7 +77,7 @@ export default function VLTreinos({ carreira, onVoltar, onGuardar, idioma = 'pt'
   const aplicarPlano = (p) => setPlano([...p.dias])
 
   const guardar = () => {
-    onGuardar?.({ ...carreira, plano_treino: plano })
+    onGuardar?.({ ...c, plano_treino: plano })
     setGuardado(true)
     setTimeout(() => setGuardado(false), 2000)
   }
@@ -176,7 +188,7 @@ export default function VLTreinos({ carreira, onVoltar, onGuardar, idioma = 'pt'
           <div style={{ fontSize:9, color:'#4C8DFF', fontWeight:700, letterSpacing:1.5, marginBottom:10 }}>
             {idioma==='en'?'SQUAD IMPACT':idioma==='es'?'IMPACTO EN PLANTEL':'IMPACTO NO PLANTEL'}
           </div>
-          {(carreira.pombos||[]).filter(p=>p.estado==='activo').slice(0,5).map(p => {
+          {(c.pombos||[]).filter(p=>p.estado==='activo').slice(0,5).map(p => {
             const mediaAttr = Math.round(Object.values(p.atributos).filter((_,i)=>i<8).reduce((s,v)=>s+v,0)/8)
             const forma = Math.min(100, Math.round(mediaAttr * (0.8 + Math.random()*0.4)))
             const corForma = forma>=75?'#2DD4A7':forma>=50?'#D4AF37':'#f87171'
