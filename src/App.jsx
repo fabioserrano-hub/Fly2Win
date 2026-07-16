@@ -245,6 +245,7 @@ const concluirOnboarding = () => { localStorage.setItem('cl_onboarding_done','1'
         case 'meteorologia':  return <Meteorologia nav={nav} params={navParams} />
         case 'precos':        return <Precos nav={nav} />
         case 'admin':         return <Admin nav={nav} />
+        case 'virtualloft':   return <VirtualLoftApp user={user} idiomaApp={idioma} />
         case 'casais':        return <SeleccionadorCasais nav={nav} />
         case 'importacao':    return <ImportacaoCSV nav={nav} />
         case 'mensagens':     return <Mensagens nav={nav} />
