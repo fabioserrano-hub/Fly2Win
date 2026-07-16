@@ -1,5 +1,5 @@
 // src/modules/virtualLoft/screens/HubPombal.jsx
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useT } from '../data/traducoes'
 
 const MODULOS = [
@@ -77,18 +77,23 @@ export default function HubPombal(props) {
   const { carreira, onNavegar, onApagarCarreira, idioma = 'pt' } = props
   const onGuardar = props.onGuardar || props.onAvancarSemana || props['onAvançarSemana']
 
+  const [carreiraLocal, setCarreiraLocal] = useState(carreira)
+
+  // Sincronizar com prop quando muda externamente
+  useEffect(() => { setCarreiraLocal(carreira) }, [carreira])
+
   const handleAvancarSemana = () => {
-    if (!carreira) return
-    const nova = calcAvancarSemana(carreira)
-    // Guardar no localStorage directamente como fallback
+    if (!carreiraLocal) return
+    const nova = calcAvancarSemana(carreiraLocal)
     try { localStorage.setItem('vl_carreira', JSON.stringify(nova)) } catch {}
-    // Tentar chamar qualquer callback disponível
+    setCarreiraLocal({ ...nova })
     if (typeof props.onAvancarSemana === 'function') props.onAvancarSemana(nova)
     else if (typeof props['onAvançarSemana'] === 'function') props['onAvançarSemana'](nova)
     else if (typeof props.onGuardar === 'function') props.onGuardar(nova)
-    // Forçar reload para mostrar novos valores
-    window.location.reload()
   }
+
+  // Usar carreiraLocal em vez de carreira para mostrar valores actualizados
+  const c = carreiraLocal || carreira
   const t = useT(idioma)
   const [menuAberto, setMenuAberto] = useState(false)
 
@@ -97,22 +102,22 @@ export default function HubPombal(props) {
 
   // Próxima prova (simulado por agora)
   const proximaProva = { nome: 'Prova Local - Santarém', dist: 80, tipo: 'Velocidade', semana: 3 }
-  const semanasAte = Math.max(0, proximaProva.semana - carreira.semana)
+  const semanasAte = Math.max(0, proximaProva.semana - c.semana)
 
   // Eventos aleatórios (placeholder)
-  const evento = carreira.semana === 1 ? {
+  const evento = c.semana === 1 ? {
     tipo: 'info', icon: '📋',
     titulo: idioma === 'en' ? 'Welcome to your career!' : idioma === 'es' ? '¡Bienvenido a tu carrera!' : 'Bem-vindo à tua carreira!',
-    desc: idioma === 'en' ? `You have ${carreira.pombos.length} pigeons and €${carreira.orcamento.toLocaleString()} budget.`
-      : idioma === 'es' ? `Tienes ${carreira.pombos.length} palomas y ${carreira.orcamento.toLocaleString()}€ de presupuesto.`
-      : `Tens ${carreira.pombos.length} pombos e ${carreira.orcamento.toLocaleString()}€ de orçamento.`
+    desc: idioma === 'en' ? `You have ${c.pombos.length} pigeons and €${c.orcamento.toLocaleString()} budget.`
+      : idioma === 'es' ? `Tienes ${c.pombos.length} palomas y ${c.orcamento.toLocaleString()}€ de presupuesto.`
+      : `Tens ${c.pombos.length} pombos e ${c.orcamento.toLocaleString()}€ de orçamento.`
   } : null
 
   // Stats rápidos do plantel
-  const mediaRating = carreira.pombos.length
-    ? Math.round(carreira.pombos.reduce((s,p) => s + p.rating, 0) / carreira.pombos.length * 10) / 10
+  const mediaRating = c.pombos.length
+    ? Math.round(c.pombos.reduce((s,p) => s + p.rating, 0) / c.pombos.length * 10) / 10
     : 0
-  const melhores = [...(carreira.pombos || [])].sort((a,b) => b.rating - a.rating).slice(0,3)
+  const melhores = [...(c.pombos || [])].sort((a,b) => b.rating - a.rating).slice(0,3)
 
   return (
     <div style={{ minHeight:'100vh', background:'#030812', color:'#fff', fontFamily:'inherit' }}>
@@ -122,38 +127,38 @@ export default function HubPombal(props) {
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
           <div>
             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:2 }}>
-              <span style={{ fontSize:22 }}>{carreira.logotipo}</span>
-              <span style={{ fontFamily:"'Fraunces',serif", fontSize:20, fontWeight:900, letterSpacing:-0.5 }}>{carreira.nomePombal}</span>
+              <span style={{ fontSize:22 }}>{c.logotipo}</span>
+              <span style={{ fontFamily:"'Fraunces',serif", fontSize:20, fontWeight:900, letterSpacing:-0.5 }}>{c.nomePombal}</span>
             </div>
             <div style={{ fontSize:11, color:'#7A8699' }}>
-              {carreira.nomeGestor} · {epochaLabel} {carreira.epoca} · {semanaLabel} {carreira.semana}
+              {c.nomeGestor} · {epochaLabel} {c.epoca} · {semanaLabel} {c.semana}
             </div>
           </div>
           <div style={{ textAlign:'right' }}>
             <div style={{ fontFamily:"'Fraunces',serif", fontSize:18, fontWeight:900, color:'#2DD4A7' }}>
-              {carreira.orcamento.toLocaleString()}€
+              {c.orcamento.toLocaleString()}€
             </div>
             <div style={{ fontSize:10, color:'#475569' }}>
-              {carreira.pombos.length} {idioma==='en'?'pigeons':idioma==='es'?'palomas':'pombos'}
+              {c.pombos.length} {idioma==='en'?'pigeons':idioma==='es'?'palomas':'pombos'}
             </div>
           </div>
         </div>
 
         {/* Barra de reputação */}
         <div style={{ marginTop:10 }}>
-          <BarraReputacao valor={carreira.reputacao} nivel={carreira.nivel_reputacao} />
+          <BarraReputacao valor={c.reputacao} nivel={c.nivel_reputacao} />
         </div>
       </div>
 
       <div style={{ padding:'12px 16px', display:'flex', flexDirection:'column', gap:12 }}>
 
         {/* ── EVENTOS DA SEMANA ── */}
-        {(carreira.eventos_semana || []).map((ev, i) => (
+        {(c.eventos_semana || []).map((ev, i) => (
           <EventoBanner key={i} evento={{ tipo: ev.tipo === 'positivo' ? 'sucesso' : 'alerta', icon: ev.icon, titulo: ev.titulo, desc: ev.desc }} />
         ))}
 
         {/* ── EVENTO/ALERTA ── */}
-        {evento && !carreira.eventos_semana?.length && <EventoBanner evento={evento} />}
+        {evento && !c.eventos_semana?.length && <EventoBanner evento={evento} />}
 
         {/* ── PRÓXIMA PROVA ── */}
         <div style={{ background:'linear-gradient(135deg,#0D1428,#111827)', border:'1px solid rgba(168,85,247,.2)', borderRadius:14, padding:'14px 16px', position:'relative', overflow:'hidden' }}>
@@ -204,12 +209,12 @@ export default function HubPombal(props) {
           {MODULOS.map(m => {
             const emBreve = EM_BREVE.includes(m.id)
             const label = LABELS[m.id]?.[idioma] || LABELS[m.id]?.pt || m.id
-            const sub = m.id === 'pombos' ? `${carreira.pombos.length} ${idioma==='en'?'pigeons':idioma==='es'?'palomas':'pombos'}`
-              : m.id === 'financas' ? `${carreira.orcamento.toLocaleString()}€`
+            const sub = m.id === 'pombos' ? `${c.pombos.length} ${idioma==='en'?'pigeons':idioma==='es'?'palomas':'pombos'}`
+              : m.id === 'financas' ? `${c.orcamento.toLocaleString()}€`
               : m.id === 'staff' ? `0 ${idioma==='en'?'hired':idioma==='es'?'contratados':'contratados'}`
               : m.id === 'pombal' ? `${idioma==='en'?'Level':idioma==='es'?'Nivel':'Nível'} 1`
               : m.id === 'treinos' ? (idioma==='en'?'No plan':idioma==='es'?'Sin plan':'Sem plano')
-              : m.id === 'provas' ? `${idioma==='en'?'Season':idioma==='es'?'Temporada':'Época'} ${carreira.epoca}`
+              : m.id === 'provas' ? `${idioma==='en'?'Season':idioma==='es'?'Temporada':'Época'} ${c.epoca}`
               : idioma==='en'?'Coming soon':idioma==='es'?'Próximamente':'Em breve'
 
             return (
@@ -230,8 +235,8 @@ export default function HubPombal(props) {
         <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8 }}>
           {[
             { label: idioma==='en'?'Avg Rating':idioma==='es'?'Rating Medio':'Rating Médio', valor: `${mediaRating}⭐`, cor:'#D4AF37' },
-            { label: idioma==='en'?'Budget':idioma==='es'?'Presupuesto':'Orçamento', valor: `${carreira.orcamento.toLocaleString()}€`, cor:'#2DD4A7' },
-            { label: idioma==='en'?'Reputation':idioma==='es'?'Reputación':'Reputação', valor: `${carreira.reputacao}%`, cor:'#A855F7' },
+            { label: idioma==='en'?'Budget':idioma==='es'?'Presupuesto':'Orçamento', valor: `${c.orcamento.toLocaleString()}€`, cor:'#2DD4A7' },
+            { label: idioma==='en'?'Reputation':idioma==='es'?'Reputación':'Reputação', valor: `${c.reputacao}%`, cor:'#A855F7' },
           ].map((s,i) => (
             <div key={i} style={{ background:'rgba(255,255,255,.02)', border:'1px solid rgba(255,255,255,.05)', borderRadius:10, padding:'10px 8px', textAlign:'center' }}>
               <div style={{ fontFamily:"'Fraunces',serif", fontSize:16, fontWeight:900, color:s.cor }}>{s.valor}</div>
