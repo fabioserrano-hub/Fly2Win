@@ -1,6 +1,11 @@
 // src/modules/virtualLoft/screens/VLTreinos.jsx
 import { useState } from 'react'
 
+const T={bg:'#050A14',surface:'#0D1829',surface2:'#1A2A45',gold:'#C9A84C',blue:'#4FC3F7',text:'#E8EDF5',muted:'#6B7A99',success:'#2DD4A7',danger:'#F87171',purple:'#A855F7'}
+function lerLS(){try{return JSON.parse(localStorage.getItem('vl_carreira'))}catch{return null}}
+function gravarLS(d){try{localStorage.setItem('vl_carreira',JSON.stringify(d))}catch{}}
+function GoldLine(){return <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,#C9A84C,transparent)',opacity:.7}}/>}
+
 const TIPOS_TREINO = {
   pt: [
     { id:'velocidade',  icon:'⚡', label:'Velocidade',   desc:'Melhora velocidade e instinto',        attr:['velocidade','instinto'],   cor:'#f97316' },
@@ -90,15 +95,15 @@ export default function VLTreinos({ carreira, onVoltar, onGuardar, idioma = 'pt'
   })
 
   return (
-    <div style={{ minHeight:'100vh', background:'#030812', color:'#fff', fontFamily:'inherit' }}>
+    <div style={{ minHeight:'100vh', background:T.bg, color:T.text, fontFamily:"'Inter',system-ui,sans-serif" }}>
 
       {/* Header */}
       <div style={{ background:'linear-gradient(180deg,#050D1A,#030812)', borderBottom:'1px solid rgba(255,255,255,.05)', padding:'14px 16px' }}>
         <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:4 }}>
-          <button onClick={onVoltar} style={{ background:'rgba(255,255,255,.06)', border:'none', borderRadius:8, width:32, height:32, color:'#7A8699', cursor:'pointer', fontSize:16 }}>←</button>
+          <button onClick={onVoltar} style={{ background:T.surface, border:'none', borderRadius:8, width:32, height:32, color:T.muted, cursor:'pointer', fontSize:16 }}>←</button>
           <div>
             <div style={{ fontSize:16, fontWeight:800 }}>🎯 {idioma==='en'?'Training Plan':idioma==='es'?'Plan de Entrenamiento':'Plano de Treino'}</div>
-            <div style={{ fontSize:10, color:'#7A8699' }}>{idioma==='en'?'Weekly schedule':idioma==='es'?'Horario semanal':'Programa semanal'}</div>
+            <div style={{ fontSize:10, color:T.muted }}>{idioma==='en'?'Weekly schedule':idioma==='es'?'Horario semanal':'Programa semanal'}</div>
           </div>
         </div>
       </div>
@@ -107,13 +112,13 @@ export default function VLTreinos({ carreira, onVoltar, onGuardar, idioma = 'pt'
 
         {/* Planos sugeridos */}
         <div>
-          <div style={{ fontSize:9, color:'#D4AF37', fontWeight:700, letterSpacing:1.5, marginBottom:8 }}>
+          <div style={{ fontSize:9, color:T.gold, fontWeight:700, letterSpacing:1.5, marginBottom:8 }}>
             {idioma==='en'?'SUGGESTED PLANS':idioma==='es'?'PLANES SUGERIDOS':'PLANOS SUGERIDOS'}
           </div>
           <div style={{ display:'flex', gap:8, overflowX:'auto', scrollbarWidth:'none', paddingBottom:4 }}>
             {planosSugeridos.map((p, i) => (
               <button key={i} onClick={() => aplicarPlano(p)}
-                style={{ flex:'none', padding:'8px 14px', borderRadius:10, border:'1px solid rgba(212,175,55,.2)', background:'rgba(212,175,55,.06)', color:'#D4AF37', fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }}>
+                style={{ flex:'none', padding:'8px 14px', borderRadius:10, border:'1px solid rgba(212,175,55,.2)', background:'rgba(212,175,55,.06)', color:T.gold, fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:"'Inter',system-ui,sans-serif", whiteSpace:'nowrap' }}>
                 {p.nome}
               </button>
             ))}
@@ -122,7 +127,7 @@ export default function VLTreinos({ carreira, onVoltar, onGuardar, idioma = 'pt'
 
         {/* Plano semanal */}
         <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-          <div style={{ fontSize:9, color:'#4C8DFF', fontWeight:700, letterSpacing:1.5, marginBottom:4 }}>
+          <div style={{ fontSize:9, color:T.blue, fontWeight:700, letterSpacing:1.5, marginBottom:4 }}>
             {idioma==='en'?'WEEKLY PLAN':idioma==='es'?'PLAN SEMANAL':'PLANO SEMANAL'}
           </div>
           {dias.map((dia, i) => {
@@ -131,14 +136,14 @@ export default function VLTreinos({ carreira, onVoltar, onGuardar, idioma = 'pt'
             return (
               <div key={i}>
                 <div onClick={() => setDiaEditando(isEditando ? null : i)}
-                  style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 14px', background: isEditando ? `${tipoAtual.cor}15` : 'rgba(255,255,255,.03)', border:`1px solid ${isEditando ? tipoAtual.cor+'40' : 'rgba(255,255,255,.06)'}`, borderRadius:10, cursor:'pointer', transition:'all .15s' }}>
-                  <div style={{ width:28, fontSize:9, color:'#7A8699', fontWeight:700, flexShrink:0 }}>{dia.slice(0,3).toUpperCase()}</div>
+                  style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 14px', background: isEditando ? `${tipoAtual.cor}15` : T.surface, border:`1px solid ${isEditando ? tipoAtual.cor+'40' : 'rgba(255,255,255,.06)'}`, borderRadius:10, cursor:'pointer', transition:'all .15s' }}>
+                  <div style={{ width:28, fontSize:9, color:T.muted, fontWeight:700, flexShrink:0 }}>{dia.slice(0,3).toUpperCase()}</div>
                   <div style={{ width:28, height:28, borderRadius:8, background:`${tipoAtual.cor}15`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, flexShrink:0 }}>{tipoAtual.icon}</div>
                   <div style={{ flex:1 }}>
                     <div style={{ fontSize:13, fontWeight:700, color: isEditando ? tipoAtual.cor : '#fff' }}>{tipoAtual.label}</div>
-                    <div style={{ fontSize:10, color:'#475569' }}>{tipoAtual.desc}</div>
+                    <div style={{ fontSize:10, color:T.muted }}>{tipoAtual.desc}</div>
                   </div>
-                  <div style={{ fontSize:12, color:'#475569' }}>{isEditando ? '▲' : '▼'}</div>
+                  <div style={{ fontSize:12, color:T.muted }}>{isEditando ? '▲' : '▼'}</div>
                 </div>
 
                 {/* Selector de treino */}
@@ -146,7 +151,7 @@ export default function VLTreinos({ carreira, onVoltar, onGuardar, idioma = 'pt'
                   <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:6, marginTop:6, marginBottom:6 }}>
                     {tipos.map(t => (
                       <div key={t.id} onClick={() => { const np=[...plano]; np[i]=t.id; setPlano(np); setDiaEditando(null) }}
-                        style={{ padding:'10px 8px', borderRadius:8, border:`1.5px solid ${plano[i]===t.id ? t.cor : 'rgba(255,255,255,.06)'}`, background: plano[i]===t.id ? `${t.cor}15` : 'rgba(255,255,255,.03)', cursor:'pointer', textAlign:'center' }}>
+                        style={{ padding:'10px 8px', borderRadius:8, border:`1.5px solid ${plano[i]===t.id ? t.cor : 'rgba(255,255,255,.06)'}`, background: plano[i]===t.id ? `${t.cor}15` : T.surface, cursor:'pointer', textAlign:'center' }}>
                         <div style={{ fontSize:20, marginBottom:4 }}>{t.icon}</div>
                         <div style={{ fontSize:10, fontWeight:700, color: plano[i]===t.id ? t.cor : '#cbd5e1' }}>{t.label}</div>
                       </div>
@@ -159,23 +164,23 @@ export default function VLTreinos({ carreira, onVoltar, onGuardar, idioma = 'pt'
         </div>
 
         {/* Benefícios semanais */}
-        <div style={{ background:'rgba(255,255,255,.02)', border:'1px solid rgba(255,255,255,.05)', borderRadius:12, padding:'14px' }}>
-          <div style={{ fontSize:9, color:'#2DD4A7', fontWeight:700, letterSpacing:1.5, marginBottom:10 }}>
+        <div style={{ background:T.surface, border:`1px solid ${T.surface2}`, borderRadius:12, padding:'14px' }}>
+          <div style={{ fontSize:9, color:T.success, fontWeight:700, letterSpacing:1.5, marginBottom:10 }}>
             {idioma==='en'?'WEEKLY BENEFITS':idioma==='es'?'BENEFICIOS SEMANALES':'BENEFÍCIOS SEMANAIS'}
           </div>
           {Object.entries(beneficios).length === 0 ? (
-            <div style={{ fontSize:11, color:'#475569' }}>{idioma==='en'?'Only rest days':idioma==='es'?'Solo días de descanso':'Apenas dias de descanso'}</div>
+            <div style={{ fontSize:11, color:T.muted }}>{idioma==='en'?'Only rest days':idioma==='es'?'Solo días de descanso':'Apenas dias de descanso'}</div>
           ) : (
             <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
               {Object.entries(beneficios).sort((a,b)=>b[1]-a[1]).map(([attr, n]) => {
                 const attrNames = { velocidade:{pt:'Velocidade',en:'Speed',es:'Velocidad'}, resistencia:{pt:'Resistência',en:'Stamina',es:'Resistencia'}, recuperacao:{pt:'Recuperação',en:'Recovery',es:'Recuperación'}, forca:{pt:'Força',en:'Strength',es:'Fuerza'}, orientacao:{pt:'Orientação',en:'Navigation',es:'Orientación'}, inteligencia:{pt:'Inteligência',en:'Intelligence',es:'Inteligencia'}, instinto:{pt:'Instinto',en:'Instinct',es:'Instinto'}, coragem:{pt:'Coragem',en:'Courage',es:'Coraje'} }
                 return (
                   <div key={attr} style={{ display:'flex', alignItems:'center', gap:8 }}>
-                    <div style={{ width:80, fontSize:10, color:'#7A8699' }}>{attrNames[attr]?.[idioma] || attr}</div>
-                    <div style={{ flex:1, height:4, background:'rgba(255,255,255,.06)', borderRadius:2 }}>
+                    <div style={{ width:80, fontSize:10, color:T.muted }}>{attrNames[attr]?.[idioma] || attr}</div>
+                    <div style={{ flex:1, height:4, background:T.surface, borderRadius:2 }}>
                       <div style={{ height:'100%', width:`${(n/5)*100}%`, background:'#2DD4A7', borderRadius:2 }}/>
                     </div>
-                    <div style={{ fontSize:10, color:'#2DD4A7', fontWeight:700, width:20, textAlign:'right' }}>+{n}</div>
+                    <div style={{ fontSize:10, color:T.success, fontWeight:700, width:20, textAlign:'right' }}>+{n}</div>
                   </div>
                 )
               })}
@@ -184,8 +189,8 @@ export default function VLTreinos({ carreira, onVoltar, onGuardar, idioma = 'pt'
         </div>
 
         {/* Pombos e impacto do treino */}
-        <div style={{ background:'rgba(255,255,255,.02)', border:'1px solid rgba(255,255,255,.05)', borderRadius:12, padding:'14px' }}>
-          <div style={{ fontSize:9, color:'#4C8DFF', fontWeight:700, letterSpacing:1.5, marginBottom:10 }}>
+        <div style={{ background:T.surface, border:`1px solid ${T.surface2}`, borderRadius:12, padding:'14px' }}>
+          <div style={{ fontSize:9, color:T.blue, fontWeight:700, letterSpacing:1.5, marginBottom:10 }}>
             {idioma==='en'?'SQUAD IMPACT':idioma==='es'?'IMPACTO EN PLANTEL':'IMPACTO NO PLANTEL'}
           </div>
           {(c.pombos||[]).filter(p=>p.estado==='activo').slice(0,5).map(p => {
@@ -196,8 +201,8 @@ export default function VLTreinos({ carreira, onVoltar, onGuardar, idioma = 'pt'
               <div key={p.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'6px 0', borderBottom:'1px solid rgba(255,255,255,.04)' }}>
                 <div style={{ width:28, height:28, borderRadius:6, background: p.sexo==='F'?'rgba(192,132,252,.15)':'rgba(76,141,255,.15)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:9, fontWeight:900, color:p.sexo==='F'?'#c084fc':'#4C8DFF', fontFamily:"'Fraunces',serif" }}>{p.anilha?.slice(-3)}</div>
                 <div style={{ flex:1 }}>
-                  <div style={{ fontSize:11, fontWeight:600, color:'#fff' }}>{p.nome}</div>
-                  <div style={{ height:3, background:'rgba(255,255,255,.06)', borderRadius:2, marginTop:3 }}>
+                  <div style={{ fontSize:11, fontWeight:600, color:T.text }}>{p.nome}</div>
+                  <div style={{ height:3, background:T.surface, borderRadius:2, marginTop:3 }}>
                     <div style={{ height:'100%', width:`${forma}%`, background:corForma, borderRadius:2 }}/>
                   </div>
                 </div>
@@ -209,7 +214,7 @@ export default function VLTreinos({ carreira, onVoltar, onGuardar, idioma = 'pt'
 
         {/* Guardar */}
         <button onClick={guardar}
-          style={{ width:'100%', padding:'14px', borderRadius:12, border:'none', background: guardado ? 'linear-gradient(135deg,#2DD4A7,#059669)' : 'linear-gradient(135deg,#1E5FD9,#1456C0)', color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit', transition:'all .3s' }}>
+          style={{ width:'100%', padding:'14px', borderRadius:12, border:'none', background: guardado ? 'linear-gradient(135deg,#2DD4A7,#059669)' : 'linear-gradient(135deg,#1E5FD9,#1456C0)', color:T.text, fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:"'Inter',system-ui,sans-serif", transition:'all .3s' }}>
           {guardado ? '✅ ' + (idioma==='en'?'Saved!':idioma==='es'?'¡Guardado!':'Guardado!') : (idioma==='en'?'💾 Save Plan':idioma==='es'?'💾 Guardar Plan':'💾 Guardar Plano')}
         </button>
       </div>
