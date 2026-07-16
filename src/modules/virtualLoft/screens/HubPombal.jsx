@@ -9,7 +9,7 @@ import VLProvas from './VLProvas'
 import VLFinancas from './VLFinancas'
 import VLMercado from './VLMercado'
 import VLRankings from './VLRankings'
-import VLNinhadas from './VLNinhadas'
+import VLNinhadas, { actualizarFasesCria } from './VLNinhadas'
 import VLForma from './VLForma'
 
 const MODULOS = [
@@ -111,6 +111,7 @@ export default function HubPombal(props) {
   const handleAvancarSemana = () => {
     if (!carreiraLocal) return
     let nova = calcAvancarSemana(carreiraLocal)
+    nova = actualizarFasesCria(nova) // avançar fases dos ovos/ninhegos
     // Gerar evento aleatório
     const evento = EVENTOS.find(e => Math.random() < e.prob)
     if (evento) {
