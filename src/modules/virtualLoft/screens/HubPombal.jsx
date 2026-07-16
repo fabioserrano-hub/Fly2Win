@@ -10,6 +10,7 @@ import VLFinancas from './VLFinancas'
 import VLMercado from './VLMercado'
 import VLRankings from './VLRankings'
 import VLNinhadas from './VLNinhadas'
+import VLForma from './VLForma'
 
 const MODULOS = [
   { id:'pombos',   icon:'🐦', cor:'#4C8DFF',  corBg:'rgba(76,141,255,.1)'  },
@@ -21,6 +22,7 @@ const MODULOS = [
   { id:'financas', icon:'💰', cor:'#22c55e',  corBg:'rgba(34,197,94,.1)'   },
   { id:'rankings', icon:'📊', cor:'#f87171',  corBg:'rgba(248,113,113,.1)' },
   { id:'ninhadas', icon:'🥚', cor:'#A855F7',  corBg:'rgba(168,85,247,.1)'  },
+  { id:'forma',    icon:'📈', cor:'#06b6d4',  corBg:'rgba(6,182,212,.1)'   },
 ]
 
 const LABELS = {
@@ -33,6 +35,7 @@ const LABELS = {
   financas: { pt:'Finanças',  en:'Finances', es:'Finanzas'  },
   rankings: { pt:'Rankings',  en:'Rankings', es:'Rankings'  },
   ninhadas: { pt:'Ninhadas',  en:'Breeding', es:'Reproducción' },
+  forma:    { pt:'Forma',     en:'Form',     es:'Forma'         },
 }
 
 const EM_BREVE = []
@@ -90,13 +93,33 @@ export default function HubPombal(props) {
 
   const [carreiraLocal, setCarreiraLocal] = useState(carreira)
   const [moduloAtivo, setModuloAtivo] = useState(null)
+  const [eventoSemana, setEventoSemana] = useState(null)
+
+  const EVENTOS = [
+    { prob:.06, icon:'🤒', titulo:'Doença no pombal', desc:'Um pombo ficou doente esta semana.', tipo:'alerta', impacto: c => ({ ...c, orcamento: Math.max(0,(c.orcamento||0)-200) }) },
+    { prob:.05, icon:'🦅', titulo:'Ataque de falcão', desc:'Um falcão foi avistado nas proximidades!', tipo:'alerta', impacto: c => c },
+    { prob:.08, icon:'⛈️', titulo:'Mau tempo', desc:'A semana de treino foi afectada pelo mau tempo.', tipo:'alerta', impacto: c => c },
+    { prob:.05, icon:'🤝', titulo:'Patrocínio!', desc:'Uma empresa local quer patrocinar o pombal. +500€', tipo:'sucesso', impacto: c => ({ ...c, orcamento: (c.orcamento||0)+500 }) },
+    { prob:.04, icon:'⭐', titulo:'Talento descoberto', desc:'Um pombo revelou atributos escondidos!', tipo:'sucesso', impacto: c => c },
+    { prob:.10, icon:'💪', titulo:'Semana excelente!', desc:'Os pombos responderam muito bem ao treino.', tipo:'sucesso', impacto: c => c },
+    { prob:.03, icon:'🏆', titulo:'Recorde pessoal!', desc:'Um dos peus pombos bateu o seu recorde de velocidade!', tipo:'sucesso', impacto: c => ({ ...c, reputacao: Math.min(100,(c.reputacao||5)+2) }) },
+  ]
 
   // Sincronizar com prop quando muda externamente
   useEffect(() => { setCarreiraLocal(carreira) }, [carreira])
 
   const handleAvancarSemana = () => {
     if (!carreiraLocal) return
-    const nova = calcAvancarSemana(carreiraLocal)
+    let nova = calcAvancarSemana(carreiraLocal)
+    // Gerar evento aleatório
+    const evento = EVENTOS.find(e => Math.random() < e.prob)
+    if (evento) {
+      nova = evento.impacto(nova)
+      setEventoSemana(evento)
+      setTimeout(() => setEventoSemana(null), 5000)
+    } else {
+      setEventoSemana(null)
+    }
     try { localStorage.setItem('vl_carreira', JSON.stringify(nova)) } catch {}
     setCarreiraLocal({ ...nova })
     if (typeof props.onAvancarSemana === 'function') props.onAvancarSemana(nova)
@@ -152,6 +175,7 @@ export default function HubPombal(props) {
     if (moduloAtivo === 'mercado')  return <VLMercado  {...modProps} />
     if (moduloAtivo === 'rankings')  return <VLRankings  {...modProps} />
     if (moduloAtivo === 'ninhadas') return <VLNinhadas {...modProps} />
+    if (moduloAtivo === 'forma')    return <VLForma    {...modProps} />
     return (
       <div style={{ minHeight:'100vh', background:'#030812', color:'#fff', display:'flex', flexDirection:'column', fontFamily:'inherit' }}>
         <div style={{ padding:'14px 16px', borderBottom:'1px solid rgba(255,255,255,.05)', display:'flex', alignItems:'center', gap:10 }}>
@@ -261,6 +285,7 @@ export default function HubPombal(props) {
               : m.id === 'staff' ? `0 ${idioma==='en'?'hired':idioma==='es'?'contratados':'contratados'}`
               : m.id === 'pombal' ? `${idioma==='en'?'Level':idioma==='es'?'Nivel':'Nível'} 1`
               : m.id === 'treinos' ? (idioma==='en'?'No plan':idioma==='es'?'Sin plan':'Sem plano')
+              : m.id === 'forma' ? (idioma==='en'?'Track condition':idioma==='es'?'Condición':'Condição')
               : m.id === 'provas' ? `${idioma==='en'?'Season':idioma==='es'?'Temporada':'Época'} ${c.epoca}`
               : idioma==='en'?'Coming soon':idioma==='es'?'Próximamente':'Em breve'
 
