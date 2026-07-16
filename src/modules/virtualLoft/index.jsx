@@ -9,7 +9,30 @@ import VLStaff from './screens/VLStaff'
 import VLProvas from './screens/VLProvas'
 import VLFinancas from './screens/VLFinancas'
 import { useCarreira } from './hooks/useCarreira'
-import { avancarSemana } from './progression'
+
+
+// Motor de progressão inline
+function avancarSemana(carreira, idioma) {
+  let nova = { ...carreira }
+  // Pagar salários semanais (salário/4)
+  const custoSemanal = Math.round((nova.staff||[]).reduce((s,m)=>s+(m.salario||0),0)/4)
+  const custoAlim = nova.pombos.length * 5
+  nova.orcamento = Math.max(0, nova.orcamento - custoSemanal - custoAlim)
+  // Ganho de reputação
+  nova.reputacao = Math.min(100, nova.reputacao + 0.5)
+  if (nova.reputacao>=90) nova.nivel_reputacao='olimpico'
+  else if (nova.reputacao>=70) nova.nivel_reputacao='internacional'
+  else if (nova.reputacao>=50) nova.nivel_reputacao='nacional'
+  else if (nova.reputacao>=35) nova.nivel_reputacao='regional'
+  else if (nova.reputacao>=20) nova.nivel_reputacao='distrital'
+  else nova.nivel_reputacao='local'
+  // Avançar semana/época
+  nova.semana = nova.semana + 1
+  if (nova.semana > 40) { nova.semana = 1; nova.epoca = nova.epoca + 1 }
+  nova.ultimo_custo_semanal = custoSemanal + custoAlim
+  nova.eventos_semana = []
+  return nova
+}
 
 const ADMIN_UUID = '30709f29-152e-4813-ac7f-e3376c5e0646'
 
