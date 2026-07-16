@@ -469,7 +469,7 @@ function DetalheClubePersonalizado({ clube, user, onVoltar, toast, temPro, nav }
               </div>
             </div>
           )}
-            <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.75)',zIndex:100,display:'flex',alignItems:'flex-end',justifyContent:'center'}} onClick={()=>setModalResultado(false)}>
+          {modalResultado && <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.75)',zIndex:100,display:'flex',alignItems:'flex-end',justifyContent:'center'}} onClick={()=>setModalResultado(false)}>
               <div style={{background:'#0B1830',border:'1px solid #1B2D52',borderRadius:'16px 16px 0 0',padding:'20px 16px',width:'100%',maxWidth:600,maxHeight:'90vh',overflowY:'auto'}} onClick={e=>e.stopPropagation()}>
                 <div style={{fontSize:15,fontWeight:700,color:'#fff',marginBottom:14}}>📋 Registar resultado colectivo</div>
                 <div style={{display:'flex',flexDirection:'column',gap:10}}>
@@ -500,7 +500,7 @@ function DetalheClubePersonalizado({ clube, user, onVoltar, toast, temPro, nav }
                   </div>
                 </div>
               </div>
-            </div>
+            </div>}
           )}
         </div>
       )}
