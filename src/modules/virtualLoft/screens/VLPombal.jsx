@@ -7,6 +7,7 @@ import VLPombal from './VLPombal'
 import VLStaff from './VLStaff'
 import VLProvas from './VLProvas'
 import VLFinancas from './VLFinancas'
+import VLMercado from './VLMercado'
 
 const MODULOS = [
   { id:'pombos',   icon:'🐦', cor:'#4C8DFF',  corBg:'rgba(76,141,255,.1)'  },
@@ -30,7 +31,7 @@ const LABELS = {
   rankings: { pt:'Rankings',  en:'Rankings', es:'Rankings'  },
 }
 
-const EM_BREVE = ['mercado','rankings']
+const EM_BREVE = ['rankings']
 
 function BarraReputacao({ valor, nivel }) {
   const niveis = { pt:['Local','Distrital','Regional','Nacional','Internacional','Olímpico'], en:['Local','District','Regional','National','International','Olympic'], es:['Local','Distrital','Regional','Nacional','Internacional','Olímpico'] }
@@ -144,6 +145,7 @@ export default function HubPombal(props) {
     if (moduloAtivo === 'staff')    return <VLStaff    {...modProps} />
     if (moduloAtivo === 'provas')   return <VLProvas   {...modProps} />
     if (moduloAtivo === 'financas') return <VLFinancas {...modProps} />
+    if (moduloAtivo === 'mercado')  return <VLMercado  {...modProps} />
     return (
       <div style={{ minHeight:'100vh', background:'#030812', color:'#fff', display:'flex', flexDirection:'column', fontFamily:'inherit' }}>
         <div style={{ padding:'14px 16px', borderBottom:'1px solid rgba(255,255,255,.05)', display:'flex', alignItems:'center', gap:10 }}>
