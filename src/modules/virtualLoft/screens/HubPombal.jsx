@@ -13,6 +13,8 @@ import VLNinhadas, { actualizarFasesCria } from './VLNinhadas'
 import VLForma from './VLForma'
 import VLHallOfFame from './VLHallOfFame'
 import VLObjectivos from './VLObjectivos'
+import VLTimeline from './VLTimeline'
+import VLPatrocinios from './VLPatrocinios'
 
 const MODULOS = [
   { id:'pombos',   icon:'🐦', cor:'#4C8DFF',  corBg:'rgba(76,141,255,.1)'  },
@@ -26,7 +28,9 @@ const MODULOS = [
   { id:'ninhadas', icon:'🥚', cor:'#A855F7',  corBg:'rgba(168,85,247,.08)' },
   { id:'forma',    icon:'📈', cor:'#06b6d4',  corBg:'rgba(6,182,212,.08)'  },
   { id:'halloffame', icon:'🏛️', cor:'#D4AF37',  corBg:'rgba(212,175,55,.08)' },
-  { id:'objectivos', icon:'🎯', cor:'#2DD4A7',  corBg:'rgba(45,212,167,.08)' },
+  { id:'objectivos',  icon:'🎯', cor:'#2DD4A7',  corBg:'rgba(45,212,167,.08)'  },
+  { id:'timeline',    icon:'📜', cor:'#7A8699',  corBg:'rgba(122,134,153,.08)' },
+  { id:'patrocinios', icon:'🤝', cor:'#22c55e',  corBg:'rgba(34,197,94,.08)'   },
 ]
 
 const LABELS = {
@@ -41,7 +45,9 @@ const LABELS = {
   ninhadas: { pt:'Ninhadas',  en:'Breeding',   es:'Reproducción' },
   forma:    { pt:'Forma',     en:'Form',       es:'Forma'        },
   halloffame:{ pt:'Hall of Fame', en:'Hall of Fame', es:'Hall of Fame' },
-  objectivos:{ pt:'Objectivos', en:'Objectives',  es:'Objetivos'    },
+  objectivos: { pt:'Objectivos',  en:'Objectives',   es:'Objetivos'    },
+  timeline:   { pt:'Timeline',    en:'Timeline',     es:'Historia'     },
+  patrocinios:{ pt:'Patrocínios', en:'Sponsorships',  es:'Patrocinios'  },
 }
 
 const EM_BREVE = []
@@ -121,6 +127,11 @@ export default function HubPombal(props) {
     if (!c) return
     let nova = calcAvancarSemana(c)
     nova = actualizarFasesCria(nova)
+    // Receber receita dos patrocínios
+    const receitaPatrocinios = (nova.patrocinios||[]).reduce((s,p) => s+(p.valorSemanal||0), 0)
+    if (receitaPatrocinios > 0) nova.orcamento = (nova.orcamento||0) + receitaPatrocinios
+    // Decrementar semanas restantes dos contratos
+    nova.patrocinios = (nova.patrocinios||[]).map(p => ({ ...p, semanasRestantes: Math.max(0,(p.semanasRestantes||p.contratoSemanas||8)-1) })).filter(p => (p.semanasRestantes||0) > 0)
     const evento = EVENTOS.find(e => Math.random() < e.prob)
     if (evento) { nova = evento.fn(nova); setEventoSemana(evento); setTimeout(()=>setEventoSemana(null),5000) }
     salvar(nova)
@@ -148,7 +159,9 @@ export default function HubPombal(props) {
     if (moduloAtivo === 'ninhadas') return <VLNinhadas {...modProps} />
     if (moduloAtivo === 'forma')    return <VLForma    {...modProps} />
     if (moduloAtivo === 'halloffame') return <VLHallOfFame {...modProps} />
-    if (moduloAtivo === 'objectivos') return <VLObjectivos {...modProps} />
+    if (moduloAtivo === 'objectivos')  return <VLObjectivos  {...modProps} />
+    if (moduloAtivo === 'timeline')    return <VLTimeline    {...modProps} />
+    if (moduloAtivo === 'patrocinios') return <VLPatrocinios {...modProps} />
     return (
       <div style={{ minHeight:'100vh', background:'#030812', color:'#fff', display:'flex', flexDirection:'column', fontFamily:'inherit' }}>
         <div style={{ padding:'14px 16px', borderBottom:'1px solid rgba(255,255,255,.05)', display:'flex', alignItems:'center', gap:10 }}>
@@ -236,7 +249,7 @@ export default function HubPombal(props) {
               :m.id==='treinos'?'Plano semanal'
               :m.id==='provas'?`Época ${c.epoca||1}`
               :m.id==='ninhadas'?`${(c.pombos||[]).filter(p=>p.fase&&p.estado!=='activo').length} activas`
-              :m.id==='forma'?'Condição':m.id==='rankings'?'Ver ranking':m.id==='halloffame'?`${(c.hall_of_fame||[]).length} lendas`:m.id==='objectivos'?`${(c.objectivos_concluidos||[]).length} concluídos`:''
+              :m.id==='forma'?'Condição':m.id==='rankings'?'Ver ranking':m.id==='halloffame'?`${(c.hall_of_fame||[]).length} lendas`:m.id==='objectivos'?`${(c.objectivos_concluidos||[]).length} concluídos`:m.id==='timeline'?`${((c.historico_provas||[]).length+(c.ninhadas_virtuais||[]).length)} eventos`:m.id==='patrocinios'?`+${(c.patrocinios||[]).reduce((s,p)=>s+(p.valorSemanal||0),0).toLocaleString()}€/sem`:''
             return (
               <div key={m.id} onClick={() => !emBreve && setModuloAtivo(m.id)}
                 style={{ background:emBreve?'rgba(255,255,255,.02)':m.corBg, border:`1px solid ${emBreve?'rgba(255,255,255,.05)':m.cor+'30'}`, borderRadius:14, padding:'16px 14px', cursor:emBreve?'default':'pointer', transition:'all .15s', opacity:emBreve?.5:1, position:'relative', overflow:'hidden' }}>
