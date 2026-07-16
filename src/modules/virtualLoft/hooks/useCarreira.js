@@ -1,5 +1,5 @@
 // src/modules/virtualLoft/hooks/useCarreira.js
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { gerarPlantelInicial } from '../engine/genetics'
 
 const ORCAMENTOS = {
@@ -19,6 +19,13 @@ export function useCarreira() {
     return null
   })
   const [loading, setLoading] = useState(false)
+
+  // Auto-save sempre que a carreira muda
+  useEffect(() => {
+    if (carreira) {
+      try { localStorage.setItem('vl_carreira', JSON.stringify(carreira)) } catch(e) {}
+    }
+  }, [carreira])
 
   const criarCarreira = useCallback(async (form) => {
     setLoading(true)
@@ -74,15 +81,13 @@ export function useCarreira() {
       ranking_local: null,
     }
 
-    // Guardar
-    if (form.guardarEm === 'localStorage') {
-      try {
-        localStorage.setItem('vl_carreira', JSON.stringify(novaCarreira))
-      } catch(e) {
-        console.warn('Erro ao guardar localmente:', e)
-      }
+    // Guardar sempre no localStorage (cache local)
+    try {
+      localStorage.setItem('vl_carreira', JSON.stringify(novaCarreira))
+    } catch(e) {
+      console.warn('Erro ao guardar localmente:', e)
     }
-    // Supabase — implementar depois
+    // Supabase — implementar depois se guardarEm === 'supabase'
 
     setCarreira(novaCarreira)
     setLoading(false)
@@ -102,9 +107,8 @@ export function useCarreira() {
   }, [])
 
   const guardarCarreira = useCallback((dados) => {
-    if (dados?.guardarEm === 'localStorage') {
-      try { localStorage.setItem('vl_carreira', JSON.stringify(dados)) } catch(e) {}
-    }
+    // Guardar sempre no localStorage
+    try { localStorage.setItem('vl_carreira', JSON.stringify(dados)) } catch(e) {}
     setCarreira(dados)
   }, [])
 
