@@ -1,6 +1,6 @@
 // src/modules/virtualLoft/screens/VLTimeline.jsx
 import { useState } from 'react'
-
+ 
 const TIPOS = {
   prova:      { icon:'🏆', cor:'#A855F7' },
   vitoria:    { icon:'🥇', cor:'#D4AF37' },
