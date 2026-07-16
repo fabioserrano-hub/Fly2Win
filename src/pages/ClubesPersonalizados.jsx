@@ -290,8 +290,9 @@ function DetalheClubePersonalizado({ clube, user, onVoltar, toast, temPro, nav }
         ))}
       </div>
 
-      {loading?<div style={{display:'flex',justifyContent:'center',padding:40}}><Spinner lg/></div>
-      :tab==='ranking'?(
+      {(()=>{
+      if(loading) return <div style={{display:'flex',justifyContent:'center',padding:40}}><Spinner lg/></div>
+      if(tab==='ranking') return (
         ranking.length===0
           ?<EmptyState icon="🏆" title="Sem dados ainda" desc="Os membros precisam de ter provas registadas com percentil"/>
           :<div style={{display:'flex',flexDirection:'column',gap:6}}>
@@ -318,7 +319,8 @@ function DetalheClubePersonalizado({ clube, user, onVoltar, toast, temPro, nav }
                 )
               })}
             </div>
-      ):tab==='membros'?(
+      )
+      if(tab==='membros') return (
         <div style={{display:'flex',flexDirection:'column',gap:8}}>
           {membros.map(m=>(
             <div key={m.id} style={{display:'flex',gap:12,alignItems:'center',padding:'12px 14px',background:'#0B1830',border:'1px solid #1B2D52',borderRadius:10}}>
@@ -342,7 +344,8 @@ function DetalheClubePersonalizado({ clube, user, onVoltar, toast, temPro, nav }
             </div>
           ))}
         </div>
-      ):tab==='resultados'?(
+      )
+      if(tab==='resultados') return (
         <div>
           {euAdmin&&(
             <div style={{display:'flex',gap:8,justifyContent:'flex-end',marginBottom:12}}>
@@ -501,7 +504,8 @@ function DetalheClubePersonalizado({ clube, user, onVoltar, toast, temPro, nav }
             </div>
           )}
         </div>
-      ): <div/>}
+      return <div/>
+      })()} 
 
       {!euAdmin&&euMembro&&(
         <div style={{textAlign:'center',marginTop:20}}>
