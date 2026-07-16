@@ -1,12 +1,11 @@
-// src/modules/virtualLoft/screens/HubPombal.jsx
-import { useState, useEffect } from 'react'
-import { useT } from '../data/traducoes'
+// src/modules/virtualLoft/screens/HubPombal.jsx — Design Premium
+import { useState } from 'react'
 import VLPombos from './VLPombos'
 import VLTreinos from './VLTreinos'
 import VLPombal from './VLPombal'
 import VLStaff from './VLStaff'
-import VLProvas from './VLProvas' 
-import VLFinancas from './VLFinancas' 
+import VLProvas from './VLProvas'
+import VLFinancas from './VLFinancas'
 import VLMercado from './VLMercado'
 import VLRankings from './VLRankings'
 import VLNinhadas, { actualizarFasesCria } from './VLNinhadas'
@@ -16,273 +15,334 @@ import VLObjectivos from './VLObjectivos'
 import VLTimeline from './VLTimeline'
 import VLPatrocinios from './VLPatrocinios'
 
+// ── Design tokens ─────────────────────────────────────────────────────────────
+const T = {
+  bg:       '#050A14',
+  surface:  '#0D1829',
+  surface2: '#1A2A45',
+  gold:     '#C9A84C',
+  blue:     '#4FC3F7',
+  text:     '#E8EDF5',
+  muted:    '#6B7A99',
+  success:  '#2DD4A7',
+  danger:   '#F87171',
+}
+
 const MODULOS = [
-  { id:'pombos',   icon:'🐦', cor:'#4C8DFF',  corBg:'rgba(76,141,255,.1)'  },
-  { id:'pombal',   icon:'🏠', cor:'#2DD4A7',  corBg:'rgba(45,212,167,.1)'  },
-  { id:'treinos',  icon:'🎯', cor:'#D4AF37',  corBg:'rgba(212,175,55,.1)'  },
-  { id:'provas',   icon:'🏆', cor:'#A855F7',  corBg:'rgba(168,85,247,.1)'  },
-  { id:'mercado',  icon:'🛒', cor:'#f97316',  corBg:'rgba(249,115,22,.1)'  },
-  { id:'staff',    icon:'👥', cor:'#06b6d4',  corBg:'rgba(6,182,212,.1)'   },
-  { id:'financas', icon:'💰', cor:'#22c55e',  corBg:'rgba(34,197,94,.1)'   },
-  { id:'rankings', icon:'📊', cor:'#f87171',  corBg:'rgba(248,113,113,.1)' },
-  { id:'ninhadas', icon:'🥚', cor:'#A855F7',  corBg:'rgba(168,85,247,.08)' },
-  { id:'forma',    icon:'📈', cor:'#06b6d4',  corBg:'rgba(6,182,212,.08)'  },
-  { id:'halloffame', icon:'🏛️', cor:'#D4AF37',  corBg:'rgba(212,175,55,.08)' },
-  { id:'objectivos',  icon:'🎯', cor:'#2DD4A7',  corBg:'rgba(45,212,167,.08)'  },
-  { id:'timeline',    icon:'📜', cor:'#7A8699',  corBg:'rgba(122,134,153,.08)' },
-  { id:'patrocinios', icon:'🤝', cor:'#22c55e',  corBg:'rgba(34,197,94,.08)'   },
+  { id:'pombos',     icon:'🐦', label:{pt:'Pombos',    en:'Pigeons',    es:'Palomas'},     cor:'#4FC3F7', grad:'linear-gradient(135deg,#0D1F35,#0A1525)' },
+  { id:'pombal',     icon:'🏠', label:{pt:'Pombal',    en:'Loft',       es:'Palomar'},     cor:'#2DD4A7', grad:'linear-gradient(135deg,#0D2820,#091A14)' },
+  { id:'treinos',    icon:'🎯', label:{pt:'Treinos',   en:'Training',   es:'Entrenam.'},   cor:'#C9A84C', grad:'linear-gradient(135deg,#2A1E08,#1A1305)' },
+  { id:'provas',     icon:'🏆', label:{pt:'Provas',    en:'Races',      es:'Carreras'},    cor:'#A855F7', grad:'linear-gradient(135deg,#1E0D35,#130825)' },
+  { id:'ninhadas',   icon:'🥚', label:{pt:'Ninhadas',  en:'Breeding',   es:'Reproducción'},cor:'#818CF8', grad:'linear-gradient(135deg,#0F0D2A,#0A0B1E)' },
+  { id:'mercado',    icon:'🛒', label:{pt:'Mercado',   en:'Market',     es:'Mercado'},     cor:'#FB923C', grad:'linear-gradient(135deg,#2A1508,#1A0D05)' },
+  { id:'staff',      icon:'👥', label:{pt:'Staff',     en:'Staff',      es:'Staff'},       cor:'#22D3EE', grad:'linear-gradient(135deg,#062028,#04151C)' },
+  { id:'financas',   icon:'💰', label:{pt:'Finanças',  en:'Finances',   es:'Finanzas'},    cor:'#4ADE80', grad:'linear-gradient(135deg,#082015,#04120D)' },
+  { id:'patrocinios',icon:'🤝', label:{pt:'Patrocínios',en:'Sponsors', es:'Patrocinios'}, cor:'#34D399', grad:'linear-gradient(135deg,#082018,#041210)' },
+  { id:'rankings',   icon:'📊', label:{pt:'Rankings',  en:'Rankings',   es:'Rankings'},    cor:'#F87171', grad:'linear-gradient(135deg,#2A0A0A,#1A0505)' },
+  { id:'forma',      icon:'📈', label:{pt:'Forma',     en:'Form',       es:'Forma'},       cor:'#38BDF8', grad:'linear-gradient(135deg,#082028,#041520)' },
+  { id:'objectivos', icon:'🎯', label:{pt:'Objectivos',en:'Goals',      es:'Objetivos'},   cor:'#2DD4A7', grad:'linear-gradient(135deg,#082820,#041A14)' },
+  { id:'halloffame', icon:'🏛️', label:{pt:'Hall of Fame',en:'Hall of Fame',es:'Hall of Fame'},cor:'#C9A84C',grad:'linear-gradient(135deg,#2A1E08,#1A1305)' },
+  { id:'timeline',   icon:'📜', label:{pt:'Timeline',  en:'Timeline',   es:'Historia'},    cor:'#94A3B8', grad:'linear-gradient(135deg,#0D1420,#080E18)' },
 ]
 
-const LABELS = {
-  pombos:   { pt:'Pombos',    en:'Pigeons',    es:'Palomas'      },
-  pombal:   { pt:'Pombal',    en:'Loft',       es:'Palomar'      },
-  treinos:  { pt:'Treinos',   en:'Training',   es:'Entrenam.'    },
-  provas:   { pt:'Provas',    en:'Races',      es:'Carreras'     },
-  mercado:  { pt:'Mercado',   en:'Market',     es:'Mercado'      },
-  staff:    { pt:'Staff',     en:'Staff',      es:'Staff'        },
-  financas: { pt:'Finanças',  en:'Finances',   es:'Finanzas'     },
-  rankings: { pt:'Rankings',  en:'Rankings',   es:'Rankings'     },
-  ninhadas: { pt:'Ninhadas',  en:'Breeding',   es:'Reproducción' },
-  forma:    { pt:'Forma',     en:'Form',       es:'Forma'        },
-  halloffame:{ pt:'Hall of Fame', en:'Hall of Fame', es:'Hall of Fame' },
-  objectivos: { pt:'Objectivos',  en:'Objectives',   es:'Objetivos'    },
-  timeline:   { pt:'Timeline',    en:'Timeline',     es:'Historia'     },
-  patrocinios:{ pt:'Patrocínios', en:'Sponsorships',  es:'Patrocinios'  },
-}
+// ── Utils ─────────────────────────────────────────────────────────────────────
+function lerLS() { try { return JSON.parse(localStorage.getItem('vl_carreira')) } catch { return null } }
+function gravarLS(d) { try { localStorage.setItem('vl_carreira', JSON.stringify(d)) } catch {} }
 
-const EM_BREVE = []
-
-function BarraReputacao({ valor, nivel }) {
-  const cores = ['#7A8699','#4C8DFF','#2DD4A7','#D4AF37','#A855F7','#f87171']
-  const idx = ['local','distrital','regional','nacional','internacional','olimpico'].indexOf(nivel)
-  const cor = cores[Math.max(0,idx)]
-  return (
-    <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-      <div style={{ flex:1, height:4, background:'rgba(255,255,255,.06)', borderRadius:2, overflow:'hidden' }}>
-        <div style={{ height:'100%', width:`${valor}%`, background:`linear-gradient(90deg,${cor},${cor}aa)`, borderRadius:2, transition:'width 1s' }}/>
-      </div>
-      <span style={{ fontSize:10, color:cor, fontWeight:700, whiteSpace:'nowrap', minWidth:60 }}>{nivel?.toUpperCase()}</span>
-    </div>
-  )
-}
-
-function EventoBanner({ evento }) {
-  if (!evento) return null
-  const cores = { alerta:'#f87171', info:'#4C8DFF', sucesso:'#2DD4A7', aviso:'#D4AF37' }
-  const cor = cores[evento.tipo] || '#4C8DFF'
-  return (
-    <div style={{ padding:'10px 14px', background:`${cor}10`, border:`1px solid ${cor}30`, borderRadius:10, display:'flex', alignItems:'center', gap:10 }}>
-      <span style={{ fontSize:18 }}>{evento.icon}</span>
-      <div>
-        <div style={{ fontSize:12, fontWeight:700, color:cor }}>{evento.titulo}</div>
-        <div style={{ fontSize:11, color:'#7A8699' }}>{evento.desc}</div>
-      </div>
-    </div>
-  )
-}
-
-function calcAvancarSemana(c) {
-  const nova = { ...c, pombos: [...(c.pombos||[])] }
-  const custoStaff = Math.round((nova.staff||[]).reduce((s,m) => s+(m.salario||0), 0) / 4)
-  const custoAlim = (nova.pombos||[]).length * 5
-  nova.orcamento = Math.max(0, (nova.orcamento||0) - custoStaff - custoAlim)
-  nova.reputacao = Math.min(100, (nova.reputacao||5) + 0.5)
-  nova.semana = (nova.semana||1) + 1
-  if (nova.semana > 40) { nova.semana = 1; nova.epoca = (nova.epoca||1) + 1 }
-  if (nova.reputacao>=90) nova.nivel_reputacao='olimpico'
-  else if (nova.reputacao>=70) nova.nivel_reputacao='internacional'
-  else if (nova.reputacao>=50) nova.nivel_reputacao='nacional'
-  else if (nova.reputacao>=35) nova.nivel_reputacao='regional'
-  else if (nova.reputacao>=20) nova.nivel_reputacao='distrital'
-  else nova.nivel_reputacao='local'
+function calcAvancar(c) {
+  const nova = { ...c, pombos:[...(c.pombos||[])] }
+  const custoStaff = Math.round((nova.staff||[]).reduce((s,m)=>s+(m.salario||0),0)/4)
+  const custoAlim = (nova.pombos||[]).length*5
+  const recPat = (nova.patrocinios||[]).reduce((s,p)=>s+(p.valorSemanal||0),0)
+  nova.orcamento = Math.max(0,(nova.orcamento||0)-custoStaff-custoAlim+recPat)
+  nova.patrocinios = (nova.patrocinios||[]).map(p=>({...p,semanasRestantes:Math.max(0,(p.semanasRestantes||8)-1)})).filter(p=>(p.semanasRestantes||0)>0)
+  nova.reputacao = Math.min(100,(nova.reputacao||5)+0.5)
+  nova.semana = (nova.semana||1)+1
+  if (nova.semana>40){nova.semana=1;nova.epoca=(nova.epoca||1)+1}
+  const niv=['local','distrital','regional','nacional','internacional','olimpico']
+  const r=nova.reputacao
+  nova.nivel_reputacao=r>=90?'olimpico':r>=70?'internacional':r>=50?'nacional':r>=35?'regional':r>=20?'distrital':'local'
   return nova
 }
 
+// ── Componentes ───────────────────────────────────────────────────────────────
+function GoldLine() {
+  return <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,#C9A84C,transparent)',opacity:.8}}/>
+}
+
+function StatPill({ label, value, cor = T.gold }) {
+  return (
+    <div style={{textAlign:'center',padding:'10px 8px',background:'rgba(255,255,255,.03)',border:`1px solid ${cor}20`,borderRadius:10}}>
+      <div style={{fontFamily:"'Fraunces',serif",fontSize:17,fontWeight:900,color:cor,letterSpacing:-.5}}>{value}</div>
+      <div style={{fontSize:8,color:T.muted,marginTop:2,fontWeight:600,letterSpacing:.8}}>{label.toUpperCase()}</div>
+    </div>
+  )
+}
+
+function ReputacaoBar({ valor, nivel }) {
+  const cfg = {
+    local:         {cor:'#6B7A99',pct:10},
+    distrital:     {cor:'#4FC3F7',pct:25},
+    regional:      {cor:'#2DD4A7',pct:45},
+    nacional:      {cor:'#C9A84C',pct:65},
+    internacional: {cor:'#A855F7',pct:85},
+    olimpico:      {cor:'#F87171',pct:100},
+  }
+  const {cor,pct} = cfg[nivel||'local']
+  return (
+    <div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}>
+        <span style={{fontSize:9,color:T.muted,fontWeight:600,letterSpacing:.8}}>REPUTAÇÃO</span>
+        <span style={{fontSize:10,color:cor,fontWeight:700}}>{nivel?.toUpperCase()}</span>
+      </div>
+      <div style={{height:3,background:'rgba(255,255,255,.06)',borderRadius:2,overflow:'hidden'}}>
+        <div style={{height:'100%',width:`${Math.min(100,valor||0)}%`,background:`linear-gradient(90deg,${cor}88,${cor})`,borderRadius:2,transition:'width 1s ease'}}/>
+      </div>
+    </div>
+  )
+}
+
+function ModuloCard({ m, sub, onClick }) {
+  const [hover, setHover] = useState(false)
+  return (
+    <div onClick={onClick}
+      onMouseEnter={()=>setHover(true)} onMouseLeave={()=>setHover(false)}
+      style={{background:hover?m.grad.replace('135deg','145deg'):m.grad,border:`1px solid ${m.cor}25`,borderRadius:14,padding:'16px 14px',cursor:'pointer',transition:'all .2s',transform:hover?'scale(1.02)':'scale(1)',position:'relative',overflow:'hidden'}}>
+      <GoldLine/>
+      <div style={{fontSize:28,marginBottom:10,filter:'drop-shadow(0 2px 4px rgba(0,0,0,.4))'}}>
+        {m.icon}
+      </div>
+      <div style={{fontSize:13,fontWeight:800,color:m.cor,marginBottom:3,letterSpacing:-.2}}>
+        {m.label.pt}
+      </div>
+      <div style={{fontSize:10,color:T.muted}}>{sub}</div>
+    </div>
+  )
+}
+
+function EventCard({ evento }) {
+  if (!evento) return null
+  const cores={alerta:T.danger,sucesso:T.success,info:T.blue,aviso:T.gold}
+  const cor=cores[evento.tipo]||T.blue
+  return (
+    <div style={{padding:'12px 14px',background:`${cor}0D`,border:`1px solid ${cor}30`,borderRadius:12,display:'flex',alignItems:'center',gap:12,position:'relative',overflow:'hidden'}}>
+      <GoldLine/>
+      <div style={{width:36,height:36,borderRadius:10,background:`${cor}15`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>{evento.icon}</div>
+      <div>
+        <div style={{fontSize:12,fontWeight:700,color:cor}}>{evento.titulo}</div>
+        <div style={{fontSize:10,color:T.muted,marginTop:1}}>{evento.desc}</div>
+      </div>
+    </div>
+  )
+}
+
+function ProximaProvaCard({ prova, semanasAte, idioma }) {
+  const urgente = semanasAte <= 1
+  return (
+    <div style={{background:'linear-gradient(135deg,#0D1030,#080A20)',border:`1px solid ${urgente?'#A855F7':'#1A2A45'}`,borderRadius:14,padding:'14px 16px',position:'relative',overflow:'hidden'}}>
+      <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,#A855F7,#4FC3F7,transparent)'}}/>
+      <div style={{fontSize:8,color:'#A855F7',fontWeight:700,letterSpacing:2,marginBottom:8}}>
+        {idioma==='en'?'NEXT RACE':idioma==='es'?'PRÓXIMA CARRERA':'PRÓXIMA PROVA'}
+      </div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <div>
+          <div style={{fontSize:15,fontWeight:800,color:T.text,marginBottom:3}}>{prova.nome}</div>
+          <div style={{display:'flex',gap:8}}>
+            <span style={{fontSize:10,color:T.muted}}>📍 {prova.dist}km</span>
+            <span style={{fontSize:10,color:'#A855F7',fontWeight:600}}>⚡ {prova.tipo}</span>
+          </div>
+        </div>
+        <div style={{textAlign:'center',background:urgente?'rgba(168,85,247,.2)':'rgba(255,255,255,.04)',border:`1px solid ${urgente?'#A855F7':'#1A2A45'}`,borderRadius:10,padding:'10px 14px',minWidth:56}}>
+          <div style={{fontFamily:"'Fraunces',serif",fontSize:24,fontWeight:900,color:urgente?'#A855F7':T.muted,lineHeight:1}}>{semanasAte}</div>
+          <div style={{fontSize:8,color:urgente?'#A855F7':T.muted,fontWeight:700,letterSpacing:1,marginTop:2}}>SEM.</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PomboRow({ pombo, pos, onClick }) {
+  const cor = pombo.sexo==='F'?'#C084FC':'#4FC3F7'
+  const medals=['🥇','🥈','🥉']
+  return (
+    <div onClick={onClick} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 0',borderBottom:pos<2?`1px solid ${T.surface2}`:'none',cursor:'pointer'}}>
+      <div style={{fontSize:18,width:24,textAlign:'center',flexShrink:0}}>{medals[pos]||pos+1}</div>
+      <div style={{width:32,height:32,borderRadius:8,background:`${cor}15`,border:`1px solid ${cor}30`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:900,color:cor,fontFamily:"'Fraunces',serif",flexShrink:0}}>
+        {pombo.anilha?.slice(-3)}
+      </div>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{fontSize:13,fontWeight:700,color:T.text,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{pombo.nome}</div>
+        <div style={{fontSize:9,color:T.muted}}>{pombo.especialidade}</div>
+      </div>
+      <div style={{display:'flex',gap:2}}>
+        {Array.from({length:5}).map((_,j)=><div key={j} style={{width:7,height:7,borderRadius:'50%',background:j<pombo.rating?T.gold:'rgba(255,255,255,.08)'}}/>)}
+      </div>
+    </div>
+  )
+}
+
+// ── Componente principal ──────────────────────────────────────────────────────
 export default function HubPombal(props) {
-  const { onApagarCarreira, idioma = 'pt' } = props
+  const {onApagarCarreira,idioma='pt'} = props
+  const [c, setC] = useState(()=>lerLS()||props.carreira)
+  const [modulo, setModulo] = useState(null)
+  const [evento, setEvento] = useState(null)
 
-  // SEMPRE ler do localStorage - fonte de verdade única
-  const [c, setC] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('vl_carreira')) || props.carreira } catch { return props.carreira }
-  })
-  const [moduloAtivo, setModuloAtivo] = useState(null)
-  const [eventoSemana, setEventoSemana] = useState(null)
-
-  const EVENTOS = [
-    { prob:.06, icon:'🤒', titulo:'Doença no pombal', desc:'Um pombo ficou doente. -200€', tipo:'alerta', fn: x => ({ ...x, orcamento: Math.max(0,(x.orcamento||0)-200) }) },
-    { prob:.04, icon:'🦅', titulo:'Ataque de falcão!', desc:'Stress no pombal esta semana.', tipo:'alerta', fn: x => x },
-    { prob:.08, icon:'⛈️', titulo:'Mau tempo', desc:'Treinos afectados pelo clima.', tipo:'aviso', fn: x => x },
-    { prob:.05, icon:'🤝', titulo:'Patrocínio! +500€', desc:'Uma empresa quer patrocinar o pombal!', tipo:'sucesso', fn: x => ({ ...x, orcamento:(x.orcamento||0)+500 }) },
-    { prob:.10, icon:'💪', titulo:'Semana excelente!', desc:'Os pombos responderam muito bem.', tipo:'sucesso', fn: x => x },
-    { prob:.03, icon:'🏆', titulo:'Recorde!', desc:'Um pombo bateu o seu recorde. +Rep', tipo:'sucesso', fn: x => ({ ...x, reputacao: Math.min(100,(x.reputacao||5)+2) }) },
+  const EVENTOS=[
+    {prob:.06,icon:'🤒',titulo:'Doença no pombal',desc:'Um pombo adoeceu. -200€',tipo:'alerta',fn:x=>({...x,orcamento:Math.max(0,(x.orcamento||0)-200)})},
+    {prob:.04,icon:'🦅',titulo:'Ataque de falcão',desc:'Stress elevado no pombal.',tipo:'alerta',fn:x=>x},
+    {prob:.08,icon:'⛈️',titulo:'Mau tempo',desc:'Treinos condicionados.',tipo:'aviso',fn:x=>x},
+    {prob:.05,icon:'🤝',titulo:'Patrocínio espontâneo',desc:'+500€ de empresa local',tipo:'sucesso',fn:x=>({...x,orcamento:(x.orcamento||0)+500})},
+    {prob:.10,icon:'💪',titulo:'Semana excepcional',desc:'Pombos em excelente forma.',tipo:'sucesso',fn:x=>x},
+    {prob:.03,icon:'🏆',titulo:'Recorde batido!',desc:'Pombo atingiu velocidade máxima.',tipo:'sucesso',fn:x=>({...x,reputacao:Math.min(100,(x.reputacao||5)+2)})},
   ]
 
-  const salvar = (dados) => {
-    try { localStorage.setItem('vl_carreira', JSON.stringify(dados)) } catch {}
-    setC({ ...dados })
-    if (typeof props.onGuardar === 'function') props.onGuardar(dados)
-  }
+  const salvar=(dados)=>{gravarLS(dados);setC({...dados});if(typeof props.onGuardar==='function')props.onGuardar(dados)}
 
-  const handleAvancarSemana = () => {
-    if (!c) return
-    let nova = calcAvancarSemana(c)
-    nova = actualizarFasesCria(nova)
-    // Receber receita dos patrocínios
-    const receitaPatrocinios = (nova.patrocinios||[]).reduce((s,p) => s+(p.valorSemanal||0), 0)
-    if (receitaPatrocinios > 0) nova.orcamento = (nova.orcamento||0) + receitaPatrocinios
-    // Decrementar semanas restantes dos contratos
-    nova.patrocinios = (nova.patrocinios||[]).map(p => ({ ...p, semanasRestantes: Math.max(0,(p.semanasRestantes||p.contratoSemanas||8)-1) })).filter(p => (p.semanasRestantes||0) > 0)
-    const evento = EVENTOS.find(e => Math.random() < e.prob)
-    if (evento) { nova = evento.fn(nova); setEventoSemana(evento); setTimeout(()=>setEventoSemana(null),5000) }
+  const avancarSemana=()=>{
+    if(!c)return
+    let nova=calcAvancar(c)
+    nova=actualizarFasesCria(nova)
+    const ev=EVENTOS.find(e=>Math.random()<e.prob)
+    if(ev){nova=ev.fn(nova);setEvento(ev);setTimeout(()=>setEvento(null),5000)}
     salvar(nova)
   }
 
-  const epochaLabel = idioma === 'en' ? 'Season' : idioma === 'es' ? 'Temporada' : 'Época'
-  const semanaLabel = idioma === 'en' ? 'Week' : idioma === 'es' ? 'Semana' : 'Semana'
-  const proximaProva = { nome: 'Prova Local - Santarém', dist: 80, tipo: 'Velocidade', semana: 3 }
-  const semanasAte = Math.max(0, proximaProva.semana - (c?.semana||1))
-  const evento = (c?.semana||1) === 1 ? { tipo: 'info', icon: '📋', titulo: 'Bem-vindo à tua carreira!', desc: `Tens ${c?.pombos?.length||0} pombos e ${(c?.orcamento||0).toLocaleString()}€ de orçamento.` } : null
-  const mediaRating = c?.pombos?.length ? Math.round(c.pombos.reduce((s,p) => s + (p.rating||0), 0) / c.pombos.length * 10) / 10 : 0
-  const melhores = [...(c?.pombos||[])].filter(p=>p.estado==='activo').sort((a,b) => (b.rating||0) - (a.rating||0)).slice(0,3)
+  if(!c)return null
 
-  // Render módulos
-  if (moduloAtivo) {
-    const modProps = { carreira: c, onVoltar: () => setModuloAtivo(null), onGuardar: salvar, idioma }
-    if (moduloAtivo === 'pombos')   return <VLPombos   {...modProps} />
-    if (moduloAtivo === 'treinos')  return <VLTreinos  {...modProps} />
-    if (moduloAtivo === 'pombal')   return <VLPombal   {...modProps} />
-    if (moduloAtivo === 'staff')    return <VLStaff    {...modProps} />
-    if (moduloAtivo === 'provas')   return <VLProvas   {...modProps} />
-    if (moduloAtivo === 'financas') return <VLFinancas {...modProps} />
-    if (moduloAtivo === 'mercado')  return <VLMercado  {...modProps} />
-    if (moduloAtivo === 'rankings') return <VLRankings {...modProps} />
-    if (moduloAtivo === 'ninhadas') return <VLNinhadas {...modProps} />
-    if (moduloAtivo === 'forma')    return <VLForma    {...modProps} />
-    if (moduloAtivo === 'halloffame') return <VLHallOfFame {...modProps} />
-    if (moduloAtivo === 'objectivos')  return <VLObjectivos  {...modProps} />
-    if (moduloAtivo === 'timeline')    return <VLTimeline    {...modProps} />
-    if (moduloAtivo === 'patrocinios') return <VLPatrocinios {...modProps} />
-    return (
-      <div style={{ minHeight:'100vh', background:'#030812', color:'#fff', display:'flex', flexDirection:'column', fontFamily:'inherit' }}>
-        <div style={{ padding:'14px 16px', borderBottom:'1px solid rgba(255,255,255,.05)', display:'flex', alignItems:'center', gap:10 }}>
-          <button onClick={() => setModuloAtivo(null)} style={{ background:'rgba(255,255,255,.06)', border:'none', borderRadius:8, width:32, height:32, color:'#7A8699', cursor:'pointer', fontSize:16 }}>←</button>
-          <div style={{ fontSize:16, fontWeight:800 }}>{moduloAtivo}</div>
-        </div>
-        <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:12 }}>
-          <div style={{ fontSize:48 }}>🚧</div>
-          <div style={{ fontSize:14, fontWeight:700, color:'#D4AF37' }}>Em breve</div>
-        </div>
-      </div>
-    )
+  // Render módulo
+  if(modulo){
+    const mp={carreira:c,onVoltar:()=>setModulo(null),onGuardar:salvar,idioma}
+    if(modulo==='pombos')    return <VLPombos    {...mp}/>
+    if(modulo==='treinos')   return <VLTreinos   {...mp}/>
+    if(modulo==='pombal')    return <VLPombal    {...mp}/>
+    if(modulo==='staff')     return <VLStaff     {...mp}/>
+    if(modulo==='provas')    return <VLProvas    {...mp}/>
+    if(modulo==='financas')  return <VLFinancas  {...mp}/>
+    if(modulo==='mercado')   return <VLMercado   {...mp}/>
+    if(modulo==='rankings')  return <VLRankings  {...mp}/>
+    if(modulo==='ninhadas')  return <VLNinhadas  {...mp}/>
+    if(modulo==='forma')     return <VLForma     {...mp}/>
+    if(modulo==='halloffame')return <VLHallOfFame {...mp}/>
+    if(modulo==='objectivos')return <VLObjectivos {...mp}/>
+    if(modulo==='timeline')  return <VLTimeline  {...mp}/>
+    if(modulo==='patrocinios')return <VLPatrocinios {...mp}/>
+    return null
   }
 
-  if (!c) return null
+  // Calcular dados
+  const pombosActivos=(c.pombos||[]).filter(p=>p.estado==='activo')
+  const melhores=[...pombosActivos].sort((a,b)=>(b.rating||0)-(a.rating||0)).slice(0,3)
+  const mediaRating=pombosActivos.length?(pombosActivos.reduce((s,p)=>s+(p.rating||0),0)/pombosActivos.length).toFixed(1):0
+  const proximaProva={nome:'Prova Local - Santarém',dist:80,tipo:'Velocidade',semana:3}
+  const semanasAte=Math.max(0,proximaProva.semana-(c.semana||1))
+  const objectivosProntos=(c.objectivos_concluidos||[])
+  const patReceitaSem=(c.patrocinios||[]).reduce((s,p)=>s+(p.valorSemanal||0),0)
+  const borrachinhos=(c.pombos||[]).filter(p=>p.fase&&p.estado!=='activo').length
+
+  // Sub-labels dos módulos
+  const sub={
+    pombos:`${pombosActivos.length} activos`,
+    pombal:'Nível 1',
+    treinos:c.plano_treino?'Plano activo':'Sem plano',
+    provas:`Época ${c.epoca||1}`,
+    ninhadas:borrachinhos>0?`${borrachinhos} em crescimento`:'Sem ninhadas',
+    mercado:'Comprar & vender',
+    staff:`${(c.staff||[]).length} contratados`,
+    financas:`${(c.orcamento||0).toLocaleString()}€`,
+    patrocinios:patReceitaSem>0?`+${patReceitaSem}€/sem`:'Sem contratos',
+    rankings:'Ver ranking',
+    forma:'Condição física',
+    objectivos:`${(c.objectivos_concluidos||[]).length} concluídos`,
+    halloffame:`${(c.hall_of_fame||[]).length} lendas`,
+    timeline:`${((c.historico_provas||[]).length+(c.ninhadas_virtuais||[]).length)} eventos`,
+  }
 
   return (
-    <div style={{ minHeight:'100vh', background:'#030812', color:'#fff', fontFamily:'inherit' }}>
+    <div style={{minHeight:'100vh',background:T.bg,color:T.text,fontFamily:"'Inter',system-ui,sans-serif"}}>
 
-      <div style={{ background:'linear-gradient(180deg,#050D1A,#030812)', borderBottom:'1px solid rgba(255,255,255,.05)', padding:'14px 16px' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+      {/* ── HEADER PREMIUM ── */}
+      <div style={{background:`linear-gradient(180deg,${T.surface} 0%,${T.bg} 100%)`,borderBottom:`1px solid ${T.surface2}`,padding:'16px 16px 14px',position:'relative',overflow:'hidden'}}>
+        {/* Linha dourada topo */}
+        <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,#C9A84C60,#C9A84C,#C9A84C60,transparent)'}}/>
+        {/* Glow fundo */}
+        <div style={{position:'absolute',top:-40,left:'50%',transform:'translateX(-50%)',width:300,height:80,background:'radial-gradient(ellipse,rgba(201,168,76,.12),transparent)',pointerEvents:'none'}}/>
+
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',position:'relative'}}>
           <div>
-            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:2 }}>
-              <span style={{ fontSize:22 }}>{c.logotipo}</span>
-              <span style={{ fontFamily:"'Fraunces',serif", fontSize:20, fontWeight:900, letterSpacing:-0.5 }}>{c.nomePombal}</span>
+            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3}}>
+              <span style={{fontSize:24}}>{c.logotipo||'🕊️'}</span>
+              <div>
+                <div style={{fontFamily:"'Fraunces',serif",fontSize:19,fontWeight:900,color:T.text,letterSpacing:-.5,lineHeight:1}}>{c.nomePombal}</div>
+                <div style={{fontSize:10,color:T.muted,marginTop:1}}>{c.nomeGestor}</div>
+              </div>
             </div>
-            <div style={{ fontSize:11, color:'#7A8699' }}>{c.nomeGestor} · {epochaLabel} {c.epoca} · {semanaLabel} {c.semana}</div>
+            <div style={{display:'flex',gap:10,marginTop:6}}>
+              <span style={{fontSize:10,color:T.muted}}>Época <span style={{color:T.text,fontWeight:700}}>{c.epoca||1}</span></span>
+              <span style={{color:T.surface2}}>·</span>
+              <span style={{fontSize:10,color:T.muted}}>Semana <span style={{color:T.text,fontWeight:700}}>{c.semana||1}</span></span>
+            </div>
           </div>
-          <div style={{ textAlign:'right' }}>
-            <div style={{ fontFamily:"'Fraunces',serif", fontSize:18, fontWeight:900, color:'#2DD4A7' }}>{(c.orcamento||0).toLocaleString()}€</div>
-            <div style={{ fontSize:10, color:'#475569' }}>{(c.pombos||[]).filter(p=>p.estado==='activo').length} pombos</div>
+          <div style={{textAlign:'right'}}>
+            <div style={{fontFamily:"'Fraunces',serif",fontSize:22,fontWeight:900,color:T.gold,letterSpacing:-.5}}>{(c.orcamento||0).toLocaleString()}€</div>
+            {patReceitaSem>0&&<div style={{fontSize:9,color:T.success,fontWeight:600}}>+{patReceitaSem}€/sem</div>}
+            <div style={{fontSize:9,color:T.muted,marginTop:2}}>{pombosActivos.length} pombos activos</div>
           </div>
         </div>
-        <div style={{ marginTop:10 }}><BarraReputacao valor={c.reputacao||5} nivel={c.nivel_reputacao||'local'} /></div>
+
+        <div style={{marginTop:12,position:'relative'}}>
+          <ReputacaoBar valor={c.reputacao||5} nivel={c.nivel_reputacao||'local'}/>
+        </div>
       </div>
 
-      <div style={{ padding:'12px 16px', display:'flex', flexDirection:'column', gap:12 }}>
+      <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:12}}>
 
-        {eventoSemana && <EventoBanner evento={eventoSemana} />}
-        {!eventoSemana && evento && <EventoBanner evento={evento} />}
+        {/* Evento */}
+        {evento&&<EventCard evento={evento}/>}
+        {!evento&&(c.semana||1)===1&&<EventCard evento={{tipo:'info',icon:'🕊️',titulo:'Bem-vindo à tua carreira!',desc:`${pombosActivos.length} pombos · ${(c.orcamento||0).toLocaleString()}€ de orçamento`}}/>}
 
-        <div style={{ background:'linear-gradient(135deg,#0D1428,#111827)', border:'1px solid rgba(168,85,247,.2)', borderRadius:14, padding:'14px 16px', position:'relative', overflow:'hidden' }}>
-          <div style={{ position:'absolute', top:0, left:0, right:0, height:2, background:'linear-gradient(90deg,#A855F7,#4C8DFF)' }}/>
-          <div style={{ fontSize:9, color:'#A855F7', fontWeight:700, letterSpacing:1.5, marginBottom:6 }}>PRÓXIMA PROVA</div>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-            <div>
-              <div style={{ fontSize:15, fontWeight:800, color:'#fff', marginBottom:2 }}>{proximaProva.nome}</div>
-              <div style={{ fontSize:11, color:'#7A8699' }}>{proximaProva.tipo} · {proximaProva.dist}km</div>
-            </div>
-            <div style={{ textAlign:'center', background:'rgba(168,85,247,.15)', border:'1px solid rgba(168,85,247,.3)', borderRadius:10, padding:'8px 12px', minWidth:52 }}>
-              <div style={{ fontFamily:"'Fraunces',serif", fontSize:22, fontWeight:900, color:'#A855F7', lineHeight:1 }}>{semanasAte}</div>
-              <div style={{ fontSize:8, color:'#A855F7', fontWeight:700, letterSpacing:1 }}>SEM.</div>
-            </div>
-          </div>
-        </div>
-
-        {melhores.length > 0 && (
-          <div style={{ background:'rgba(255,255,255,.02)', border:'1px solid rgba(255,255,255,.06)', borderRadius:14, padding:'14px 16px' }}>
-            <div style={{ fontSize:9, color:'#D4AF37', fontWeight:700, letterSpacing:1.5, marginBottom:10 }}>⭐ MELHORES POMBOS</div>
-            {melhores.map((p, i) => (
-              <div key={p.id} onClick={() => setModuloAtivo('pombos')}
-                style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderBottom: i < melhores.length-1 ? '1px solid rgba(255,255,255,.04)' : 'none', cursor:'pointer' }}>
-                <div style={{ width:24, height:24, borderRadius:6, background:['rgba(212,175,55,.3)','rgba(148,163,184,.3)','rgba(180,83,9,.3)'][i], display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:900, color:['#D4AF37','#94a3b8','#b45309'][i], flexShrink:0 }}>{i+1}</div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:13, fontWeight:700, color:'#fff', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.nome}</div>
-                  <div style={{ fontSize:10, color:'#475569' }}>{p.especialidade}</div>
-                </div>
-                <div style={{ display:'flex', gap:2 }}>
-                  {Array.from({length:5}).map((_,j) => <div key={j} style={{ width:8, height:8, borderRadius:'50%', background: j < p.rating ? '#D4AF37' : 'rgba(255,255,255,.1)' }}/>)}
-                </div>
-              </div>
-            ))}
+        {/* Alertas */}
+        {(c.patrocinios||[]).some(p=>p.semanasRestantes<=3)&&(
+          <div style={{padding:'10px 14px',background:'rgba(248,113,113,.08)',border:'1px solid rgba(248,113,113,.2)',borderRadius:10,fontSize:11,color:T.danger,fontWeight:600}}>
+            ⚠️ Contrato de patrocínio a expirar em breve
           </div>
         )}
 
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:10 }}>
-          {MODULOS.map(m => {
-            const emBreve = EM_BREVE.includes(m.id)
-            const label = LABELS[m.id]?.[idioma] || m.id
-            const pombosActivos = (c.pombos||[]).filter(p=>p.estado==='activo').length
-            const sub = m.id==='pombos'?`${pombosActivos} pombos`
-              :m.id==='financas'?`${(c.orcamento||0).toLocaleString()}€`
-              :m.id==='staff'?`${(c.staff||[]).length} contratados`
-              :m.id==='pombal'?'Nível 1'
-              :m.id==='treinos'?'Plano semanal'
-              :m.id==='provas'?`Época ${c.epoca||1}`
-              :m.id==='ninhadas'?`${(c.pombos||[]).filter(p=>p.fase&&p.estado!=='activo').length} activas`
-              :m.id==='forma'?'Condição':m.id==='rankings'?'Ver ranking':m.id==='halloffame'?`${(c.hall_of_fame||[]).length} lendas`:m.id==='objectivos'?`${(c.objectivos_concluidos||[]).length} concluídos`:m.id==='timeline'?`${((c.historico_provas||[]).length+(c.ninhadas_virtuais||[]).length)} eventos`:m.id==='patrocinios'?`+${(c.patrocinios||[]).reduce((s,p)=>s+(p.valorSemanal||0),0).toLocaleString()}€/sem`:''
-            return (
-              <div key={m.id} onClick={() => !emBreve && setModuloAtivo(m.id)}
-                style={{ background:emBreve?'rgba(255,255,255,.02)':m.corBg, border:`1px solid ${emBreve?'rgba(255,255,255,.05)':m.cor+'30'}`, borderRadius:14, padding:'16px 14px', cursor:emBreve?'default':'pointer', transition:'all .15s', opacity:emBreve?.5:1, position:'relative', overflow:'hidden' }}>
-                {!emBreve && <div style={{ position:'absolute', top:0, left:0, right:0, height:2, background:m.cor, opacity:.6 }}/>}
-                <div style={{ fontSize:26, marginBottom:8 }}>{m.icon}</div>
-                <div style={{ fontSize:14, fontWeight:800, color:emBreve?'#475569':m.cor, marginBottom:2 }}>{label}</div>
-                <div style={{ fontSize:11, color:'#475569' }}>{sub}</div>
-              </div>
-            )
-          })}
-        </div>
+        {/* Próxima prova */}
+        <ProximaProvaCard prova={proximaProva} semanasAte={semanasAte} idioma={idioma}/>
 
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8 }}>
-          {[
-            { label:'Rating', valor:`${mediaRating}⭐`, cor:'#D4AF37' },
-            { label:'Orçamento', valor:`${(c.orcamento||0).toLocaleString()}€`, cor:'#2DD4A7' },
-            { label:'Reputação', valor:`${Math.round(c.reputacao||5)}%`, cor:'#A855F7' },
-          ].map((s,i) => (
-            <div key={i} style={{ background:'rgba(255,255,255,.02)', border:'1px solid rgba(255,255,255,.05)', borderRadius:10, padding:'10px 8px', textAlign:'center' }}>
-              <div style={{ fontFamily:"'Fraunces',serif", fontSize:16, fontWeight:900, color:s.cor }}>{s.valor}</div>
-              <div style={{ fontSize:9, color:'#475569', marginTop:2, fontWeight:600 }}>{s.label.toUpperCase()}</div>
-            </div>
+        {/* Top pombos */}
+        {melhores.length>0&&(
+          <div style={{background:T.surface,border:`1px solid ${T.surface2}`,borderRadius:14,padding:'14px 16px',position:'relative',overflow:'hidden'}}>
+            <GoldLine/>
+            <div style={{fontSize:8,color:T.gold,fontWeight:700,letterSpacing:2,marginBottom:10}}>⭐ MELHORES POMBOS</div>
+            {melhores.map((p,i)=><PomboRow key={p.id} pombo={p} pos={i} onClick={()=>setModulo('pombos')}/>)}
+          </div>
+        )}
+
+        {/* Grid módulos */}
+        <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:10}}>
+          {MODULOS.map(m=>(
+            <ModuloCard key={m.id} m={m} sub={sub[m.id]||''} onClick={()=>setModulo(m.id)}/>
           ))}
         </div>
 
-        <button onClick={handleAvancarSemana}
-          style={{ width:'100%', padding:'14px', borderRadius:12, border:'none', background:'linear-gradient(135deg,#D4AF37,#B8960C)', color:'#050D1A', fontSize:14, fontWeight:800, cursor:'pointer', fontFamily:'inherit', letterSpacing:.3 }}>
+        {/* Stats */}
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+          <StatPill label="Rating" value={`${mediaRating}★`} cor={T.gold}/>
+          <StatPill label="Orçamento" value={`${Math.round((c.orcamento||0)/1000)}k€`} cor={T.success}/>
+          <StatPill label="Reputação" value={`${Math.round(c.reputacao||5)}%`} cor='#A855F7'/>
+        </div>
+
+        {/* Avançar semana */}
+        <button onClick={avancarSemana} style={{width:'100%',padding:'15px',borderRadius:12,border:'none',background:'linear-gradient(135deg,#C9A84C,#A07830)',color:'#050A14',fontSize:14,fontWeight:800,cursor:'pointer',fontFamily:'inherit',letterSpacing:.3,boxShadow:'0 4px 20px rgba(201,168,76,.25)',position:'relative',overflow:'hidden'}}>
+          <div style={{position:'absolute',top:0,left:'-100%',right:0,height:'100%',background:'linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent)',animation:'none'}}/>
           ⏭️ Avançar Semana →
         </button>
 
-        <button onClick={onApagarCarreira}
-          style={{ width:'100%', padding:'10px', background:'rgba(248,113,113,.06)', border:'1px solid rgba(248,113,113,.15)', borderRadius:10, color:'rgba(248,113,113,.6)', fontSize:11, cursor:'pointer', fontFamily:'inherit', marginTop:4 }}>
-          🗑️ Apagar carreira e recomeçar
+        {/* Apagar */}
+        <button onClick={onApagarCarreira} style={{width:'100%',padding:'10px',background:'transparent',border:`1px solid rgba(248,113,113,.15)`,borderRadius:10,color:'rgba(248,113,113,.5)',fontSize:11,cursor:'pointer',fontFamily:'inherit'}}>
+          🗑️ Apagar carreira
         </button>
       </div>
     </div>
