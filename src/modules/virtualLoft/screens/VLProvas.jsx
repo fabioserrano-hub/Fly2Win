@@ -33,12 +33,16 @@ function simularProva(pombos, prova, carreira) {
     resultados.push({ pombo: p, score: scoreFinal, velocidade, tempo: tempoMinutos })
   })
 
-  // Gerar adversários IA
+  // Gerar adversários IA com nomes reais
+  const nomesIA = ['Pombal da Serra','Pombal Elite','Pombal Campeão','Pombal Norte','Pombal Real','Pombal Dourado','Pombal Veloz','Pombal Águia','Pombal Sul','Pombal Ibérico']
+  const nomesP = ['Relâmpago','Trovão','Furacão','Astro','Cometa','Atlas','Zeus','Orion','Vega','Sirius','Falcão','Titan']
   for (let i = 0; i < totalConcorrentes - pombos.length; i++) {
-    const nivelAdv = 40 + Math.random() * 40
+    const nivelAdv = 35 + Math.random() * 45
     const velBase = prova.tipo === 'velocidade' ? 1400 : 1300
     const velocidade = Math.round(velBase * (nivelAdv / 100) * (0.9 + Math.random() * 0.2))
-    resultados.push({ pombo: null, score: nivelAdv, velocidade, tempo: Math.round((prova.distancia * 1000) / velocidade), nome: `Adversário ${i+1}` })
+    const pombalNome = nomesIA[i % nomesIA.length]
+    const pomboNome = nomesP[Math.floor(Math.random()*nomesP.length)]
+    resultados.push({ pombo: null, score: nivelAdv, velocidade, tempo: Math.round((prova.distancia * 1000) / velocidade), nome: `${pomboNome}`, pombalNome })
   }
 
   // Ordenar por velocidade
@@ -221,8 +225,9 @@ function SimulacaoVisual({ prova, resultados, pombosParticipantes, onFechar, idi
                       </div>
                       <div style={{ flex:1 }}>
                         <div style={{ fontSize:12, fontWeight: isMeu ? 700 : 400, color: isMeu ? '#D4AF37' : '#cbd5e1' }}>
-                          {isMeu ? `🐦 ${r.pombo.nome}` : (r.nome || `Adversário`)}
+                          {isMeu ? `🐦 ${r.pombo.nome}` : `${r.nome || 'Adversário'}`}
                         </div>
+                        {!isMeu && r.pombalNome && <div style={{ fontSize:9, color:'#2a3a5a' }}>{r.pombalNome}</div>}
                         <div style={{ fontSize:10, color:'#475569' }}>{r.velocidade} m/min</div>
                       </div>
                       {isMeu && <div style={{ fontSize:11, fontWeight:700, color:'#2DD4A7' }}>Top {100-r.percentil}%</div>}
