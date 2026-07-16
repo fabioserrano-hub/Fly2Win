@@ -11,7 +11,13 @@ const DIFICULDADE_MULT = {
 }
 
 export function useCarreira() {
-  const [carreira, setCarreira] = useState(null)
+  const [carreira, setCarreira] = useState(() => {
+    try {
+      const saved = localStorage.getItem('vl_carreira')
+      if (saved) return JSON.parse(saved)
+    } catch(e) {}
+    return null
+  })
   const [loading, setLoading] = useState(false)
 
   const criarCarreira = useCallback(async (form) => {
@@ -87,11 +93,12 @@ export function useCarreira() {
     try {
       const saved = localStorage.getItem('vl_carreira')
       if (saved) {
-        setCarreira(JSON.parse(saved))
-        return true
+        const dados = JSON.parse(saved)
+        setCarreira(dados)
+        return dados  // retorna os dados directamente
       }
     } catch(e) {}
-    return false
+    return null
   }, [])
 
   const guardarCarreira = useCallback((dados) => {
