@@ -7,7 +7,9 @@ import VLTreinos from './screens/VLTreinos'
 import VLPombal from './screens/VLPombal'
 import VLStaff from './screens/VLStaff'
 import VLProvas from './screens/VLProvas'
+import VLFinancas from './screens/VLFinancas'
 import { useCarreira } from './hooks/useCarreira'
+import { avancarSemana } from './engine/progression'
 
 const ADMIN_UUID = '30709f29-152e-4813-ac7f-e3376c5e0646'
 
@@ -24,33 +26,33 @@ export default function VirtualLoftApp({ user, idiomaApp = 'pt' }) {
   const handleVoltar = () => setModulo(null)
   const handleGuardar = (dados) => guardarCarreira(dados)
   const handleApagar = () => { localStorage.removeItem('vl_carreira'); window.location.reload() }
+  const handleAvancarSemana = () => {
+    if (!carreira) return
+    const novaCarreira = avancarSemana(carreira, idioma)
+    guardarCarreira(novaCarreira)
+  }
 
   if (screen === 'criar') return <CarreiraCreate onCriar={handleCriar} idiomaApp={idiomaApp} />
 
   if (screen === 'modulo' && carreira) {
     const props = { carreira, onVoltar: handleVoltar, onGuardar: handleGuardar, idioma }
-    if (modulo === 'pombos')  return <VLPombos  {...props} />
-    if (modulo === 'treinos') return <VLTreinos {...props} />
-    if (modulo === 'pombal')  return <VLPombal  {...props} />
-    if (modulo === 'staff')   return <VLStaff   {...props} />
-    if (modulo === 'provas')  return <VLProvas  {...props} />
-    if (modulo === 'financas') return (
-      <div style={{ minHeight:'100vh', background:'#030812', color:'#fff', fontFamily:'inherit', display:'flex', flexDirection:'column' }}>
-        <div style={{ padding:'14px 16px', borderBottom:'1px solid rgba(255,255,255,.05)', display:'flex', alignItems:'center', gap:10 }}>
-          <button onClick={handleVoltar} style={{ background:'rgba(255,255,255,.06)', border:'none', borderRadius:8, width:32, height:32, color:'#7A8699', cursor:'pointer', fontSize:16 }}>←</button>
-          <div style={{ fontSize:16, fontWeight:800 }}>💰 {idioma==='en'?'Finances':idioma==='es'?'Finanzas':'Finanças'}</div>
-        </div>
-        <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:12 }}>
-          <div style={{ fontSize:48 }}>🚧</div>
-          <div style={{ fontSize:16, fontWeight:700, color:'#D4AF37' }}>{idioma==='en'?'Coming soon':idioma==='es'?'Próximamente':'Em breve'}</div>
-        </div>
-      </div>
-    )
+    if (modulo === 'pombos')   return <VLPombos   {...props} />
+    if (modulo === 'treinos')  return <VLTreinos  {...props} />
+    if (modulo === 'pombal')   return <VLPombal   {...props} />
+    if (modulo === 'staff')    return <VLStaff    {...props} />
+    if (modulo === 'provas')   return <VLProvas   {...props} />
+    if (modulo === 'financas') return <VLFinancas {...props} />
     return null
   }
 
   if (screen === 'hub' && carreira) return (
-    <HubPombal carreira={carreira} onNavegar={setModulo} onApagarCarreira={handleApagar} idioma={idioma} />
+    <HubPombal
+      carreira={carreira}
+      onNavegar={setModulo}
+      onApagarCarreira={handleApagar}
+      onAvançarSemana={handleAvancarSemana}
+      idioma={idioma}
+    />
   )
 
   return null
