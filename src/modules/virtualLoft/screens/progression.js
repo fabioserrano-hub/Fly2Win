@@ -127,3 +127,4 @@ export function avancarSemana(carreira, idioma = 'pt') {
 
   return nova
 }
+
