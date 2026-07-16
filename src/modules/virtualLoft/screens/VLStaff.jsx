@@ -1,6 +1,11 @@
 // src/modules/virtualLoft/screens/VLStaff.jsx
 import { useState } from 'react'
 
+const T={bg:'#050A14',surface:'#0D1829',surface2:'#1A2A45',gold:'#C9A84C',blue:'#4FC3F7',text:'#E8EDF5',muted:'#6B7A99',success:'#2DD4A7',danger:'#F87171',purple:'#A855F7'}
+function lerLS(){try{return JSON.parse(localStorage.getItem('vl_carreira'))}catch{return null}}
+function gravarLS(d){try{localStorage.setItem('vl_carreira',JSON.stringify(d))}catch{}}
+function GoldLine(){return <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,#C9A84C,transparent)',opacity:.7}}/>}
+
 const TIPOS_STAFF = {
   pt: [
     { id:'veterinario',   icon:'🏥', label:'Veterinário',        desc:'Trata lesões e doenças. Reduz tempo de recuperação.',      salarioBase:800,  atributos:['medicina','diagnostico','experiencia'] },
@@ -113,13 +118,13 @@ export default function VLStaff({ carreira, onVoltar, onGuardar, idioma = 'pt' }
   const attrLabel = { medicina:{pt:'Medicina',en:'Medicine',es:'Medicina'}, diagnostico:{pt:'Diagnóstico',en:'Diagnosis',es:'Diagnóstico'}, cuidado:{pt:'Cuidado',en:'Care',es:'Cuidado'}, dedicacao:{pt:'Dedicação',en:'Dedication',es:'Dedicación'}, nutricao:{pt:'Nutrição',en:'Nutrition',es:'Nutrición'}, planeamento:{pt:'Planeamento',en:'Planning',es:'Planificación'}, genetica:{pt:'Genética',en:'Genetics',es:'Genética'}, analise:{pt:'Análise',en:'Analysis',es:'Análisis'}, treino:{pt:'Treino',en:'Training',es:'Entrenamiento'}, motivacao:{pt:'Motivação',en:'Motivation',es:'Motivación'}, orientacao:{pt:'Orientação',en:'Navigation',es:'Orientación'}, tecnica:{pt:'Técnica',en:'Technique',es:'Técnica'}, visao:{pt:'Visão',en:'Vision',es:'Visión'}, negociacao:{pt:'Negociação',en:'Negotiation',es:'Negociación'}, experiencia:{pt:'Experiência',en:'Experience',es:'Experiencia'} }
 
   return (
-    <div style={{ minHeight:'100vh', background:'#030812', color:'#fff', fontFamily:'inherit' }}>
+    <div style={{ minHeight:'100vh', background:T.bg, color:T.text, fontFamily:"'Inter',system-ui,sans-serif" }}>
       <div style={{ background:'linear-gradient(180deg,#050D1A,#030812)', borderBottom:'1px solid rgba(255,255,255,.05)', padding:'14px 16px' }}>
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <button onClick={onVoltar} style={{ background:'rgba(255,255,255,.06)', border:'none', borderRadius:8, width:32, height:32, color:'#7A8699', cursor:'pointer', fontSize:16 }}>←</button>
+          <button onClick={onVoltar} style={{ background:T.surface, border:'none', borderRadius:8, width:32, height:32, color:T.muted, cursor:'pointer', fontSize:16 }}>←</button>
           <div>
             <div style={{ fontSize:16, fontWeight:800 }}>👥 Staff</div>
-            <div style={{ fontSize:10, color:'#7A8699' }}>{staffAtual.length} {idioma==='en'?'hired':idioma==='es'?'contratados':'contratados'} · {salarioTotal.toLocaleString()}€/{idioma==='en'?'mo':idioma==='es'?'mes':'mês'} · {c.orcamento.toLocaleString()}€</div>
+            <div style={{ fontSize:10, color:T.muted }}>{staffAtual.length} {idioma==='en'?'hired':idioma==='es'?'contratados':'contratados'} · {salarioTotal.toLocaleString()}€/{idioma==='en'?'mo':idioma==='es'?'mes':'mês'} · {c.orcamento.toLocaleString()}€</div>
           </div>
         </div>
       </div>
@@ -135,7 +140,7 @@ export default function VLStaff({ carreira, onVoltar, onGuardar, idioma = 'pt' }
         {/* Staff actual */}
         {staffAtual.length > 0 && (
           <div>
-            <div style={{ fontSize:9, color:'#2DD4A7', fontWeight:700, letterSpacing:1.5, marginBottom:8 }}>
+            <div style={{ fontSize:9, color:T.success, fontWeight:700, letterSpacing:1.5, marginBottom:8 }}>
               {idioma==='en'?'CURRENT STAFF':idioma==='es'?'STAFF ACTUAL':'STAFF ACTUAL'}
             </div>
             {staffAtual.map(m => {
@@ -145,12 +150,12 @@ export default function VLStaff({ carreira, onVoltar, onGuardar, idioma = 'pt' }
                   <span style={{ fontSize:20 }}>{tipo?.icon || '👤'}</span>
                   <div style={{ flex:1 }}>
                     <div style={{ fontSize:13, fontWeight:700 }}>{m.nome}</div>
-                    <div style={{ fontSize:10, color:'#7A8699' }}>{tipo?.label} · {m.salario.toLocaleString()}€/{idioma==='en'?'mo':idioma==='es'?'mes':'mês'}</div>
+                    <div style={{ fontSize:10, color:T.muted }}>{tipo?.label} · {m.salario.toLocaleString()}€/{idioma==='en'?'mo':idioma==='es'?'mes':'mês'}</div>
                   </div>
                   <div style={{ display:'flex', gap:3 }}>
                     {Array.from({length:5}).map((_,i)=><div key={i} style={{ width:6,height:6,borderRadius:1,background:i<m.nivel?corNivel(m.nivel):'rgba(255,255,255,.08)' }}/>)}
                   </div>
-                  <button onClick={() => despedir(m)} style={{ background:'rgba(248,113,113,.1)', border:'1px solid rgba(248,113,113,.2)', borderRadius:6, padding:'4px 8px', color:'#f87171', fontSize:10, cursor:'pointer', fontFamily:'inherit' }}>
+                  <button onClick={() => despedir(m)} style={{ background:'rgba(248,113,113,.1)', border:'1px solid rgba(248,113,113,.2)', borderRadius:6, padding:'4px 8px', color:T.danger, fontSize:10, cursor:'pointer', fontFamily:"'Inter',system-ui,sans-serif" }}>
                     {idioma==='en'?'Fire':idioma==='es'?'Despedir':'Despedir'}
                   </button>
                 </div>
@@ -161,7 +166,7 @@ export default function VLStaff({ carreira, onVoltar, onGuardar, idioma = 'pt' }
 
         {/* Contratar */}
         <div>
-          <div style={{ fontSize:9, color:'#4C8DFF', fontWeight:700, letterSpacing:1.5, marginBottom:8 }}>
+          <div style={{ fontSize:9, color:T.blue, fontWeight:700, letterSpacing:1.5, marginBottom:8 }}>
             {idioma==='en'?'HIRE STAFF':idioma==='es'?'CONTRATAR STAFF':'CONTRATAR STAFF'}
           </div>
           {tipos.map(tipo => {
@@ -170,27 +175,27 @@ export default function VLStaff({ carreira, onVoltar, onGuardar, idioma = 'pt' }
             return (
               <div key={tipo.id} style={{ marginBottom:8 }}>
                 <div onClick={() => pesquisarCandidatos(tipo)}
-                  style={{ display:'flex', gap:12, padding:'12px 14px', background: isOpen?'rgba(76,141,255,.08)':'rgba(255,255,255,.02)', border:`1px solid ${isOpen?'rgba(76,141,255,.3)':'rgba(255,255,255,.05)'}`, borderRadius:10, cursor:'pointer', transition:'all .15s' }}>
+                  style={{ display:'flex', gap:12, padding:'12px 14px', background: isOpen?'rgba(76,141,255,.08)':T.surface, border:`1px solid ${isOpen?'rgba(76,141,255,.3)':'rgba(255,255,255,.05)'}`, borderRadius:10, cursor:'pointer', transition:'all .15s' }}>
                   <span style={{ fontSize:22, width:28, textAlign:'center' }}>{tipo.icon}</span>
                   <div style={{ flex:1 }}>
                     <div style={{ display:'flex', justifyContent:'space-between' }}>
                       <div style={{ fontSize:13, fontWeight:700 }}>{tipo.label}</div>
-                      {jatem && <span style={{ fontSize:9, background:'rgba(45,212,167,.15)', color:'#2DD4A7', padding:'2px 6px', borderRadius:4, fontWeight:700 }}>✓ CONTRATADO</span>}
+                      {jatem && <span style={{ fontSize:9, background:'rgba(45,212,167,.15)', color:T.success, padding:'2px 6px', borderRadius:4, fontWeight:700 }}>✓ CONTRATADO</span>}
                     </div>
-                    <div style={{ fontSize:10, color:'#475569', marginTop:2 }}>{tipo.desc}</div>
-                    <div style={{ fontSize:10, color:'#D4AF37', marginTop:4 }}>~{tipo.salarioBase.toLocaleString()}€/{idioma==='en'?'mo':idioma==='es'?'mes':'mês'}</div>
+                    <div style={{ fontSize:10, color:T.muted, marginTop:2 }}>{tipo.desc}</div>
+                    <div style={{ fontSize:10, color:T.gold, marginTop:4 }}>~{tipo.salarioBase.toLocaleString()}€/{idioma==='en'?'mo':idioma==='es'?'mes':'mês'}</div>
                   </div>
-                  <div style={{ fontSize:12, color:'#475569', alignSelf:'center' }}>{isOpen?'▲':'▼'}</div>
+                  <div style={{ fontSize:12, color:T.muted, alignSelf:'center' }}>{isOpen?'▲':'▼'}</div>
                 </div>
 
                 {/* Candidatos */}
                 {isOpen && candidatos[tipo.id] && (
-                  <div style={{ padding:'10px', background:'rgba(255,255,255,.02)', border:'1px solid rgba(255,255,255,.06)', borderTop:'none', borderBottomLeftRadius:10, borderBottomRightRadius:10 }}>
-                    <div style={{ fontSize:9, color:'#7A8699', fontWeight:700, letterSpacing:1, marginBottom:8 }}>
+                  <div style={{ padding:'10px', background:T.surface, border:`1px solid ${T.surface2}`, borderTop:'none', borderBottomLeftRadius:10, borderBottomRightRadius:10 }}>
+                    <div style={{ fontSize:9, color:T.muted, fontWeight:700, letterSpacing:1, marginBottom:8 }}>
                       {idioma==='en'?'AVAILABLE CANDIDATES':idioma==='es'?'CANDIDATOS DISPONIBLES':'CANDIDATOS DISPONÍVEIS'}
                     </div>
                     {candidatos[tipo.id].map(c => (
-                      <div key={c.id} style={{ padding:'10px', background:'rgba(255,255,255,.03)', border:'1px solid rgba(255,255,255,.06)', borderRadius:8, marginBottom:6 }}>
+                      <div key={c.id} style={{ padding:'10px', background:T.surface, border:`1px solid ${T.surface2}`, borderRadius:8, marginBottom:6 }}>
                         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
                           <div>
                             <div style={{ fontSize:12, fontWeight:700 }}>{c.nome}</div>
@@ -199,25 +204,25 @@ export default function VLStaff({ carreira, onVoltar, onGuardar, idioma = 'pt' }
                             </div>
                           </div>
                           <div style={{ textAlign:'right' }}>
-                            <div style={{ fontSize:12, fontWeight:700, color:'#D4AF37' }}>{c.salario.toLocaleString()}€/{idioma==='en'?'mo':idioma==='es'?'mes':'mês'}</div>
-                            <div style={{ fontSize:9, color:'#475569' }}>{(c.salario*3).toLocaleString()}€ {idioma==='en'?'upfront':idioma==='es'?'adelanto':'adiantado'}</div>
+                            <div style={{ fontSize:12, fontWeight:700, color:T.gold }}>{c.salario.toLocaleString()}€/{idioma==='en'?'mo':idioma==='es'?'mes':'mês'}</div>
+                            <div style={{ fontSize:9, color:T.muted }}>{(c.salario*3).toLocaleString()}€ {idioma==='en'?'upfront':idioma==='es'?'adelanto':'adiantado'}</div>
                           </div>
                         </div>
                         <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:8 }}>
                           {tipo.atributos.map(a => (
-                            <div key={a} style={{ fontSize:9, color:'#7A8699' }}>
+                            <div key={a} style={{ fontSize:9, color:T.muted }}>
                               {attrLabel[a]?.[idioma]||a}: <span style={{ color:corNivel(Math.ceil(c.atributos[a]/20)), fontWeight:700 }}>{c.atributos[a]}</span>
                             </div>
                           ))}
                         </div>
                         <button onClick={() => contratar(c)}
-                          style={{ width:'100%', padding:'8px', borderRadius:6, border:'none', background:'linear-gradient(135deg,#1E5FD9,#1456C0)', color:'#fff', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+                          style={{ width:'100%', padding:'8px', borderRadius:6, border:'none', background:'linear-gradient(135deg,#1E5FD9,#1456C0)', color:T.text, fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:"'Inter',system-ui,sans-serif" }}>
                           {idioma==='en'?'Hire':idioma==='es'?'Contratar':'Contratar'} ({(c.salario*3).toLocaleString()}€)
                         </button>
                       </div>
                     ))}
                     <button onClick={() => { const lista = Array.from({length:3},()=>gerarMembro(tipo,idioma)); setCandidatos(c=>({...c,[tipo.id]:lista})) }}
-                      style={{ width:'100%', padding:'8px', borderRadius:6, border:'1px solid rgba(255,255,255,.08)', background:'transparent', color:'#7A8699', fontSize:11, cursor:'pointer', fontFamily:'inherit', marginTop:4 }}>
+                      style={{ width:'100%', padding:'8px', borderRadius:6, border:`1px solid ${T.surface2}`, background:'transparent', color:T.muted, fontSize:11, cursor:'pointer', fontFamily:"'Inter',system-ui,sans-serif", marginTop:4 }}>
                       🔄 {idioma==='en'?'New candidates':idioma==='es'?'Nuevos candidatos':'Novos candidatos'}
                     </button>
                   </div>
