@@ -1,6 +1,32 @@
 // src/modules/virtualLoft/screens/VLRankings.jsx
 import { useState, useEffect } from 'react'
-import { gerarPombalIA, simularResultadoIA } from '../engine/ai'
+
+
+const NOMES_POMBAIS_IA = ['Pombal da Serra','Pombal Elite','Pombal Campeão','Pombal do Norte','Pombal Real','Pombal Dourado','Pombal Veloz','Pombal do Sul','Pombal Ibérico','Pombal Águia']
+const GESTORES_IA = ['João Silva','Carlos Mendes','António Costa','Pedro Ferreira','Rui Santos','Miguel Sousa']
+const EMOJIS_IA = ['🦅','🏆','⚡','🌟','🔥','💎','🎯','🌊','🏅','👑']
+
+function gerarAtrsSimples(nivel) {
+  const base = nivel==='elite'?72:nivel==='bom'?58:42
+  const r = () => Math.min(99, Math.max(1, Math.round(base + (Math.random()-0.5)*20)))
+  return { velocidade:r(), resistencia:r(), orientacao:r() }
+}
+
+function gerarPombalIA(nivel='normal') {
+  return {
+    id: `ia_${Math.random().toString(36).slice(2,8)}`,
+    nome: NOMES_POMBAIS_IA[Math.floor(Math.random()*NOMES_POMBAIS_IA.length)],
+    gestor: GESTORES_IA[Math.floor(Math.random()*GESTORES_IA.length)],
+    emoji: EMOJIS_IA[Math.floor(Math.random()*EMOJIS_IA.length)],
+    nivel, attrs: gerarAtrsSimples(nivel),
+    reputacao: nivel==='elite'?60+Math.random()*30:nivel==='bom'?30+Math.random()*30:5+Math.random()*25,
+  }
+}
+
+function simularPontosIA(ia, nProvas) {
+  const base = ia.nivel==='elite'?80:ia.nivel==='bom'?60:40
+  return Math.round((base + (Math.random()-0.5)*20) * nProvas * 0.5 + ia.reputacao * 2)
+}
 
 const PROVAS_CALENDARIO = [
   { id:'p1', nome:'Prova Local - Santarém', distancia:80,  tipo:'velocidade',   semana:3  },
@@ -16,20 +42,13 @@ const PROVAS_CALENDARIO = [
 
 function gerarRankingIA(carreira, idioma) {
   const niveis = ['elite','bom','bom','normal','normal','normal','normal','fraco','fraco']
-  const ias = niveis.map(n => gerarPombalIA(n, idioma))
+  const ias = niveis.map(n => gerarPombalIA(n))
+  const nProvas = PROVAS_CALENDARIO.filter(p => p.semana < carreira.semana).length
 
-  // Calcular pontos baseados em resultados simulados
   const pombaisComPontos = ias.map(ia => {
-    let pontos = 0
-    let vitorias = 0
-    PROVAS_CALENDARIO.filter(p => p.semana < carreira.semana).forEach(prova => {
-      const res = simularResultadoIA(ia, prova)
-      if (res) {
-        pontos += Math.round(res.score / 10)
-        if (res.velocidade > 1350) vitorias++
-      }
-    })
-    return { ...ia, pontos: Math.round(pontos + ia.reputacao * 2), vitorias }
+    const pontos = simularPontosIA(ia, Math.max(1, nProvas))
+    const vitorias = ia.nivel==='elite' ? Math.floor(Math.random()*5) : Math.floor(Math.random()*2)
+    return { ...ia, pontos, vitorias }
   })
 
   // Adicionar o jogador
