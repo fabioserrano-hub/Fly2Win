@@ -9,7 +9,7 @@ import VLStaff from './screens/VLStaff'
 import VLProvas from './screens/VLProvas'
 import VLFinancas from './screens/VLFinancas'
 import { useCarreira } from './hooks/useCarreira'
-import { avancarSemana } from './engine/progression'
+import { avancarSemana } from './progression'
 
 const ADMIN_UUID = '30709f29-152e-4813-ac7f-e3376c5e0646'
 
