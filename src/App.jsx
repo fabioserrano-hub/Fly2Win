@@ -48,6 +48,7 @@ import Carteira from './pages/Carteira'
 import Exportacao from './pages/Exportacao'
 import PerfilPublico from './pages/PerfilPublico'
 import Onboarding from './components/Onboarding'
+import VirtualLoftApp from './modules/virtualLoft/index'
 import { IdiomaContext, useIdioma, IDIOMAS } from './hooks/useIdioma'
 import Perfil       from './pages/Perfil'
 import Documentos   from './pages/Documentos'
@@ -102,6 +103,7 @@ function getNav(t) {
     ]},
     { section: t('sistema'), items: [
       { id:'precos',       icon:'💳', label:t('planos') },
+      { id:'virtualloft',  icon:'🎮', label:'VirtualLoft' },
       { id:'admin',        icon:'👑', label:t('adminLabel') },
       { id:'carteira',     icon:'💎', label:t('carteira') },
       { id:'conquistas',   icon:'🎖️', label:t('conquistas') },
@@ -295,6 +297,7 @@ const concluirOnboarding = () => { localStorage.setItem('cl_onboarding_done','1'
               </div>
               <div className="nav-group-items">
                 {items.filter(item => {
+                  if (item.id === 'virtualloft' && user?.id !== '30709f29-152e-4813-ac7f-e3376c5e0646') return false
                   if (modulosOcultos.includes(item.id)) return false
                   if (isAdmin||betaTester) return true
                   if (Object.keys(flags).length===0) return true
