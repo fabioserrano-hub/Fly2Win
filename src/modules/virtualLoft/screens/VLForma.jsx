@@ -48,10 +48,22 @@ function GraficoForma({ historico, cor }) {
 }
 
 export default function VLForma({ carreira, onVoltar, onGuardar, idioma = 'pt' }) {
+  // Ler sempre do localStorage para ter dados mais recentes
+  const [carreiraLocal, setCarreiraLocal] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('vl_carreira')) || carreira } catch { return carreira }
+  })
+  const c = carreiraLocal
+
+  const salvarLocal = (dados) => {
+    try { localStorage.setItem('vl_carreira', JSON.stringify(dados)) } catch {}
+    setCarreiraLocal({ ...dados })
+    onGuardar?.(dados)
+  }
+
   const [selecionado, setSelecionado] = useState(null)
 
-  const pombos = (carreira.pombos||[]).filter(p => p.estado==='activo')
-  const plano = carreira.plano_treino || []
+  const pombos = (c.pombos||[]).filter(p => p.estado==='activo')
+  const plano = c.plano_treino || []
 
   // Calcular forma de cada pombo
   const pombosComForma = pombos.map(p => {
@@ -62,13 +74,13 @@ export default function VLForma({ carreira, onVoltar, onGuardar, idioma = 'pt' }
 
   // Registar forma desta semana
   const registarForma = () => {
-    const novosPombos = (carreira.pombos||[]).map(p => {
+    const novosPombos = (c.pombos||[]).map(p => {
       if (p.estado !== 'activo') return p
       const forma = calcForma(p, plano)
       const historico = [...(p.historico_forma||[]), forma].slice(-12)
       return { ...p, historico_forma: historico, forma_atual: forma }
     })
-    onGuardar?.({ ...carreira, pombos: novosPombos })
+    onGuardar?.({ ...c, pombos: novosPombos })
   }
 
   const pomboSel = selecionado ? pombosComForma.find(p=>p.id===selecionado) : null
