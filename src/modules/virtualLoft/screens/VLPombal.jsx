@@ -209,9 +209,15 @@ export default function HubPombal({ carreira, onNavegar, onApagarCarreira, onAva
         </div>
 
         {/* ── AVANÇAR SEMANA ── */}
-        <button onClick={() => onAvancarSemana?.()}
+        <button onClick={() => {
+          if (typeof onAvancarSemana === 'function') {
+            onAvancarSemana()
+          } else {
+            alert('Erro: onAvancarSemana não é função: ' + typeof onAvancarSemana)
+          }
+        }}
           style={{ width:'100%', padding:'14px', borderRadius:12, border:'none', background:'linear-gradient(135deg,#D4AF37,#B8960C)', color:'#050D1A', fontSize:14, fontWeight:800, cursor:'pointer', fontFamily:'inherit', letterSpacing:.3 }}>
-          ⏭️ {idioma==='en'?'Advance Week':idioma==='es'?'Avanzar Semana':'Avançar Semana'} →
+          ⏭️ S{carreira?.semana} → S{(carreira?.semana||0)+1} | {typeof onAvancarSemana}
         </button>
 
         {/* ── APAGAR ── */}
