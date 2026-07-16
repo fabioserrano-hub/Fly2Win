@@ -299,15 +299,27 @@ const PROVAS_CALENDARIO = [
 const COR_NIVEL = { local:'#7A8699', distrital:'#4C8DFF', regional:'#2DD4A7', nacional:'#D4AF37', internacional:'#A855F7' }
 
 export default function VLProvas({ carreira, onVoltar, onGuardar, idioma = 'pt' }) {
+  // Ler sempre do localStorage para ter dados mais recentes
+  const [carreiraLocal, setCarreiraLocal] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('vl_carreira')) || carreira } catch { return carreira }
+  })
+  const c = carreiraLocal
+
+  const salvarLocal = (dados) => {
+    try { localStorage.setItem('vl_carreira', JSON.stringify(dados)) } catch {}
+    setCarreiraLocal({ ...dados })
+    onGuardar?.(dados)
+  }
+
   const [tab, setTab] = useState('calendario')
   const [provaAtiva, setProvaAtiva] = useState(null)
   const [pombosSelec, setPombosSelec] = useState([])
   const [simulando, setSimulando] = useState(false)
   const [resultados, setResultados] = useState(null)
-  const [historico, setHistorico] = useState(carreira.historico_provas || [])
+  const [historico, setHistorico] = useState(c.historico_provas || [])
 
-  const provasDisponiveis = PROVAS_CALENDARIO.filter(p => p.semana >= carreira.semana)
-  const provasPassadas = PROVAS_CALENDARIO.filter(p => p.semana < carreira.semana)
+  const provasDisponiveis = PROVAS_CALENDARIO.filter(p => p.semana >= c.semana)
+  const provasPassadas = PROVAS_CALENDARIO.filter(p => p.semana < c.semana)
 
   const togglePombo = (pombo) => {
     setPombosSelec(prev =>
@@ -328,13 +340,13 @@ export default function VLProvas({ carreira, onVoltar, onGuardar, idioma = 'pt' 
     // Guardar resultados no histórico
     const novosResultados = pombosSelec.map(p => {
       const r = resultados.find(r => r.pombo?.id === p.id)
-      return { provaId: provaAtiva.id, provaNome: provaAtiva.nome, pomboId: p.id, pomboNome: p.nome, posicao: r?.posicao, total: r?.total, percentil: r?.percentil, velocidade: r?.velocidade, semana: carreira.semana }
+      return { provaId: provaAtiva.id, provaNome: provaAtiva.nome, pomboId: p.id, pomboNome: p.nome, posicao: r?.posicao, total: r?.total, percentil: r?.percentil, velocidade: r?.velocidade, semana: c.semana }
     })
     const novoHistorico = [...historico, ...novosResultados]
     setHistorico(novoHistorico)
 
     // Actualizar pombos com resultados
-    const novosPombos = carreira.pombos.map(p => {
+    const novosPombos = c.pombos.map(p => {
       const r = resultados.find(r => r.pombo?.id === p.id)
       if (!r) return p
       return { ...p, provas: (p.provas || 0) + 1, vitorias: (p.vitorias || 0) + (r.posicao === 1 ? 1 : 0), percentil_medio: Math.round(((p.percentil_medio || 0) * (p.provas || 0) + r.percentil) / ((p.provas || 0) + 1)) }
@@ -342,7 +354,7 @@ export default function VLProvas({ carreira, onVoltar, onGuardar, idioma = 'pt' 
 
     // Avançar semana
     const premio = pombosSelec.some(p => resultados.find(r => r.pombo?.id === p.id && r.posicao <= 3)) ? provaAtiva.premio : 0
-    onGuardar?.({ ...carreira, pombos: novosPombos, historico_provas: novoHistorico, semana: carreira.semana + 1, orcamento: carreira.orcamento + premio })
+    onGuardar?.({ ...c, pombos: novosPombos, historico_provas: novoHistorico, semana: c.semana + 1, orcamento: c.orcamento + premio })
 
     setSimulando(false)
     setResultados(null)
@@ -365,7 +377,7 @@ export default function VLProvas({ carreira, onVoltar, onGuardar, idioma = 'pt' 
           <button onClick={onVoltar} style={{ background:'rgba(255,255,255,.06)', border:'none', borderRadius:8, width:32, height:32, color:'#7A8699', cursor:'pointer', fontSize:16 }}>←</button>
           <div>
             <div style={{ fontSize:16, fontWeight:800 }}>🏆 {idioma==='en'?'Races':idioma==='es'?'Carreras':'Provas'}</div>
-            <div style={{ fontSize:10, color:'#7A8699' }}>{idioma==='en'?'Season':idioma==='es'?'Temporada':'Época'} {carreira.epoca} · {idioma==='en'?'Week':idioma==='es'?'Semana':'Semana'} {carreira.semana}</div>
+            <div style={{ fontSize:10, color:'#7A8699' }}>{idioma==='en'?'Season':idioma==='es'?'Temporada':'Época'} {c.epoca} · {idioma==='en'?'Week':idioma==='es'?'Semana':'Semana'} {c.semana}</div>
           </div>
         </div>
         <div style={{ display:'flex', gap:6 }}>
@@ -384,8 +396,8 @@ export default function VLProvas({ carreira, onVoltar, onGuardar, idioma = 'pt' 
         {tab === 'calendario' && (
           <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
             {PROVAS_CALENDARIO.map(p => {
-              const passada = p.semana < carreira.semana
-              const proxima = p.semana === carreira.semana
+              const passada = p.semana < c.semana
+              const proxima = p.semana === c.semana
               const cor = COR_NIVEL[p.nivel] || '#7A8699'
               return (
                 <div key={p.id} style={{ padding:'12px 14px', background: proxima ? `${cor}10` : passada ? 'rgba(255,255,255,.01)' : 'rgba(255,255,255,.03)', border:`1px solid ${proxima ? cor+'40' : passada ? 'rgba(255,255,255,.04)' : 'rgba(255,255,255,.06)'}`, borderRadius:10, opacity: passada ? .5 : 1, position:'relative', overflow:'hidden' }}>
@@ -445,7 +457,7 @@ export default function VLProvas({ carreira, onVoltar, onGuardar, idioma = 'pt' 
                 </div>
 
                 <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:8, marginBottom:12 }}>
-                  {carreira.pombos.filter(p => p.estado === 'activo').map(p => {
+                  {c.pombos.filter(p => p.estado === 'activo').map(p => {
                     const sel = pombosSelec.find(s => s.id === p.id)
                     const cor = p.sexo === 'F' ? '#c084fc' : '#4C8DFF'
                     return (
