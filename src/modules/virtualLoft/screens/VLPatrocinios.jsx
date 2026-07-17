@@ -1,6 +1,11 @@
 // src/modules/virtualLoft/screens/VLPatrocinios.jsx
 import { useState } from 'react'
 
+const T={bg:'#050A14',surface:'#0D1829',surface2:'#1A2A45',gold:'#C9A84C',blue:'#4FC3F7',text:'#E8EDF5',muted:'#6B7A99',success:'#2DD4A7',danger:'#F87171',purple:'#A855F7'}
+function lerLS(){try{return JSON.parse(localStorage.getItem('vl_carreira'))}catch{return null}}
+function gravarLS(d){try{localStorage.setItem('vl_carreira',JSON.stringify(d))}catch{}}
+function GoldLine(){return <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,#C9A84C,transparent)',opacity:.7}}/>}
+
 const EMPRESAS = {
   pt: [
     { id:'agriaves', nome:'AgriAves Portugal', sector:'Alimentação', logo:'🌾', desc:'Líder em alimentação para aves', nivelMinimo:'local', contratoSemanas:8, valorSemanal:150, bonus:'Desconto 20% em alimentação', corReputacao:5 },
@@ -59,13 +64,13 @@ export default function VLPatrocinios({ carreira, onVoltar, onGuardar, idioma = 
   }
 
   return (
-    <div style={{ minHeight:'100vh', background:'#030812', color:'#fff', fontFamily:'inherit' }}>
+    <div style={{ minHeight:'100vh', background:T.bg, color:T.text, fontFamily:"'Inter',system-ui,sans-serif" }}>
       <div style={{ background:'linear-gradient(180deg,#050D1A,#030812)', borderBottom:'1px solid rgba(255,255,255,.05)', padding:'14px 16px' }}>
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <button onClick={onVoltar} style={{ background:'rgba(255,255,255,.06)', border:'none', borderRadius:8, width:32, height:32, color:'#7A8699', cursor:'pointer', fontSize:16 }}>←</button>
+          <button onClick={onVoltar} style={{ background:T.surface, border:'none', borderRadius:8, width:32, height:32, color:T.muted, cursor:'pointer', fontSize:16 }}>←</button>
           <div>
             <div style={{ fontSize:16, fontWeight:800 }}>🤝 {idioma==='en'?'Sponsorships':idioma==='es'?'Patrocinios':'Patrocínios'}</div>
-            <div style={{ fontSize:10, color:'#7A8699' }}>
+            <div style={{ fontSize:10, color:T.muted }}>
               {patrocinios.length} {idioma==='en'?'active':idioma==='es'?'activos':'activos'} · +{totalSemanal.toLocaleString()}€/{idioma==='en'?'wk':idioma==='es'?'sem':'sem'}
               · {(carreira.nivel_reputacao||'local').toUpperCase()}
             </div>
@@ -84,7 +89,7 @@ export default function VLPatrocinios({ carreira, onVoltar, onGuardar, idioma = 
         {/* Activos */}
         {patrocinios.length > 0 && (
           <div>
-            <div style={{ fontSize:9, color:'#2DD4A7', fontWeight:700, letterSpacing:1.5, marginBottom:8 }}>
+            <div style={{ fontSize:9, color:T.success, fontWeight:700, letterSpacing:1.5, marginBottom:8 }}>
               {idioma==='en'?'ACTIVE CONTRACTS':idioma==='es'?'CONTRATOS ACTIVOS':'CONTRATOS ACTIVOS'}
             </div>
             {patrocinios.map(p => (
@@ -92,10 +97,10 @@ export default function VLPatrocinios({ carreira, onVoltar, onGuardar, idioma = 
                 <span style={{ fontSize:24 }}>{p.logo}</span>
                 <div style={{ flex:1 }}>
                   <div style={{ fontSize:13, fontWeight:700 }}>{p.nome}</div>
-                  <div style={{ fontSize:10, color:'#7A8699' }}>{p.bonus}</div>
-                  <div style={{ fontSize:10, color:'#2DD4A7', marginTop:2 }}>+{p.valorSemanal}€/{idioma==='en'?'wk':'sem'} · {p.semanasRestantes||p.contratoSemanas} {idioma==='en'?'wks left':idioma==='es'?'sem. rest.':'sem. restantes'}</div>
+                  <div style={{ fontSize:10, color:T.muted }}>{p.bonus}</div>
+                  <div style={{ fontSize:10, color:T.success, marginTop:2 }}>+{p.valorSemanal}€/{idioma==='en'?'wk':'sem'} · {p.semanasRestantes||p.contratoSemanas} {idioma==='en'?'wks left':idioma==='es'?'sem. rest.':'sem. restantes'}</div>
                 </div>
-                <button onClick={()=>cancelar(p.id)} style={{ background:'rgba(248,113,113,.1)', border:'1px solid rgba(248,113,113,.2)', borderRadius:6, padding:'4px 8px', color:'#f87171', fontSize:10, cursor:'pointer', fontFamily:'inherit' }}>
+                <button onClick={()=>cancelar(p.id)} style={{ background:'rgba(248,113,113,.1)', border:'1px solid rgba(248,113,113,.2)', borderRadius:6, padding:'4px 8px', color:T.danger, fontSize:10, cursor:'pointer', fontFamily:"'Inter',system-ui,sans-serif" }}>
                   {idioma==='en'?'Cancel':idioma==='es'?'Cancelar':'Cancelar'}
                 </button>
               </div>
@@ -105,7 +110,7 @@ export default function VLPatrocinios({ carreira, onVoltar, onGuardar, idioma = 
 
         {/* Disponíveis */}
         <div>
-          <div style={{ fontSize:9, color:'#4C8DFF', fontWeight:700, letterSpacing:1.5, marginBottom:8 }}>
+          <div style={{ fontSize:9, color:T.blue, fontWeight:700, letterSpacing:1.5, marginBottom:8 }}>
             {idioma==='en'?'AVAILABLE SPONSORS':idioma==='es'?'PATROCINADORES DISPONIBLES':'PATROCINADORES DISPONÍVEIS'}
           </div>
           {empresas.map(e => {
@@ -113,27 +118,27 @@ export default function VLPatrocinios({ carreira, onVoltar, onGuardar, idioma = 
             const jatem = !!patrocinios.find(p=>p.id===e.id)
             const cor = pode ? '#4C8DFF' : '#2a3a5a'
             return (
-              <div key={e.id} style={{ display:'flex', gap:12, padding:'14px', background: jatem?'rgba(45,212,167,.04)':pode?'rgba(255,255,255,.03)':'rgba(255,255,255,.01)', border:`1px solid ${jatem?'rgba(45,212,167,.2)':pode?'rgba(255,255,255,.08)':'rgba(255,255,255,.03)'}`, borderRadius:12, marginBottom:8, opacity:pode?1:.5 }}>
+              <div key={e.id} style={{ display:'flex', gap:12, padding:'14px', background: jatem?'rgba(45,212,167,.04)':pode?T.surface:'rgba(255,255,255,.01)', border:`1px solid ${jatem?'rgba(45,212,167,.2)':pode?'rgba(255,255,255,.08)':T.surface}`, borderRadius:12, marginBottom:8, opacity:pode?1:.5 }}>
                 <div style={{ width:44, height:44, borderRadius:10, background:`${cor}15`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, flexShrink:0 }}>{e.logo}</div>
                 <div style={{ flex:1 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:2 }}>
                     <div style={{ fontSize:13, fontWeight:700, color: jatem?'#2DD4A7':'#fff' }}>{e.nome}</div>
                     <span style={{ fontSize:9, color:cor, background:`${cor}15`, padding:'2px 6px', borderRadius:4, fontWeight:700 }}>{e.sector.toUpperCase()}</span>
                   </div>
-                  <div style={{ fontSize:11, color:'#7A8699', marginBottom:6 }}>{e.desc}</div>
+                  <div style={{ fontSize:11, color:T.muted, marginBottom:6 }}>{e.desc}</div>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     <div>
                       <div style={{ fontSize:11, fontWeight:700, color:'#22c55e' }}>+{e.valorSemanal}€/{idioma==='en'?'wk':'sem'}</div>
-                      <div style={{ fontSize:9, color:'#475569' }}>💡 {e.bonus}</div>
-                      {!pode && <div style={{ fontSize:9, color:'#f87171', marginTop:2 }}>🔒 {idioma==='en'?'Requires':idioma==='es'?'Requiere':'Requer'} {e.nivelMinimo.toUpperCase()}</div>}
+                      <div style={{ fontSize:9, color:T.muted }}>💡 {e.bonus}</div>
+                      {!pode && <div style={{ fontSize:9, color:T.danger, marginTop:2 }}>🔒 {idioma==='en'?'Requires':idioma==='es'?'Requiere':'Requer'} {e.nivelMinimo.toUpperCase()}</div>}
                     </div>
                     {!jatem && pode && (
                       <button onClick={()=>contratar(e)}
-                        style={{ padding:'8px 14px', borderRadius:8, border:'none', background:'linear-gradient(135deg,#1E5FD9,#1456C0)', color:'#fff', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+                        style={{ padding:'8px 14px', borderRadius:8, border:'none', background:'linear-gradient(135deg,#1E5FD9,#1456C0)', color:T.text, fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:"'Inter',system-ui,sans-serif" }}>
                         {idioma==='en'?'Sign':idioma==='es'?'Firmar':'Assinar'}
                       </button>
                     )}
-                    {jatem && <span style={{ fontSize:11, color:'#2DD4A7', fontWeight:700 }}>✅ Activo</span>}
+                    {jatem && <span style={{ fontSize:11, color:T.success, fontWeight:700 }}>✅ Activo</span>}
                   </div>
                 </div>
               </div>
