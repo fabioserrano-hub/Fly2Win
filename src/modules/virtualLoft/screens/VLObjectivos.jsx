@@ -1,6 +1,11 @@
 // src/modules/virtualLoft/screens/VLObjectivos.jsx
 import { useState, useEffect } from 'react'
 
+const T={bg:'#050A14',surface:'#0D1829',surface2:'#1A2A45',gold:'#C9A84C',blue:'#4FC3F7',text:'#E8EDF5',muted:'#6B7A99',success:'#2DD4A7',danger:'#F87171',purple:'#A855F7'}
+function lerLS(){try{return JSON.parse(localStorage.getItem('vl_carreira'))}catch{return null}}
+function gravarLS(d){try{localStorage.setItem('vl_carreira',JSON.stringify(d))}catch{}}
+function GoldLine(){return <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,#C9A84C,transparent)',opacity:.7}}/>}
+
 function gerarObjectivos(carreira, idioma) {
   const epoca = carreira.epoca || 1
   const nivel = carreira.nivel_reputacao || 'local'
@@ -83,23 +88,23 @@ export default function VLObjectivos({ carreira, onVoltar, onGuardar, idioma = '
   ]
 
   return (
-    <div style={{ minHeight:'100vh', background:'#030812', color:'#fff', fontFamily:'inherit' }}>
+    <div style={{ minHeight:'100vh', background:T.bg, color:T.text, fontFamily:"'Inter',system-ui,sans-serif" }}>
       <div style={{ background:'linear-gradient(180deg,#050D1A,#030812)', borderBottom:'1px solid rgba(255,255,255,.05)', padding:'14px 16px' }}>
         <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
-          <button onClick={onVoltar} style={{ background:'rgba(255,255,255,.06)', border:'none', borderRadius:8, width:32, height:32, color:'#7A8699', cursor:'pointer', fontSize:16 }}>←</button>
+          <button onClick={onVoltar} style={{ background:T.surface, border:'none', borderRadius:8, width:32, height:32, color:T.muted, cursor:'pointer', fontSize:16 }}>←</button>
           <div>
             <div style={{ fontSize:16, fontWeight:800 }}>🎯 {idioma==='en'?'Objectives':idioma==='es'?'Objetivos':'Objectivos'}</div>
-            <div style={{ fontSize:10, color:'#7A8699' }}>{concluidos.length}/{objectivos.length} {idioma==='en'?'completed':idioma==='es'?'completados':'concluídos'}{prontos.length>0?` · ${prontos.length} ${idioma==='en'?'to claim':idioma==='es'?'para reclamar':'para reclamar'}`:''}</div>
+            <div style={{ fontSize:10, color:T.muted }}>{concluidos.length}/{objectivos.length} {idioma==='en'?'completed':idioma==='es'?'completados':'concluídos'}{prontos.length>0?` · ${prontos.length} ${idioma==='en'?'to claim':idioma==='es'?'para reclamar':'para reclamar'}`:''}</div>
           </div>
         </div>
 
         {/* Barra de progresso geral */}
         <div style={{ marginBottom:12 }}>
-          <div style={{ display:'flex', justifyContent:'space-between', fontSize:9, color:'#475569', marginBottom:4 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', fontSize:9, color:T.muted, marginBottom:4 }}>
             <span>{idioma==='en'?'Overall progress':idioma==='es'?'Progreso general':'Progresso geral'}</span>
             <span>{Math.round((concluidos.length/objectivos.length)*100)}%</span>
           </div>
-          <div style={{ height:4, background:'rgba(255,255,255,.06)', borderRadius:2 }}>
+          <div style={{ height:4, background:T.surface, borderRadius:2 }}>
             <div style={{ height:'100%', width:`${(concluidos.length/objectivos.length)*100}%`, background:'linear-gradient(90deg,#D4AF37,#2DD4A7)', borderRadius:2, transition:'width .5s' }}/>
           </div>
         </div>
@@ -107,7 +112,7 @@ export default function VLObjectivos({ carreira, onVoltar, onGuardar, idioma = '
         <div style={{ display:'flex', gap:6, overflowX:'auto', scrollbarWidth:'none' }}>
           {FILTROS.map(f => (
             <button key={f.id} onClick={()=>setFiltro(f.id)}
-              style={{ flex:'none', padding:'7px 12px', borderRadius:8, border:filtro===f.id?'none':'1px solid rgba(255,255,255,.08)', background:filtro===f.id?'linear-gradient(135deg,#1E5FD9,#1456C0)':'rgba(255,255,255,.04)', color:filtro===f.id?'#fff':'#cbd5e1', fontSize:11, fontWeight:filtro===f.id?700:500, cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }}>
+              style={{ flex:'none', padding:'7px 12px', borderRadius:8, border:filtro===f.id?'none':'1px solid rgba(255,255,255,.08)', background:filtro===f.id?'linear-gradient(135deg,#1E5FD9,#1456C0)':'rgba(255,255,255,.04)', color:filtro===f.id?'#fff':'#cbd5e1', fontSize:11, fontWeight:filtro===f.id?700:500, cursor:'pointer', fontFamily:"'Inter',system-ui,sans-serif", whiteSpace:'nowrap' }}>
               {f.label}
             </button>
           ))}
@@ -117,8 +122,8 @@ export default function VLObjectivos({ carreira, onVoltar, onGuardar, idioma = '
       {/* Notificação de prémio */}
       {msg && (
         <div style={{ margin:'12px 16px 0', padding:'14px 16px', background:'linear-gradient(135deg,rgba(212,175,55,.15),rgba(45,212,167,.1))', border:'1px solid rgba(212,175,55,.3)', borderRadius:12 }}>
-          <div style={{ fontSize:13, fontWeight:800, color:'#D4AF37', marginBottom:4 }}>🎉 {msg.titulo} {idioma==='en'?'completed!':idioma==='es'?'¡completado!':'concluído!'}</div>
-          <div style={{ fontSize:11, color:'#7A8699' }}>
+          <div style={{ fontSize:13, fontWeight:800, color:T.gold, marginBottom:4 }}>🎉 {msg.titulo} {idioma==='en'?'completed!':idioma==='es'?'¡completado!':'concluído!'}</div>
+          <div style={{ fontSize:11, color:T.muted }}>
             {msg.premio.orcamento && `+${msg.premio.orcamento.toLocaleString()}€`}
             {msg.premio.orcamento && msg.premio.reputacao && ' · '}
             {msg.premio.reputacao && `+${msg.premio.reputacao} ${idioma==='en'?'reputation':idioma==='es'?'reputación':'reputação'}`}
@@ -131,7 +136,7 @@ export default function VLObjectivos({ carreira, onVoltar, onGuardar, idioma = '
           const cor = corDificuldade(obj.dificuldade)
           const pct = obj.percentagem
           return (
-            <div key={obj.id} style={{ padding:'14px', background: obj.concluido?'rgba(255,255,255,.02)':pct>=100?'rgba(212,175,55,.06)':'rgba(255,255,255,.02)', border:`1px solid ${obj.concluido?'rgba(255,255,255,.04)':pct>=100?'rgba(212,175,55,.25)':'rgba(255,255,255,.06)'}`, borderRadius:12, opacity:obj.concluido?.6:1 }}>
+            <div key={obj.id} style={{ padding:'14px', background: obj.concluido?T.surface:pct>=100?'rgba(212,175,55,.06)':T.surface, border:`1px solid ${obj.concluido?'rgba(255,255,255,.04)':pct>=100?'rgba(212,175,55,.25)':'rgba(255,255,255,.06)'}`, borderRadius:12, opacity:obj.concluido?.6:1 }}>
               <div style={{ display:'flex', gap:10, alignItems:'flex-start' }}>
                 <div style={{ width:40, height:40, borderRadius:10, background:`${cor}15`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>
                   {obj.concluido ? '✅' : obj.icon}
@@ -143,16 +148,16 @@ export default function VLObjectivos({ carreira, onVoltar, onGuardar, idioma = '
                       {obj.dificuldade==='facil'?'EASY':obj.dificuldade==='medio'?'MED':'HARD'}
                     </span>
                   </div>
-                  <div style={{ fontSize:11, color:'#7A8699', marginBottom:8 }}>{obj.desc}</div>
+                  <div style={{ fontSize:11, color:T.muted, marginBottom:8 }}>{obj.desc}</div>
 
                   {/* Barra de progresso */}
                   {!obj.concluido && (
                     <div style={{ marginBottom:8 }}>
-                      <div style={{ display:'flex', justifyContent:'space-between', fontSize:9, color:'#475569', marginBottom:3 }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', fontSize:9, color:T.muted, marginBottom:3 }}>
                         <span>{obj.progresso} / {obj.meta}</span>
                         <span style={{ color: pct>=100?'#D4AF37':'#475569', fontWeight:pct>=100?700:400 }}>{pct}%</span>
                       </div>
-                      <div style={{ height:4, background:'rgba(255,255,255,.06)', borderRadius:2 }}>
+                      <div style={{ height:4, background:T.surface, borderRadius:2 }}>
                         <div style={{ height:'100%', width:`${pct}%`, background: pct>=100?'linear-gradient(90deg,#D4AF37,#f97316)':cor, borderRadius:2, transition:'width .5s' }}/>
                       </div>
                     </div>
@@ -160,14 +165,14 @@ export default function VLObjectivos({ carreira, onVoltar, onGuardar, idioma = '
 
                   {/* Prémio e botão */}
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                    <div style={{ fontSize:10, color:'#D4AF37' }}>
+                    <div style={{ fontSize:10, color:T.gold }}>
                       🎁 {obj.premio.orcamento?`+${obj.premio.orcamento.toLocaleString()}€`:''}
                       {obj.premio.orcamento&&obj.premio.reputacao?' · ':''}
                       {obj.premio.reputacao?`+${obj.premio.reputacao} rep`:''}
                     </div>
                     {pct >= 100 && !obj.concluido && (
                       <button onClick={()=>reclamar(obj)}
-                        style={{ padding:'6px 12px', borderRadius:8, border:'none', background:'linear-gradient(135deg,#D4AF37,#B8960C)', color:'#050D1A', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+                        style={{ padding:'6px 12px', borderRadius:8, border:'none', background:'linear-gradient(135deg,#D4AF37,#B8960C)', color:T.surface, fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:"'Inter',system-ui,sans-serif" }}>
                         🎁 {idioma==='en'?'Claim':idioma==='es'?'Reclamar':'Reclamar'}
                       </button>
                     )}
