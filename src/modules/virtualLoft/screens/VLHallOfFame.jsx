@@ -1,6 +1,6 @@
 // src/modules/virtualLoft/screens/VLHallOfFame.jsx
 import { useState } from 'react'
-
+ 
 const T={bg:'#050A14',surface:'#0D1829',surface2:'#1A2A45',gold:'#C9A84C',blue:'#4FC3F7',text:'#E8EDF5',muted:'#6B7A99',success:'#2DD4A7',danger:'#F87171',purple:'#A855F7'}
 function lerLS(){try{return JSON.parse(localStorage.getItem('vl_carreira'))}catch{return null}}
 function gravarLS(d){try{localStorage.setItem('vl_carreira',JSON.stringify(d))}catch{}}
