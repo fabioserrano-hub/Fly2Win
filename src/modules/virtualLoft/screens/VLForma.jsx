@@ -3,6 +3,11 @@
 
 import { useState } from 'react'
 
+const T={bg:'#050A14',surface:'#0D1829',surface2:'#1A2A45',gold:'#C9A84C',blue:'#4FC3F7',text:'#E8EDF5',muted:'#6B7A99',success:'#2DD4A7',danger:'#F87171',purple:'#A855F7'}
+function lerLS(){try{return JSON.parse(localStorage.getItem('vl_carreira'))}catch{return null}}
+function gravarLS(d){try{localStorage.setItem('vl_carreira',JSON.stringify(d))}catch{}}
+function GoldLine(){return <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,#C9A84C,transparent)',opacity:.7}}/>}
+
 function corForma(v) {
   return v>=80?'#2DD4A7':v>=60?'#4C8DFF':v>=40?'#D4AF37':v>=20?'#f97316':'#f87171'
 }
@@ -110,15 +115,15 @@ export default function VLForma({ carreira, onVoltar, onGuardar, idioma = 'pt' }
   }
 
   return (
-    <div style={{ minHeight:'100vh', background:'#030812', color:'#fff', fontFamily:'inherit' }}>
+    <div style={{ minHeight:'100vh', background:T.bg, color:T.text, fontFamily:"'Inter',system-ui,sans-serif" }}>
       <div style={{ background:'linear-gradient(180deg,#050D1A,#030812)', borderBottom:'1px solid rgba(255,255,255,.05)', padding:'14px 16px' }}>
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <button onClick={onVoltar} style={{ background:'rgba(255,255,255,.06)', border:'none', borderRadius:8, width:32, height:32, color:'#7A8699', cursor:'pointer', fontSize:16 }}>←</button>
+          <button onClick={onVoltar} style={{ background:T.surface, border:'none', borderRadius:8, width:32, height:32, color:T.muted, cursor:'pointer', fontSize:16 }}>←</button>
           <div>
             <div style={{ fontSize:16, fontWeight:800 }}>📈 {idioma==='en'?'Form Tracker':idioma==='es'?'Rastreo de Forma':'Rastreio de Forma'}</div>
-            <div style={{ fontSize:10, color:'#7A8699' }}>{pombos.length} {idioma==='en'?'active pigeons':idioma==='es'?'palomas activas':'pombos activos'}</div>
+            <div style={{ fontSize:10, color:T.muted }}>{pombos.length} {idioma==='en'?'active pigeons':idioma==='es'?'palomas activas':'pombos activos'}</div>
           </div>
-          <button onClick={registarForma} style={{ marginLeft:'auto', padding:'6px 12px', background:'rgba(45,212,167,.1)', border:'1px solid rgba(45,212,167,.3)', borderRadius:8, color:'#2DD4A7', fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+          <button onClick={registarForma} style={{ marginLeft:'auto', padding:'6px 12px', background:'rgba(45,212,167,.1)', border:'1px solid rgba(45,212,167,.3)', borderRadius:8, color:T.success, fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:"'Inter',system-ui,sans-serif" }}>
             📊 {idioma==='en'?'Record':idioma==='es'?'Registrar':'Registar'}
           </button>
         </div>
@@ -133,9 +138,9 @@ export default function VLForma({ carreira, onVoltar, onGuardar, idioma = 'pt' }
             { label: idioma==='en'?'Average':idioma==='es'?'Regular':'Regular', n: pombosComForma.filter(p=>p.forma>=40&&p.forma<80).length, cor:'#D4AF37' },
             { label: idioma==='en'?'Poor':idioma==='es'?'Baja':'Baixa', n: pombosComForma.filter(p=>p.forma<40).length, cor:'#f87171' },
           ].map((s,i) => (
-            <div key={i} style={{ padding:'10px', background:'rgba(255,255,255,.02)', border:`1px solid ${s.cor}20`, borderRadius:10, textAlign:'center' }}>
+            <div key={i} style={{ padding:'10px', background:T.surface, border:`1px solid ${s.cor}20`, borderRadius:10, textAlign:'center' }}>
               <div style={{ fontFamily:"'Fraunces',serif", fontSize:20, fontWeight:900, color:s.cor }}>{s.n}</div>
-              <div style={{ fontSize:9, color:'#475569', fontWeight:600 }}>{s.label.toUpperCase()}</div>
+              <div style={{ fontSize:9, color:T.muted, fontWeight:600 }}>{s.label.toUpperCase()}</div>
             </div>
           ))}
         </div>
@@ -148,14 +153,14 @@ export default function VLForma({ carreira, onVoltar, onGuardar, idioma = 'pt' }
             return (
               <div key={p.id}>
                 <div onClick={() => setSelecionado(isOpen ? null : p.id)}
-                  style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 14px', background: isOpen?`${cor}08`:'rgba(255,255,255,.02)', border:`1px solid ${isOpen?cor+'30':'rgba(255,255,255,.05)'}`, borderRadius:10, cursor:'pointer', transition:'all .15s' }}>
+                  style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 14px', background: isOpen?`${cor}08`:T.surface, border:`1px solid ${isOpen?cor+'30':'rgba(255,255,255,.05)'}`, borderRadius:10, cursor:'pointer', transition:'all .15s' }}>
                   <div style={{ width:36, height:36, borderRadius:8, background:`${cor}15`, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Fraunces',serif", fontSize:12, fontWeight:900, color:cor }}>
                     {p.anilha?.slice(-3)}
                   </div>
                   <div style={{ flex:1 }}>
-                    <div style={{ fontSize:13, fontWeight:700, color:'#fff' }}>{p.nome}</div>
-                    <div style={{ fontSize:10, color:'#475569' }}>{p.especialidade}</div>
-                    <div style={{ height:4, background:'rgba(255,255,255,.06)', borderRadius:2, marginTop:4, overflow:'hidden' }}>
+                    <div style={{ fontSize:13, fontWeight:700, color:T.text }}>{p.nome}</div>
+                    <div style={{ fontSize:10, color:T.muted }}>{p.especialidade}</div>
+                    <div style={{ height:4, background:T.surface, borderRadius:2, marginTop:4, overflow:'hidden' }}>
                       <div style={{ height:'100%', width:`${p.forma}%`, background:cor, borderRadius:2, transition:'width .5s' }}/>
                     </div>
                   </div>
@@ -167,11 +172,11 @@ export default function VLForma({ carreira, onVoltar, onGuardar, idioma = 'pt' }
 
                 {/* Detalhe expandido */}
                 {isOpen && (
-                  <div style={{ padding:'12px 14px', background:'rgba(255,255,255,.02)', border:`1px solid ${cor}20`, borderTopLeftRadius:0, borderTopRightRadius:0, borderBottomLeftRadius:10, borderBottomRightRadius:10, borderTop:'none', marginTop:-2 }}>
+                  <div style={{ padding:'12px 14px', background:T.surface, border:`1px solid ${cor}20`, borderTopLeftRadius:0, borderTopRightRadius:0, borderBottomLeftRadius:10, borderBottomRightRadius:10, borderTop:'none', marginTop:-2 }}>
                     {/* Gráfico histórico */}
                     {p.historico && p.historico.length > 1 && (
                       <div style={{ marginBottom:10 }}>
-                        <div style={{ fontSize:9, color:'#7A8699', marginBottom:6 }}>{idioma==='en'?'Form history':idioma==='es'?'Historial de forma':'Histórico de forma'}</div>
+                        <div style={{ fontSize:9, color:T.muted, marginBottom:6 }}>{idioma==='en'?'Form history':idioma==='es'?'Historial de forma':'Histórico de forma'}</div>
                         <GraficoForma historico={p.historico} cor={cor} />
                       </div>
                     )}
@@ -183,10 +188,10 @@ export default function VLForma({ carreira, onVoltar, onGuardar, idioma = 'pt' }
                         ['recuperacao', idioma==='en'?'Recovery':idioma==='es'?'Recuperación':'Recuperação'],
                         ['orientacao', idioma==='en'?'Navigation':idioma==='es'?'Orientación':'Orientação'],
                       ].map(([k,label]) => (
-                        <div key={k} style={{ padding:'6px 8px', background:'rgba(255,255,255,.03)', borderRadius:6 }}>
-                          <div style={{ fontSize:9, color:'#475569', marginBottom:2 }}>{label}</div>
+                        <div key={k} style={{ padding:'6px 8px', background:T.surface, borderRadius:6 }}>
+                          <div style={{ fontSize:9, color:T.muted, marginBottom:2 }}>{label}</div>
                           <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                            <div style={{ flex:1, height:3, background:'rgba(255,255,255,.06)', borderRadius:2 }}>
+                            <div style={{ flex:1, height:3, background:T.surface, borderRadius:2 }}>
                               <div style={{ height:'100%', width:`${p.atributos[k]||0}%`, background:corForma(p.atributos[k]||0), borderRadius:2 }}/>
                             </div>
                             <div style={{ fontSize:10, fontWeight:700, color:corForma(p.atributos[k]||0), width:20 }}>{p.atributos[k]||0}</div>
@@ -196,7 +201,7 @@ export default function VLForma({ carreira, onVoltar, onGuardar, idioma = 'pt' }
                     </div>
                     {/* Alertas */}
                     {p.forma < 40 && (
-                      <div style={{ marginTop:8, padding:'8px 10px', background:'rgba(248,113,113,.08)', border:'1px solid rgba(248,113,113,.2)', borderRadius:8, fontSize:10, color:'#f87171' }}>
+                      <div style={{ marginTop:8, padding:'8px 10px', background:'rgba(248,113,113,.08)', border:'1px solid rgba(248,113,113,.2)', borderRadius:8, fontSize:10, color:T.danger }}>
                         ⚠️ {idioma==='en'?'Low form — consider resting this pigeon before next race':idioma==='es'?'Forma baja — considera descansar esta paloma antes de la próxima carrera':'Forma baixa — considera descansar este pombo antes da próxima prova'}
                       </div>
                     )}
@@ -209,8 +214,8 @@ export default function VLForma({ carreira, onVoltar, onGuardar, idioma = 'pt' }
 
         {/* Dica aleatória */}
         <div style={{ padding:'12px 14px', background:'rgba(76,141,255,.06)', border:'1px solid rgba(76,141,255,.15)', borderRadius:10 }}>
-          <div style={{ fontSize:9, color:'#4C8DFF', fontWeight:700, marginBottom:4 }}>💡 TIP</div>
-          <div style={{ fontSize:11, color:'#7A8699' }}>
+          <div style={{ fontSize:9, color:T.blue, fontWeight:700, marginBottom:4 }}>💡 TIP</div>
+          <div style={{ fontSize:11, color:T.muted }}>
             {(DICAS[idioma]||DICAS.pt)[Math.floor(Math.random()*(DICAS[idioma]||DICAS.pt).length)]}
           </div>
         </div>
