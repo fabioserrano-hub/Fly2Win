@@ -1,6 +1,11 @@
 // src/modules/virtualLoft/screens/VLHallOfFame.jsx
 import { useState } from 'react'
 
+const T={bg:'#050A14',surface:'#0D1829',surface2:'#1A2A45',gold:'#C9A84C',blue:'#4FC3F7',text:'#E8EDF5',muted:'#6B7A99',success:'#2DD4A7',danger:'#F87171',purple:'#A855F7'}
+function lerLS(){try{return JSON.parse(localStorage.getItem('vl_carreira'))}catch{return null}}
+function gravarLS(d){try{localStorage.setItem('vl_carreira',JSON.stringify(d))}catch{}}
+function GoldLine(){return <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,#C9A84C,transparent)',opacity:.7}}/>}
+
 function corRating(r) {
   return r>=5?'#D4AF37':r>=4?'#4C8DFF':r>=3?'#2DD4A7':'#7A8699'
 }
@@ -15,17 +20,17 @@ function TrofeuCard({ entrada, idioma }) {
           {entrada.tipo==='campeao'?'🏆':entrada.tipo==='reprodutor'?'🧬':entrada.tipo==='recorde'?'⚡':'⭐'}
         </div>
         <div style={{ flex:1 }}>
-          <div style={{ fontSize:15, fontWeight:800, color:'#fff', marginBottom:2 }}>{entrada.nomePombo}</div>
+          <div style={{ fontSize:15, fontWeight:800, color:T.text, marginBottom:2 }}>{entrada.nomePombo}</div>
           <div style={{ fontSize:10, color:cor, fontWeight:700, marginBottom:4 }}>{entrada.titulo}</div>
-          <div style={{ fontSize:10, color:'#7A8699' }}>{entrada.desc}</div>
+          <div style={{ fontSize:10, color:T.muted }}>{entrada.desc}</div>
           {entrada.pai_nome && (
-            <div style={{ fontSize:9, color:'#475569', marginTop:4 }}>
+            <div style={{ fontSize:9, color:T.muted, marginTop:4 }}>
               ♂ {entrada.pai_nome} × ♀ {entrada.mae_nome}
             </div>
           )}
         </div>
         <div style={{ textAlign:'right', flexShrink:0 }}>
-          <div style={{ fontSize:11, color:'#475569' }}>Ép. {entrada.epoca}</div>
+          <div style={{ fontSize:11, color:T.muted }}>Ép. {entrada.epoca}</div>
           <div style={{ display:'flex', gap:2, marginTop:4, justifyContent:'flex-end' }}>
             {Array.from({length:5}).map((_,i)=><div key={i} style={{ fontSize:8, color:i<(entrada.rating||3)?corRating(entrada.rating||3):'rgba(255,255,255,.1)' }}>★</div>)}
           </div>
@@ -35,9 +40,9 @@ function TrofeuCard({ entrada, idioma }) {
       {entrada.stats && (
         <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:6, marginTop:10 }}>
           {Object.entries(entrada.stats).slice(0,3).map(([k,v])=>(
-            <div key={k} style={{ textAlign:'center', padding:'6px', background:'rgba(255,255,255,.03)', borderRadius:6 }}>
+            <div key={k} style={{ textAlign:'center', padding:'6px', background:T.surface, borderRadius:6 }}>
               <div style={{ fontSize:12, fontWeight:700, color:cor }}>{v}</div>
-              <div style={{ fontSize:8, color:'#475569' }}>{k}</div>
+              <div style={{ fontSize:8, color:T.muted }}>{k}</div>
             </div>
           ))}
         </div>
@@ -98,19 +103,19 @@ export default function VLHallOfFame({ carreira, onVoltar, onGuardar, idioma = '
   const entradas = tab==='campeoes'?campeoes:tab==='reprodutores'?reprodutores:tab==='recordes'?recordes:especiais
 
   return (
-    <div style={{ minHeight:'100vh', background:'#030812', color:'#fff', fontFamily:'inherit' }}>
+    <div style={{ minHeight:'100vh', background:T.bg, color:T.text, fontFamily:"'Inter',system-ui,sans-serif" }}>
       <div style={{ background:'linear-gradient(180deg,#050D1A,#030812)', borderBottom:'1px solid rgba(255,255,255,.05)', padding:'14px 16px' }}>
         <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
-          <button onClick={onVoltar} style={{ background:'rgba(255,255,255,.06)', border:'none', borderRadius:8, width:32, height:32, color:'#7A8699', cursor:'pointer', fontSize:16 }}>←</button>
+          <button onClick={onVoltar} style={{ background:T.surface, border:'none', borderRadius:8, width:32, height:32, color:T.muted, cursor:'pointer', fontSize:16 }}>←</button>
           <div>
             <div style={{ fontSize:16, fontWeight:800 }}>🏛️ Hall of Fame</div>
-            <div style={{ fontSize:10, color:'#7A8699' }}>{hof.length} {idioma==='en'?'legends':idioma==='es'?'leyendas':'lendas'} · Ép. {carreira.epoca||1}</div>
+            <div style={{ fontSize:10, color:T.muted }}>{hof.length} {idioma==='en'?'legends':idioma==='es'?'leyendas':'lendas'} · Ép. {carreira.epoca||1}</div>
           </div>
         </div>
         <div style={{ display:'flex', gap:6, overflowX:'auto', scrollbarWidth:'none', paddingBottom:2 }}>
           {TABS.map(t => (
             <button key={t.id} onClick={()=>setTab(t.id)}
-              style={{ flex:'none', padding:'7px 12px', borderRadius:8, border:tab===t.id?'none':'1px solid rgba(255,255,255,.08)', background:tab===t.id?'linear-gradient(135deg,#D4AF37,#B8960C)':'rgba(255,255,255,.04)', color:tab===t.id?'#050D1A':'#cbd5e1', fontSize:11, fontWeight:tab===t.id?700:500, cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }}>
+              style={{ flex:'none', padding:'7px 12px', borderRadius:8, border:tab===t.id?'none':'1px solid rgba(255,255,255,.08)', background:tab===t.id?'linear-gradient(135deg,#D4AF37,#B8960C)':'rgba(255,255,255,.04)', color:tab===t.id?T.surface:'#cbd5e1', fontSize:11, fontWeight:tab===t.id?700:500, cursor:'pointer', fontFamily:"'Inter',system-ui,sans-serif", whiteSpace:'nowrap' }}>
               {t.label}{t.n>0?` (${t.n})`:''}
             </button>
           ))}
@@ -127,9 +132,9 @@ export default function VLHallOfFame({ carreira, onVoltar, onGuardar, idioma = '
               { label: idioma==='en'?'Breeders':idioma==='es'?'Reproductores':'Reprodutores', n: reprodutores.length, cor:'#A855F7' },
               { label: idioma==='en'?'Records':idioma==='es'?'Récords':'Recordes', n: recordes.length, cor:'#f97316' },
             ].map((s,i)=>(
-              <div key={i} style={{ padding:'10px', background:'rgba(255,255,255,.02)', border:`1px solid ${s.cor}20`, borderRadius:10, textAlign:'center' }}>
+              <div key={i} style={{ padding:'10px', background:T.surface, border:`1px solid ${s.cor}20`, borderRadius:10, textAlign:'center' }}>
                 <div style={{ fontFamily:"'Fraunces',serif", fontSize:20, fontWeight:900, color:s.cor }}>{s.n}</div>
-                <div style={{ fontSize:9, color:'#475569', fontWeight:600 }}>{s.label.toUpperCase()}</div>
+                <div style={{ fontSize:9, color:T.muted, fontWeight:600 }}>{s.label.toUpperCase()}</div>
               </div>
             ))}
           </div>
@@ -140,7 +145,7 @@ export default function VLHallOfFame({ carreira, onVoltar, onGuardar, idioma = '
           entradas.length === 0 ? (
             <div style={{ textAlign:'center', padding:'40px 20px' }}>
               <div style={{ fontSize:40, marginBottom:12 }}>🏛️</div>
-              <div style={{ fontSize:14, color:'#475569', fontWeight:600 }}>
+              <div style={{ fontSize:14, color:T.muted, fontWeight:600 }}>
                 {idioma==='en'?'No legends yet':idioma==='es'?'Sin leyendas aún':'Sem lendas ainda'}
               </div>
               <div style={{ fontSize:11, color:'#2a3a5a', marginTop:6 }}>
@@ -155,15 +160,15 @@ export default function VLHallOfFame({ carreira, onVoltar, onGuardar, idioma = '
         {/* Adicionar ao HoF */}
         {tab === 'adicionar' && (
           <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-            <div style={{ fontSize:11, color:'#7A8699', marginBottom:4 }}>
+            <div style={{ fontSize:11, color:T.muted, marginBottom:4 }}>
               {idioma==='en'?'Select a pigeon and category to immortalise:':idioma==='es'?'Selecciona una paloma y categoría:':'Selecciona um pombo e categoria para imortalizar:'}
             </div>
             {pombosActivos.filter(p => !jaNoHof.includes(p.id)).map(p => (
-              <div key={p.id} style={{ padding:'12px 14px', background:'rgba(255,255,255,.02)', border:'1px solid rgba(255,255,255,.06)', borderRadius:10 }}>
+              <div key={p.id} style={{ padding:'12px 14px', background:T.surface, border:`1px solid ${T.surface2}`, borderRadius:10 }}>
                 <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
                   <div>
                     <div style={{ fontSize:13, fontWeight:700 }}>{p.nome}</div>
-                    <div style={{ fontSize:10, color:'#475569' }}>{p.especialidade} · {p.provas||0} provas · {p.vitorias||0} vitórias</div>
+                    <div style={{ fontSize:10, color:T.muted }}>{p.especialidade} · {p.provas||0} provas · {p.vitorias||0} vitórias</div>
                   </div>
                   <div style={{ display:'flex', gap:2 }}>
                     {Array.from({length:5}).map((_,i)=><div key={i} style={{ fontSize:8, color:i<p.rating?'#D4AF37':'rgba(255,255,255,.1)' }}>★</div>)}
@@ -176,7 +181,7 @@ export default function VLHallOfFame({ carreira, onVoltar, onGuardar, idioma = '
                     ['recorde','⚡',idioma==='en'?'Record':idioma==='es'?'Récord':'Recorde','#f97316'],
                   ].map(([tipo,icon,label,cor])=>(
                     <button key={tipo} onClick={()=>adicionarPombo(p, tipo)}
-                      style={{ flex:1, padding:'6px 4px', borderRadius:8, border:`1px solid ${cor}30`, background:`${cor}10`, color:cor, fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+                      style={{ flex:1, padding:'6px 4px', borderRadius:8, border:`1px solid ${cor}30`, background:`${cor}10`, color:cor, fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:"'Inter',system-ui,sans-serif" }}>
                       {icon} {label}
                     </button>
                   ))}
@@ -184,7 +189,7 @@ export default function VLHallOfFame({ carreira, onVoltar, onGuardar, idioma = '
               </div>
             ))}
             {pombosActivos.filter(p => !jaNoHof.includes(p.id)).length === 0 && (
-              <div style={{ textAlign:'center', padding:'30px', color:'#475569', fontSize:12 }}>
+              <div style={{ textAlign:'center', padding:'30px', color:T.muted, fontSize:12 }}>
                 {idioma==='en'?'All active pigeons are already in the Hall of Fame':idioma==='es'?'Todas las palomas ya están en el Hall of Fame':'Todos os pombos activos já estão no Hall of Fame'}
               </div>
             )}
