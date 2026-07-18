@@ -209,7 +209,32 @@ export default function HubPombal(props){
 
       <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:14}}>
 
-        {/* ══ EVENTO ═══════════════════════════════════════════════════════════ */}
+        {/* ══ BOTÃO AVANÇAR SEMANA — TOPO ═══════════════════════════════════════ */}
+      {(() => {
+        const PROVAS_CAL=[
+          {id:'p1',semana:2},{id:'p2',semana:4},{id:'p3',semana:6},{id:'p4',semana:8},{id:'p5',semana:10},
+          {id:'p6',semana:12},{id:'p7',semana:15},{id:'p8',semana:18},{id:'p9',semana:20},{id:'p10',semana:23},
+          {id:'p11',semana:25},{id:'p12',semana:27},{id:'p13',semana:30},{id:'p14',semana:33},{id:'p15',semana:36},
+        ]
+        const sem=c.semana||1
+        const hist=c.historico_provas||[]
+        const provaDisp=PROVAS_CAL.find(p=>p.semana===sem&&!hist.some(h=>h.provaId===p.id&&h.semana===sem))
+        const bloqueado=!!provaDisp&&!avancando
+        return(
+          <div style={{display:'flex',gap:8,alignItems:'stretch'}}>
+            <button onClick={bloqueado?null:avancar} disabled={avancando}
+              style={{flex:1,padding:'14px',borderRadius:12,border:bloqueado?`1px solid rgba(248,113,113,.3)`:'1px solid rgba(201,168,76,.4)',background:bloqueado?'rgba(248,113,113,.08)':'linear-gradient(135deg,#C9A84C,#A07830)',color:bloqueado?'#F87171':'#050A14',fontSize:13,fontWeight:800,cursor:bloqueado?'not-allowed':'pointer',fontFamily:'inherit',boxShadow:bloqueado?'none':'0 4px 20px rgba(201,168,76,.25)',transition:'all .2s',opacity:avancando?.7:1,position:'relative',overflow:'hidden'}}>
+              {avancando?'⏳ A processar...':bloqueado?'⚠️ Realiza a prova primeiro!':'⏭️ Avançar Semana →'}
+            </button>
+            <button onClick={()=>setModulo('provas')}
+              style={{padding:'14px',borderRadius:12,border:`1px solid ${T.purple}40`,background:`${T.purple}10`,color:T.purple,fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:'inherit',flexShrink:0}}>
+              🏆
+            </button>
+          </div>
+        )
+      })()}
+
+      {/* ══ EVENTO ═══════════════════════════════════════════════════════════ */}
         {evento&&(
           <div key={evento.id} style={{padding:'14px 16px',background:evento.tipo==='sucesso'?'linear-gradient(135deg,rgba(45,212,167,.12),rgba(45,212,167,.04))':evento.tipo==='aviso'?'linear-gradient(135deg,rgba(201,168,76,.12),rgba(201,168,76,.04))':'linear-gradient(135deg,rgba(248,113,113,.12),rgba(248,113,113,.04))',border:`1px solid ${evento.tipo==='sucesso'?'rgba(45,212,167,.3)':evento.tipo==='aviso'?'rgba(201,168,76,.3)':'rgba(248,113,113,.3)'}`,borderRadius:14,display:'flex',gap:12,alignItems:'center',animation:'slideUp .3s ease'}}>
             <div style={{width:44,height:44,borderRadius:12,background:'rgba(255,255,255,.06)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}>{evento.i}</div>
@@ -324,11 +349,7 @@ export default function HubPombal(props){
           ))}
         </div>
 
-        {/* ══ BOTÃO AVANÇAR SEMANA ═════════════════════════════════════════════ */}
-        <button onClick={avancar} disabled={avancando} className="vl-btn-avancar"
-          style={{width:'100%',padding:'16px',borderRadius:14,border:'1px solid rgba(201,168,76,.4)',background:'linear-gradient(135deg,#C9A84C 0%,#A07830 50%,#C9A84C 100%)',backgroundSize:'200% 100%',color:'#050A14',fontSize:15,fontWeight:900,cursor:avancando?'wait':'pointer',fontFamily:'inherit',letterSpacing:.5,boxShadow:'0 4px 24px rgba(201,168,76,.3), inset 0 1px 0 rgba(255,255,255,.2)',transition:'all .2s',opacity:avancando?.7:1}}>
-          {avancando?'⏳ A processar...':'⏭️  Avançar Semana →'}
-        </button>
+
 
         {/* ══ APAGAR ═══════════════════════════════════════════════════════════ */}
         <button onClick={onApagarCarreira}
