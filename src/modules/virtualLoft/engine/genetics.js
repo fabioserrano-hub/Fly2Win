@@ -50,8 +50,13 @@ export function gerarAtributos(qualidade = 'normal') {
     // Potencial OCULTO (0-100) — revelado gradualmente com treinos/provas
     potencial_oculto: gaussianRandom(50, 25),
     potencial_revelado: 0, // % de potencial já descoberto
+    // Digital Twin — potencial máximo e genes raros
+    potencial_maximo: gaussianRandom(base+5, std),
+    gene_raro_tipo: Math.random()<0.08 ? GENE_RARO_TIPOS[Math.floor(Math.random()*GENE_RARO_TIPOS.length)] : null,
   }
 }
+
+const GENE_RARO_TIPOS = ['Linha Campeã','Mutação Velocista','Sangue Puro','Gene Olímpico','Resistência Infinita','Orientador Nato']
 
 // Herança genética de dois pombos pais
 export function cruzamento(pai, mae) {
@@ -122,11 +127,18 @@ export function gerarPombo(opts = {}) {
     especialidade: especialidades[espIdx],
     esp_idx: espIdx,
     personalidade: tracos,
+    // Digital Twin — identidade única
+    personalidade_tipo: ['guerreiro', 'calmo', 'nervoso', 'competitivo', 'inteligente', 'resistente', 'sensivel', 'lider', 'solitario', 'determinado'][Math.floor(Math.random()*10)],
+    temperamento: ['Dócil','Activo','Curioso','Reservado','Sociável','Independente'][Math.floor(Math.random()*6)],
+    motivacao: ['Competição','Liberdade','Território','Social','Conquista','Exploração'][Math.floor(Math.random()*6)],
     atributos,
     rating,
+    // Condição
+    forma_atual: 65 + Math.floor(Math.random()*20),
+    fadiga: Math.floor(Math.random()*15),
     // Estado
     estado: 'activo',
-    idade: 0, // épocas
+    idade: 0,
     provas: 0,
     vitorias: 0,
     percentil_medio: 0,
@@ -137,6 +149,8 @@ export function gerarPombo(opts = {}) {
     // Genealogia
     pai_id: opts.pai_id || null,
     mae_id: opts.mae_id || null,
+    pai_nome: opts.pai_nome || null,
+    mae_nome: opts.mae_nome || null,
   }
 }
 
