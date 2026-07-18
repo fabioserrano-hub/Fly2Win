@@ -88,7 +88,7 @@ function NivelDots({nivel,max,cor}){
   return(
     <div style={{display:'flex',gap:4}}>
       {Array.from({length:max}).map((_,i)=>(
-        <div key={i} style={{width:i<nivel?10:8,height:i<nivel?10:8,borderRadius:3,background:i<nivel?cor:'rgba(255,255,255,.08)',boxShadow:i<nivel?`0 0 6px ${cor}60`:none,transition:'all .3s'}}/>
+        <div key={i} style={{width:i<nivel?10:8,height:i<nivel?10:8,borderRadius:3,background:i<nivel?cor:'rgba(255,255,255,.08)',boxShadow:i<nivel?`0 0 6px ${cor}60`:'none',transition:'all .3s'}}/>
       ))}
     </div>
   )
