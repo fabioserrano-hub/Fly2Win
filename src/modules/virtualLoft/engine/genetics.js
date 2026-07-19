@@ -1,7 +1,7 @@
 // src/modules/virtualLoft/engine/genetics.js
 // Motor de genética — gera atributos, personalidade e potencial oculto
 
-const NOMES_PT = ['Relâmpago','Trovão','Furacão','Tempestade','Brisa','Névoa','Aurora','Eclipse','Cometa','Astro','Zeus','Atlas','Titan','Orion','Vega','Sirius','Falcon','Hawk','Ares','Apollo']
+const NOMES_PT = ['Relâmpago','Trovão','Furacão','Tempestade','Brisa','Névoa','Aurora','Eclipse','Cometa','Astro','Zeus','Atlas','Titan','Orion','Vega','Sirius','Falcão','Gavião','Ares','Apolo','Fénix','Tornado','Meteoro','Vulcão','Neptuno','Júpiter','Hermes','Poseidon','Perseu','Aquiles','Ícaro','Pégaso','Lince','Pantera','Condor','Albatroz','Peregrino','Milhafre','Açor','Safira','Rubi','Ónix','Prata','Índigo','Âmbar','Jade','Cristal','Diamante','Atena','Ártemis','Diana','Hera','Vénus','Coral','Turquesa','Estrela','Lua','Íris','Alba','Nívea']
 const NOMES_EN = ['Lightning','Thunder','Hurricane','Storm','Breeze','Mist','Dawn','Eclipse','Comet','Star','Zeus','Atlas','Titan','Orion','Vega','Sirius','Falcon','Hawk','Ares','Apollo']
 const NOMES_ES = ['Relámpago','Trueno','Huracán','Tormenta','Brisa','Niebla','Aurora','Eclipse','Cometa','Astro','Zeus','Atlas','Titán','Orión','Vega','Sirio','Halcón','Aguila','Ares','Apolo']
 
@@ -94,10 +94,10 @@ export function gerarPombo(opts = {}) {
   const especialidades = ESPECIALIDADES[idioma] || ESPECIALIDADES.pt
 
   const s = sexo || (Math.random() > 0.5 ? 'M' : 'F')
-  const nomesDisponiveis = nomes.filter((_, i) => s === 'M' ? i < 12 : i >= 8)
-  const nome = opts.nome || nomesDisponiveis[Math.floor(Math.random() * nomesDisponiveis.length)]
-
+  const nomesDisponiveis = nomes.filter((_, i) => s === 'M' ? i < 40 : i >= 20)
   const anilhaNum = anilha || `VL-${ano}-${String(Math.floor(Math.random() * 99999)).padStart(5,'0')}`
+  const sufixo = String(anilhaNum).slice(-3)
+  const nome = opts.nome || `${nomesDisponiveis[Math.floor(Math.random() * nomesDisponiveis.length)]} ${sufixo}`
 
   // Personalidade — 1 a 2 traços
   const numTracos = Math.random() > 0.6 ? 2 : 1
