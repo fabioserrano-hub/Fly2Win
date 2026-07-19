@@ -1,6 +1,7 @@
 // src/modules/virtualLoft/screens/HubPombal.jsx — V4 Sistema de Dias + Supabase
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
+import { PROVAS_CALENDARIO } from '../data/calendario'
 // Engine inline — sem dependências externas
 import VLPombos from './VLPombos'
 import VLTreinos from './VLTreinos'
@@ -31,37 +32,8 @@ function getEpoca(dia){ return Math.ceil(dia/280) }
 function getDiaDeEpoca(dia){ return ((dia-1)%280)+1 }
 function calcNivelReputacao(r){ return r>=90?'olimpico':r>=70?'internacional':r>=50?'nacional':r>=35?'regional':r>=20?'distrital':'local' }
 
-// 24 provas intercaladas (6 por especialidade)
-const SEQ_TIPOS = ['velocidade','meio_fundo','fundo','grande_fundo']
-const CIDADES_CAL = {
-  velocidade:   ['Santarém','Setúbal','Évora','Badajoz','Salamanca','Madrid'],
-  meio_fundo:   ['Beja','Mérida','Cáceres','Toledo','Burgos','Valladolid'],
-  fundo:        ['Portalegre','Plasencia','Ávila','Segóvia','Palência','León'],
-  grande_fundo: ['Zaragoza','Pamplona','Toulouse','Bordeaux','Lyon','Paris'],
-}
-const DIST_CAL = {
-  velocidade:[80,120,160,250,350,450], meio_fundo:[300,380,430,500,560,620],
-  fundo:[500,580,640,700,760,820], grande_fundo:[700,800,900,1000,1050,1100],
-}
-const PTS_BASE  = {velocidade:10,meio_fundo:20,fundo:30,grande_fundo:50}
-const PRE_BASE  = {velocidade:150,meio_fundo:400,fundo:800,grande_fundo:2000}
-const TIPO_ICON_CAL = {velocidade:'⚡',meio_fundo:'🌊',fundo:'💪',grande_fundo:'🏔️'}
-const NIVEL_CAL = i => i<2?'div3':i<4?'div2':i<5?'div1':'elite'
-const SEMS_PROVA = [2,3,4,5,7,8,9,10,12,13,14,15,17,18,19,20,22,23,24,25,27,28,29,30]
-
-const CALENDARIO = SEMS_PROVA.map((sem,idx)=>{
-  const tipo = SEQ_TIPOS[idx%4]
-  const ordem = Math.floor(idx/4)
-  return {
-    id:`p${idx+1}`,
-    nome:`${tipo==='velocidade'?'Vel.':tipo==='meio_fundo'?'M.F.':tipo==='fundo'?'Fundo':'G.F.'} - ${CIDADES_CAL[tipo][ordem]}`,
-    nomeCompleto:`${tipo==='velocidade'?'Velocidade':tipo==='meio_fundo'?'Meio-Fundo':tipo==='fundo'?'Fundo':'Grande Fundo'} — ${CIDADES_CAL[tipo][ordem]}`,
-    dist:DIST_CAL[tipo][ordem], tipo, semana:sem,
-    nivel:NIVEL_CAL(ordem),
-    pontos:PTS_BASE[tipo]*(ordem+1),
-    premio:PRE_BASE[tipo]*(ordem+1),
-  }
-})
+// Calendário — fonte única partilhada com VLProvas (data/calendario.js)
+const CALENDARIO = PROVAS_CALENDARIO
 
 function actualizarFasesCria(carreira){
   const dia = carreira.dia||1
@@ -116,7 +88,8 @@ function calcAvancarDia(c, acoes={}){
     return{...p,fadiga:Math.round(fad),forma_atual:Math.round(for_)}
   })
 
-  return n
+  // Fazer crescer as crias (ovo → nascido → ninhego → jovem → adulto/activo)
+  return actualizarFasesCria(n)
 }
 
 
@@ -456,7 +429,7 @@ export default function HubPombal(props) {
                 <div style={{fontSize:8,color:T.purple,fontWeight:700,letterSpacing:1.5,marginBottom:5}}>
                   {provaBloqueada?'🚨 PROVA HOJE — OBRIGATÓRIO':'📅 PRÓXIMA PROVA'}
                 </div>
-                <div style={{fontSize:14,fontWeight:800,color:T.text,marginBottom:3}}>{TIPO_ICON[proximaProva.tipo]} {proximaProva.nomeCompleto}</div>
+                <div style={{fontSize:14,fontWeight:800,color:T.text,marginBottom:3}}>{TIPO_ICON[proximaProva.tipo]} {(proximaProva.nomeCompleto||proximaProva.nome)}</div>
                 <div style={{display:'flex',gap:8}}>
                   <span style={{fontSize:9,color:T.muted}}>{proximaProva.dist}km</span>
                   <span style={{fontSize:9,color:T.gold,fontWeight:600}}>🏅{proximaProva.premio.toLocaleString()}€</span>
