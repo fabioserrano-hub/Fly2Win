@@ -1,209 +1,244 @@
-// src/modules/virtualLoft/screens/VLFinancas.jsx
+// src/modules/virtualLoft/screens/VLFinancas.jsx — V2 Economia real
 import { useState } from 'react'
- 
-const T={bg:'#050A14',surface:'#0D1829',surface2:'#1A2A45',gold:'#C9A84C',blue:'#4FC3F7',text:'#E8EDF5',muted:'#6B7A99',success:'#2DD4A7',danger:'#F87171',purple:'#A855F7'}
+
+const T={bg:'#050A14',surface:'#0D1829',s2:'#1A2A45',gold:'#C9A84C',blue:'#4FC3F7',text:'#E8EDF5',muted:'#6B7A99',success:'#2DD4A7',danger:'#F87171',purple:'#A855F7',orange:'#FB923C'}
 function lerLS(){try{return JSON.parse(localStorage.getItem('vl_carreira'))}catch{return null}}
 function gravarLS(d){try{localStorage.setItem('vl_carreira',JSON.stringify(d))}catch{}}
-function GoldLine(){return <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,#C9A84C,transparent)',opacity:.7}}/>}
- 
-const CATEGORIAS = { 
-  pt: {
-    receitas: ['Prémio de prova','Venda de pombo','Patrocínio','Subsídio','Outro'],
-    despesas: ['Salários','Alimentação','Veterinário','Construção','Compra de pombo','Inscrição em prova','Outro'],
-  },
-  en: {
-    receitas: ['Race prize','Pigeon sale','Sponsorship','Grant','Other'],
-    despesas: ['Salaries','Feeding','Veterinary','Construction','Pigeon purchase','Race entry','Other'],
-  },
-  es: {
-    receitas: ['Premio de carrera','Venta de paloma','Patrocinio','Subvención','Otro'],
-    despesas: ['Salarios','Alimentación','Veterinario','Construcción','Compra de paloma','Inscripción carrera','Otro'],
-  },
+function GL(){return <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,#C9A84C,transparent)',opacity:.8}}/>}
+
+function MiniChart({valores,cor,h=40}){
+  if(!valores||valores.length<2)return null
+  const max=Math.max(...valores,1)
+  const min=Math.min(...valores,0)
+  const range=max-min||1
+  const w=100,pts=valores.map((v,i)=>{
+    const x=(i/(valores.length-1))*w
+    const y=h-((v-min)/range)*(h-4)-2
+    return`${x},${y}`
+  }).join(' ')
+  const area=`0,${h} ${pts} ${w},${h}`
+  return(
+    <svg viewBox={`0 0 ${w} ${h}`} style={{width:'100%',height:h}}>
+      <polygon points={area} fill={`${cor}15`}/>
+      <polyline points={pts} fill="none" stroke={cor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
 }
 
-export default function VLFinancas({ carreira, onVoltar, onGuardar, idioma = 'pt' }) {
-  // Ler sempre do localStorage para ter dados mais recentes
-  const [carreiraLocal, setCarreiraLocal] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('vl_carreira')) || carreira } catch { return carreira }
-  })
-  const c = carreiraLocal
+export default function VLFinancas({carreira,onVoltar,onGuardar}){
+  const [cl,setCL]=useState(()=>lerLS()||carreira)
+  const c=cl
+  const salvar=d=>{gravarLS(d);setCL({...d});onGuardar?.(d)}
 
-  const salvarLocal = (dados) => {
-    try { localStorage.setItem('vl_carreira', JSON.stringify(dados)) } catch {}
-    setCarreiraLocal({ ...dados })
-    onGuardar?.(dados)
-  }
+  const [tab,setTab]=useState('resumo')
 
-  const [tab, setTab] = useState('resumo')
-  const [form, setForm] = useState({ tipo:'receita', valor:'', categoria:'', desc:'' })
-  const [msg, setMsg] = useState(null)
+  const orcamento=c.orcamento||0
+  const staff=c.staff||[]
+  const pombos=c.pombos||[]
+  const patrocinios=c.patrocinios||[]
+  const movimentos=c.movimentos||[]
 
-  const movimentos = c.movimentos || []
-  const cats = CATEGORIAS[idioma] || CATEGORIAS.pt
+  // Calcular receitas e despesas semanais
+  const recPatrocinios=patrocinios.reduce((s,p)=>s+(p.valorSemanal||0),0)
+  const recProvas=movimentos.filter(m=>m.tipo==='premio').reduce((s,m)=>s+(m.valor||0),0)
+  const recVendas=movimentos.filter(m=>m.tipo==='venda').reduce((s,m)=>s+(m.valor||0),0)
+  const totalReceitas=recPatrocinios+recProvas+recVendas
 
-  const totalReceitas = movimentos.filter(m => m.tipo === 'receita').reduce((s,m) => s + m.valor, 0)
-  const totalDespesas = movimentos.filter(m => m.tipo === 'despesa').reduce((s,m) => s + m.valor, 0)
-  const saldo = c.orcamento
+  const despStaff=Math.round(staff.reduce((s,m)=>s+(m.salario||0),0)/4)
+  const despAlim=pombos.filter(p=>p.estado==='activo').length*5
+  const despCompras=movimentos.filter(m=>m.tipo==='compra').reduce((s,m)=>s+Math.abs(m.valor||0),0)
+  const totalDespesas=despStaff+despAlim+despCompras
 
-  const adicionarMovimento = () => {
-    if (!form.valor || isNaN(form.valor) || Number(form.valor) <= 0) {
-      setMsg({ tipo:'erro', texto: idioma==='en'?'Invalid value':idioma==='es'?'Valor inválido':'Valor inválido' })
-      setTimeout(() => setMsg(null), 2000)
-      return
-    }
-    const valor = Number(form.valor)
-    const novo = { id: `mov_${Date.now()}`, tipo: form.tipo, valor, categoria: form.categoria || (idioma==='en'?'Other':idioma==='es'?'Otro':'Outro'), desc: form.desc, semana: c.semana, epoca: c.epoca, data: new Date().toISOString() }
-    const novosMovimentos = [...movimentos, novo]
-    const novoOrcamento = form.tipo === 'receita' ? saldo + valor : saldo - valor
-    onGuardar?.({ ...c, movimentos: novosMovimentos, orcamento: Math.max(0, novoOrcamento) })
-    setForm({ tipo:'receita', valor:'', categoria:'', desc:'' })
-    setMsg({ tipo:'ok', texto: idioma==='en'?'Movement added!':idioma==='es'?'¡Movimiento añadido!':'Movimento adicionado!' })
-    setTimeout(() => setMsg(null), 2000)
-    setTab('historico')
-  }
+  const saldoSemanal=recPatrocinios-despStaff-despAlim
+  const semanasSobrevivencia=saldoSemanal<0?Math.floor(orcamento/Math.abs(saldoSemanal)):99
 
-  // Salários do staff
-  const salarioMensal = (c.staff || []).reduce((s,m) => s + (m.salario || 0), 0)
+  // Histórico do orçamento (últimas 10 semanas simulado)
+  const historicoOrc=c.historico_orcamento||(()=>{
+    const base=orcamento
+    return Array.from({length:10},(_,i)=>Math.max(0,base+(i-9)*Math.abs(saldoSemanal||50)))
+  })()
 
-  return (
-    <div style={{ minHeight:'100vh', background:T.bg, color:T.text, fontFamily:"'Inter',system-ui,sans-serif" }}>
-      <div style={{ background:'linear-gradient(180deg,#050D1A,#030812)', borderBottom:'1px solid rgba(255,255,255,.05)', padding:'14px 16px' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
-          <button onClick={onVoltar} style={{ background:T.surface, border:'none', borderRadius:8, width:32, height:32, color:T.muted, cursor:'pointer', fontSize:16 }}>←</button>
-          <div>
-            <div style={{ fontSize:16, fontWeight:800 }}>💰 {idioma==='en'?'Finances':idioma==='es'?'Finanzas':'Finanças'}</div>
-            <div style={{ fontSize:10, color:T.muted }}>{idioma==='en'?'Season':idioma==='es'?'Temporada':'Época'} {c.epoca}</div>
+  const CATEGORIAS_REC=[
+    {label:'Patrocínios',valor:recPatrocinios,icon:'🤝',cor:T.success,periodo:'por semana'},
+    {label:'Prémios Provas',valor:recProvas,icon:'🏆',cor:T.gold,periodo:'acumulado'},
+    {label:'Vendas',valor:recVendas,icon:'💰',cor:T.blue,periodo:'acumulado'},
+  ]
+  const CATEGORIAS_DESP=[
+    {label:'Staff',valor:despStaff,icon:'👥',cor:T.danger,periodo:'por semana'},
+    {label:'Alimentação',valor:despAlim,icon:'🌾',cor:T.orange,periodo:'por semana'},
+    {label:'Compras',valor:despCompras,icon:'🛒',cor:T.purple,periodo:'acumulado'},
+  ]
+
+  return(
+    <div style={{minHeight:'100vh',background:T.bg,color:T.text,fontFamily:"system-ui,sans-serif"}}>
+      <div style={{background:`linear-gradient(180deg,${T.surface},${T.bg})`,borderBottom:`1px solid ${T.s2}`,padding:'14px 16px',position:'relative'}}>
+        <GL/>
+        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
+          <button onClick={onVoltar} style={{background:T.surface,border:`1px solid ${T.s2}`,borderRadius:8,width:32,height:32,color:T.muted,cursor:'pointer',fontSize:16}}>←</button>
+          <div style={{flex:1}}>
+            <div style={{fontSize:16,fontWeight:800}}>💰 Finanças</div>
+            <div style={{fontSize:9,color:saldoSemanal>=0?T.success:T.danger}}>
+              {saldoSemanal>=0?`+${saldoSemanal}€/semana`:`${saldoSemanal}€/semana`}
+              {saldoSemanal<0&&<span style={{color:T.muted}}> · {semanasSobrevivencia} semanas de reserva</span>}
+            </div>
           </div>
         </div>
-        <div style={{ display:'flex', gap:6 }}>
-          {[['resumo',idioma==='en'?'Summary':idioma==='es'?'Resumen':'Resumo'],['adicionar',idioma==='en'?'Add':idioma==='es'?'Añadir':'Adicionar'],['historico',idioma==='en'?'History':idioma==='es'?'Historial':'Historial']].map(([id,label]) => (
-            <button key={id} onClick={() => setTab(id)}
-              style={{ flex:'none', padding:'8px 14px', borderRadius:8, border:tab===id?'none':'1px solid rgba(255,255,255,.08)', background:tab===id?'linear-gradient(135deg,#22c55e,#15803d)':'rgba(255,255,255,.04)', color:tab===id?'#fff':'#cbd5e1', fontSize:12, fontWeight:tab===id?700:500, cursor:'pointer', fontFamily:"'Inter',system-ui,sans-serif", minHeight:36 }}>
+        <div style={{display:'flex',gap:6}}>
+          {[['resumo','Resumo'],['receitas','Receitas'],['despesas','Despesas'],['historico','Historial']].map(([id,label])=>(
+            <button key={id} onClick={()=>setTab(id)}
+              style={{flex:'none',padding:'7px 10px',borderRadius:8,border:tab===id?'none':`1px solid ${T.s2}`,background:tab===id?`${T.success}20`:'transparent',color:tab===id?T.success:T.muted,fontSize:10,fontWeight:tab===id?700:400,cursor:'pointer',fontFamily:'inherit'}}>
               {label}
             </button>
           ))}
         </div>
       </div>
 
-      {msg && (
-        <div style={{ margin:'12px 16px 0', padding:'10px 14px', background:msg.tipo==='ok'?'rgba(34,197,94,.1)':'rgba(248,113,113,.1)', border:`1px solid ${msg.tipo==='ok'?'rgba(34,197,94,.3)':'rgba(248,113,113,.3)'}`, borderRadius:10, fontSize:12, color:msg.tipo==='ok'?'#22c55e':'#f87171', fontWeight:600 }}>
-          {msg.tipo==='ok'?'✅':'❌'} {msg.texto}
-        </div>
-      )}
+      <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:12}}>
 
-      <div style={{ padding:'12px 16px', display:'flex', flexDirection:'column', gap:12 }}>
-
-        {tab === 'resumo' && (
+        {/* RESUMO */}
+        {tab==='resumo'&&(
           <>
-            {/* Cards principais */}
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-              {[
-                { label:idioma==='en'?'Balance':idioma==='es'?'Saldo':'Saldo', valor:`${saldo.toLocaleString()}€`, cor: saldo >= 0 ? '#22c55e' : '#f87171', icon:'💰' },
-                { label:idioma==='en'?'Staff cost':idioma==='es'?'Coste staff':'Custo staff', valor:`${salarioMensal.toLocaleString()}€/${idioma==='en'?'mo':idioma==='es'?'mes':'mês'}`, cor:'#f97316', icon:'👥' },
-                { label:idioma==='en'?'Income':idioma==='es'?'Ingresos':'Receitas', valor:`+${totalReceitas.toLocaleString()}€`, cor:'#22c55e', icon:'📈' },
-                { label:idioma==='en'?'Expenses':idioma==='es'?'Gastos':'Despesas', valor:`-${totalDespesas.toLocaleString()}€`, cor:'#f87171', icon:'📉' },
-              ].map((s,i) => (
-                <div key={i} style={{ padding:'14px', background:T.surface, border:`1px solid ${s.cor}20`, borderRadius:12, textAlign:'center' }}>
-                  <div style={{ fontSize:20, marginBottom:6 }}>{s.icon}</div>
-                  <div style={{ fontFamily:"'Fraunces',serif", fontSize:16, fontWeight:900, color:s.cor }}>{s.valor}</div>
-                  <div style={{ fontSize:9, color:T.muted, marginTop:2, fontWeight:600 }}>{s.label.toUpperCase()}</div>
-                </div>
-              ))}
+            {/* Saldo principal */}
+            <div style={{background:'linear-gradient(135deg,rgba(201,168,76,.12),rgba(201,168,76,.04))',border:`1px solid ${T.gold}30`,borderRadius:16,padding:'20px',position:'relative',overflow:'hidden',textAlign:'center'}}>
+              <GL/>
+              <div style={{fontSize:9,color:T.gold,fontWeight:700,letterSpacing:1.5,marginBottom:6}}>SALDO ACTUAL</div>
+              <div style={{fontFamily:"Georgia,serif",fontSize:38,fontWeight:900,color:T.gold,letterSpacing:-1,lineHeight:1}}>{orcamento.toLocaleString()}€</div>
+              <div style={{fontSize:10,color:T.muted,marginTop:6}}>
+                {saldoSemanal>=0?`+${saldoSemanal}€/sem · Projecto estável`:`${saldoSemanal}€/sem · ${semanasSobrevivencia} sem. de reserva`}
+              </div>
+              {/* Mini gráfico */}
+              <div style={{marginTop:12}}>
+                <MiniChart valores={historicoOrc} cor={T.gold}/>
+              </div>
             </div>
 
-            {/* Dicas */}
-            <div style={{ padding:'12px 14px', background:'rgba(34,197,94,.06)', border:'1px solid rgba(34,197,94,.15)', borderRadius:10 }}>
-              <div style={{ fontSize:11, fontWeight:700, color:'#22c55e', marginBottom:6 }}>
-                💡 {idioma==='en'?'Financial tips':idioma==='es'?'Consejos financieros':'Dicas financeiras'}
+            {/* Alerta défice */}
+            {saldoSemanal<0&&semanasSobrevivencia<8&&(
+              <div style={{padding:'10px 14px',background:`${T.danger}08`,border:`1px solid ${T.danger}25`,borderRadius:10,fontSize:11,color:T.danger,fontWeight:600}}>
+                ⚠️ Atenção: ao ritmo actual o saldo esgota em {semanasSobrevivencia} semanas. Reduz custos ou aumenta receitas!
               </div>
+            )}
+
+            {/* Grid receitas vs despesas */}
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+              <div style={{background:`${T.success}08`,border:`1px solid ${T.success}20`,borderRadius:12,padding:'14px',position:'relative',overflow:'hidden'}}>
+                <GL/>
+                <div style={{fontSize:9,color:T.success,fontWeight:700,letterSpacing:1,marginBottom:6}}>RECEITAS/SEM.</div>
+                <div style={{fontFamily:"Georgia,serif",fontSize:22,fontWeight:900,color:T.success}}>+{recPatrocinios}€</div>
+                <div style={{fontSize:9,color:T.muted,marginTop:2}}>Patrocínios activos</div>
+              </div>
+              <div style={{background:`${T.danger}08`,border:`1px solid ${T.danger}20`,borderRadius:12,padding:'14px',position:'relative',overflow:'hidden'}}>
+                <GL/>
+                <div style={{fontSize:9,color:T.danger,fontWeight:700,letterSpacing:1,marginBottom:6}}>DESPESAS/SEM.</div>
+                <div style={{fontFamily:"Georgia,serif",fontSize:22,fontWeight:900,color:T.danger}}>-{(despStaff+despAlim).toLocaleString()}€</div>
+                <div style={{fontSize:9,color:T.muted,marginTop:2}}>Staff + alimentação</div>
+              </div>
+            </div>
+
+            {/* Breakdown */}
+            <div style={{background:T.surface,border:`1px solid ${T.s2}`,borderRadius:12,padding:'14px',position:'relative',overflow:'hidden'}}>
+              <GL/>
+              <div style={{fontSize:9,color:T.muted,fontWeight:700,letterSpacing:1,marginBottom:10}}>DETALHE SEMANAL</div>
               {[
-                salarioMensal > saldo * 0.3 ? (idioma==='en'?'⚠️ Staff costs are high relative to budget':idioma==='es'?'⚠️ Los costos de staff son altos':'⚠️ Custos de staff elevados relativamente ao orçamento') : null,
-                saldo < 2000 ? (idioma==='en'?'⚠️ Low budget — enter races to earn prizes':idioma==='es'?'⚠️ Presupuesto bajo — compite para ganar premios':'⚠️ Orçamento baixo — participa em provas para ganhar prémios') : null,
-                saldo > 10000 ? (idioma==='en'?'✅ Good budget — consider upgrading facilities':idioma==='es'?'✅ Buen presupuesto — mejora las instalaciones':'✅ Bom orçamento — considera melhorar o pombal') : null,
-              ].filter(Boolean).map((d,i) => <div key={i} style={{ fontSize:11, color:T.muted, marginTop:4 }}>{d}</div>)}
+                {l:'Patrocínios',v:`+${recPatrocinios}€`,c:T.success},
+                {l:'Staff',v:`-${despStaff}€`,c:T.danger},
+                {l:'Alimentação',v:`-${despAlim}€`,c:T.orange},
+                {l:'Saldo líquido',v:`${saldoSemanal>=0?'+':''}${saldoSemanal}€`,c:saldoSemanal>=0?T.success:T.danger,bold:true},
+              ].map((s,i)=>(
+                <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:i<3?`1px solid ${T.s2}`:'none'}}>
+                  <span style={{fontSize:11,color:s.bold?T.text:T.muted,fontWeight:s.bold?700:400}}>{s.l}</span>
+                  <span style={{fontSize:11,fontWeight:s.bold?800:600,color:s.c}}>{s.v}</span>
+                </div>
+              ))}
             </div>
           </>
         )}
 
-        {tab === 'adicionar' && (
-          <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-            {/* Tipo */}
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-              {[['receita','📈','#22c55e'],['despesa','📉','#f87171']].map(([tipo,icon,cor]) => (
-                <div key={tipo} onClick={() => setForm(f=>({...f,tipo,categoria:''}))}
-                  style={{ padding:'12px', borderRadius:10, border:`2px solid ${form.tipo===tipo?cor:'rgba(255,255,255,.06)'}`, background:form.tipo===tipo?`${cor}10`:T.surface, cursor:'pointer', textAlign:'center' }}>
-                  <div style={{ fontSize:20, marginBottom:4 }}>{icon}</div>
-                  <div style={{ fontSize:12, fontWeight:700, color:form.tipo===tipo?cor:'#7A8699' }}>
-                    {tipo === 'receita' ? (idioma==='en'?'Income':idioma==='es'?'Ingreso':'Receita') : (idioma==='en'?'Expense':idioma==='es'?'Gasto':'Despesa')}
+        {/* RECEITAS */}
+        {tab==='receitas'&&(
+          <>
+            {CATEGORIAS_REC.map((cat,i)=>(
+              <div key={i} style={{background:T.surface,border:`1px solid ${cat.cor}20`,borderRadius:12,padding:'14px',position:'relative',overflow:'hidden'}}>
+                <GL/>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <div style={{display:'flex',gap:10,alignItems:'center'}}>
+                    <div style={{width:40,height:40,borderRadius:10,background:`${cat.cor}15`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20}}>{cat.icon}</div>
+                    <div>
+                      <div style={{fontSize:13,fontWeight:700,color:T.text}}>{cat.label}</div>
+                      <div style={{fontSize:9,color:T.muted}}>{cat.periodo}</div>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Valor */}
-            <div>
-              <label style={{ fontSize:11, color:T.muted, display:'block', marginBottom:6 }}>
-                {idioma==='en'?'Amount (€)':idioma==='es'?'Importe (€)':'Valor (€)'}
-              </label>
-              <input type="number" value={form.valor} onChange={e=>setForm(f=>({...f,valor:e.target.value}))}
-                placeholder="0"
-                style={{ width:'100%', padding:'12px', background:T.surface, border:'1px solid rgba(255,255,255,.1)', borderRadius:10, color:T.text, fontSize:16, fontFamily:"'Inter',system-ui,sans-serif", outline:'none', boxSizing:'border-box' }}/>
-            </div>
-
-            {/* Categoria */}
-            <div>
-              <label style={{ fontSize:11, color:T.muted, display:'block', marginBottom:6 }}>
-                {idioma==='en'?'Category':idioma==='es'?'Categoría':'Categoria'}
-              </label>
-              <select value={form.categoria} onChange={e=>setForm(f=>({...f,categoria:e.target.value}))}
-                style={{ width:'100%', padding:'12px', background:T.surface2, border:'1px solid rgba(255,255,255,.1)', borderRadius:10, color:T.text, fontSize:13, fontFamily:"'Inter',system-ui,sans-serif", outline:'none' }}>
-                <option value="">-- {idioma==='en'?'Select':idioma==='es'?'Seleccionar':'Seleccionar'} --</option>
-                {(form.tipo==='receita'?cats.receitas:cats.despesas).map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-
-            {/* Descrição */}
-            <div>
-              <label style={{ fontSize:11, color:T.muted, display:'block', marginBottom:6 }}>
-                {idioma==='en'?'Description (optional)':idioma==='es'?'Descripción (opcional)':'Descrição (opcional)'}
-              </label>
-              <input value={form.desc} onChange={e=>setForm(f=>({...f,desc:e.target.value}))}
-                placeholder={idioma==='en'?'Notes...':idioma==='es'?'Notas...':'Notas...'}
-                style={{ width:'100%', padding:'12px', background:T.surface, border:'1px solid rgba(255,255,255,.1)', borderRadius:10, color:T.text, fontSize:13, fontFamily:"'Inter',system-ui,sans-serif", outline:'none', boxSizing:'border-box' }}/>
-            </div>
-
-            <button onClick={adicionarMovimento}
-              style={{ padding:'14px', borderRadius:10, border:'none', background:'linear-gradient(135deg,#22c55e,#15803d)', color:T.text, fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:"'Inter',system-ui,sans-serif" }}>
-              + {idioma==='en'?'Add movement':idioma==='es'?'Añadir movimiento':'Adicionar movimento'}
-            </button>
-          </div>
-        )}
-
-        {tab === 'historico' && (
-          <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-            {movimentos.length === 0 ? (
-              <div style={{ textAlign:'center', padding:'40px 20px', color:T.muted }}>
-                <div style={{ fontSize:40, marginBottom:12 }}>💸</div>
-                <div style={{ fontSize:14, fontWeight:600 }}>
-                  {idioma==='en'?'No movements yet':idioma==='es'?'Sin movimientos aún':'Sem movimentos ainda'}
+                  <div style={{fontFamily:"Georgia,serif",fontSize:18,fontWeight:900,color:cat.cor}}>+{cat.valor.toLocaleString()}€</div>
                 </div>
               </div>
-            ) : (
-              [...movimentos].reverse().map((m,i) => (
-                <div key={i} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 14px', background:T.surface, border:'1px solid rgba(255,255,255,.04)', borderRadius:10 }}>
-                  <span style={{ fontSize:18 }}>{m.tipo==='receita'?'📈':'📉'}</span>
-                  <div style={{ flex:1 }}>
-                    <div style={{ fontSize:12, fontWeight:600, color:'#cbd5e1' }}>{m.categoria}</div>
-                    {m.desc && <div style={{ fontSize:10, color:T.muted }}>{m.desc}</div>}
-                    <div style={{ fontSize:9, color:'#2a3a5a', marginTop:2 }}>{idioma==='en'?'Week':idioma==='es'?'Sem.':'Sem.'} {m.semana}</div>
+            ))}
+            {patrocinios.length>0&&(
+              <div>
+                <div style={{fontSize:9,color:T.muted,fontWeight:700,letterSpacing:1,marginBottom:8}}>CONTRATOS ACTIVOS</div>
+                {patrocinios.map((p,i)=>(
+                  <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'10px 12px',background:T.surface,border:`1px solid ${T.s2}`,borderRadius:8,marginBottom:4}}>
+                    <div>
+                      <div style={{fontSize:11,color:T.text}}>{p.nome}</div>
+                      <div style={{fontSize:9,color:T.muted}}>{p.semanasRestantes} sem. restantes</div>
+                    </div>
+                    <div style={{fontSize:12,fontWeight:700,color:T.success}}>+{p.valorSemanal}€/sem</div>
                   </div>
-                  <div style={{ fontSize:14, fontWeight:700, color:m.tipo==='receita'?'#22c55e':'#f87171' }}>
-                    {m.tipo==='receita'?'+':'-'}{m.valor.toLocaleString()}€
-                  </div>
-                </div>
-              ))
+                ))}
+              </div>
             )}
-          </div>
+          </>
+        )}
+
+        {/* DESPESAS */}
+        {tab==='despesas'&&(
+          <>
+            {CATEGORIAS_DESP.map((cat,i)=>(
+              <div key={i} style={{background:T.surface,border:`1px solid ${cat.cor}20`,borderRadius:12,padding:'14px',position:'relative',overflow:'hidden'}}>
+                <GL/>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <div style={{display:'flex',gap:10,alignItems:'center'}}>
+                    <div style={{width:40,height:40,borderRadius:10,background:`${cat.cor}15`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20}}>{cat.icon}</div>
+                    <div>
+                      <div style={{fontSize:13,fontWeight:700,color:T.text}}>{cat.label}</div>
+                      <div style={{fontSize:9,color:T.muted}}>{cat.periodo}</div>
+                    </div>
+                  </div>
+                  <div style={{fontFamily:"Georgia,serif",fontSize:18,fontWeight:900,color:cat.cor}}>-{cat.valor.toLocaleString()}€</div>
+                </div>
+              </div>
+            ))}
+            {staff.length>0&&(
+              <div>
+                <div style={{fontSize:9,color:T.muted,fontWeight:700,letterSpacing:1,marginBottom:8}}>SALÁRIOS SEMANAIS</div>
+                {staff.map((m,i)=>(
+                  <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'10px 12px',background:T.surface,border:`1px solid ${T.s2}`,borderRadius:8,marginBottom:4}}>
+                    <div style={{fontSize:11,color:T.text}}>{m.nome}</div>
+                    <div style={{fontSize:11,fontWeight:700,color:T.danger}}>-{Math.round((m.salario||0)/4)}€/sem</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* HISTORIAL */}
+        {tab==='historico'&&(
+          movimentos.length===0?(
+            <div style={{textAlign:'center',padding:'40px 20px'}}>
+              <div style={{fontSize:40,marginBottom:12}}>📋</div>
+              <div style={{fontSize:13,color:T.muted}}>Sem movimentos registados</div>
+            </div>
+          ):[...movimentos].reverse().slice(0,30).map((m,i)=>(
+            <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',background:T.surface,border:`1px solid ${T.s2}`,borderRadius:10}}>
+              <div>
+                <div style={{fontSize:11,fontWeight:600,color:T.text}}>{m.descricao||m.tipo}</div>
+                <div style={{fontSize:9,color:T.muted}}>Sem.{m.semana||'-'}</div>
+              </div>
+              <div style={{fontSize:13,fontWeight:700,color:(m.valor||0)>=0?T.success:T.danger}}>
+                {(m.valor||0)>=0?'+':''}{(m.valor||0).toLocaleString()}€
+              </div>
+            </div>
+          ))
         )}
       </div>
     </div>
