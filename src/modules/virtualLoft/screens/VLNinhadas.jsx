@@ -28,7 +28,7 @@ const FASES=[
   {id:'adulto',   icon:'🕊️', label:'Adulto',    dias:'77+',    cor:'#C9A84C', desc:'Pronto para treino e competição.'},
 ]
 
-const NOMES_CRIA=['Relâmpago','Trovão','Brisa','Aurora','Eclipse','Cometa','Estrela','Falcão','Titan','Orion','Vega','Atlas','Zeus','Apolo','Marte','Mercúrio','Diana','Ares','Hera','Nike']
+const NOMES_CRIA=['Relâmpago','Trovão','Brisa','Aurora','Eclipse','Cometa','Estrela','Falcão','Titan','Orion','Vega','Atlas','Zeus','Apolo','Marte','Mercúrio','Diana','Ares','Hera','Nike','Fénix','Tornado','Vendaval','Ciclone','Meteoro','Vulcão','Granito','Ébano','Safira','Rubi','Ónix','Prata','Dourado','Índigo','Turquesa','Coral','Âmbar','Jade','Cristal','Diamante','Neptuno','Júpiter','Saturno','Plutão','Vénus','Hermes','Poseidon','Hades','Atena','Ártemis','Perseu','Aquiles','Ulisses','Ícaro','Pégaso','Centauro','Grifo','Dragão','Lince','Pantera','Jaguar','Puma','Águia Real','Condor','Albatroz','Gavião','Peregrino','Milhafre','Açor','Kestrel']
 const GENES_RAROS=['Linha Campeã','Mutação Velocista','Sangue Puro','Gene Olímpico','Resistência Infinita','Orientador Nato']
 
 function g(base,std=12){return Math.min(99,Math.max(1,Math.round(base+(Math.random()-.5)*2*std)))}
@@ -110,12 +110,13 @@ export default function VLNinhadas({carreira,onVoltar,onGuardar}){
       const espIdx=Math.random()<0.7?pai.esp_idx??0:Math.floor(Math.random()*4)
       const ESPS=['Velocidade','Meio-Fundo','Fundo','Grande Fundo']
       const rating=Math.round(((pai.rating||3)+(mae.rating||3))/2+(Math.random()>.7?1:-1)*Math.floor(Math.random()*2))
-      const nome=NOMES_CRIA[Math.floor(Math.random()*NOMES_CRIA.length)]
       const ano=(new Date().getFullYear()+Math.floor((diaAtual-1)/280))
+      const anilhaNum=Math.floor(Math.random()*900000+100000)
+      const nome=`${NOMES_CRIA[Math.floor(Math.random()*NOMES_CRIA.length)]} ${String(anilhaNum).slice(-3)}`
       return{
         id:`p_${Date.now()}_${i}`,
         nome,
-        anilha:`PT-${ano}-${Math.floor(Math.random()*900000+100000)}`,
+        anilha:`PT-${ano}-${anilhaNum}`,
         sexo,ano,
         especialidade:ESPS[espIdx],esp_idx:espIdx,
         personalidade:['Calmo'],
