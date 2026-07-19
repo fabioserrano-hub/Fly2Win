@@ -1,236 +1,321 @@
-// src/modules/virtualLoft/screens/VLStaff.jsx
+// src/modules/virtualLoft/screens/VLStaff.jsx — V2 Efeitos reais + evolução
 import { useState } from 'react'
 
-const T={bg:'#050A14',surface:'#0D1829',surface2:'#1A2A45',gold:'#C9A84C',blue:'#4FC3F7',text:'#E8EDF5',muted:'#6B7A99',success:'#2DD4A7',danger:'#F87171',purple:'#A855F7'}
+const T={bg:'#050A14',surface:'#0D1829',s2:'#1A2A45',gold:'#C9A84C',blue:'#4FC3F7',text:'#E8EDF5',muted:'#6B7A99',success:'#2DD4A7',danger:'#F87171',purple:'#A855F7',orange:'#FB923C'}
 function lerLS(){try{return JSON.parse(localStorage.getItem('vl_carreira'))}catch{return null}}
 function gravarLS(d){try{localStorage.setItem('vl_carreira',JSON.stringify(d))}catch{}}
-function GoldLine(){return <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,#C9A84C,transparent)',opacity:.7}}/>}
+function GL(){return <div style={{position:'absolute',top:0,left:0,right:0,height:1,background:'linear-gradient(90deg,transparent,#C9A84C,transparent)',opacity:.8}}/>}
 
-const TIPOS_STAFF = {
-  pt: [
-    { id:'veterinario',   icon:'🏥', label:'Veterinário',        desc:'Trata lesões e doenças. Reduz tempo de recuperação.',      salarioBase:800,  atributos:['medicina','diagnostico','experiencia'] },
-    { id:'tratador',      icon:'🕊️', label:'Tratador',           desc:'Cuida dos pombos diariamente. Melhora bem-estar geral.',   salarioBase:400,  atributos:['cuidado','dedicacao','experiencia'] },
-    { id:'nutricionista', icon:'🌾', label:'Nutricionista',       desc:'Optimiza alimentação. Melhora forma e resistência.',       salarioBase:600,  atributos:['nutricao','planeamento','experiencia'] },
-    { id:'geneticista',   icon:'🔬', label:'Geneticista',         desc:'Analisa ADN dos pombos. Revela potencial oculto.',         salarioBase:1200, atributos:['genetica','analise','experiencia'] },
-    { id:'preparador',    icon:'🎯', label:'Preparador Físico',   desc:'Optimiza treinos. Aumenta ganho de atributos.',            salarioBase:700,  atributos:['treino','motivacao','experiencia'] },
-    { id:'orientacao',    icon:'🧭', label:'Esp. Orientação',     desc:'Melhora capacidade de orientação dos pombos.',             salarioBase:900,  atributos:['orientacao','tecnica','experiencia'] },
-    { id:'olheiro',       icon:'👁️', label:'Olheiro',             desc:'Descobre pombos talentosos no mercado.',                   salarioBase:500,  atributos:['visao','negociacao','experiencia'] },
-  ],
-  en: [
-    { id:'veterinario',   icon:'🏥', label:'Veterinarian',       desc:'Treats injuries and diseases. Reduces recovery time.',      salarioBase:800,  atributos:['medicina','diagnostico','experiencia'] },
-    { id:'tratador',      icon:'🕊️', label:'Handler',             desc:'Cares for pigeons daily. Improves overall wellbeing.',     salarioBase:400,  atributos:['cuidado','dedicacao','experiencia'] },
-    { id:'nutricionista', icon:'🌾', label:'Nutritionist',        desc:'Optimises feeding. Improves form and stamina.',            salarioBase:600,  atributos:['nutricao','planeamento','experiencia'] },
-    { id:'geneticista',   icon:'🔬', label:'Geneticist',          desc:'Analyses pigeon DNA. Reveals hidden potential.',           salarioBase:1200, atributos:['genetica','analise','experiencia'] },
-    { id:'preparador',    icon:'🎯', label:'Fitness Coach',       desc:'Optimises training. Increases attribute gains.',           salarioBase:700,  atributos:['treino','motivacao','experiencia'] },
-    { id:'orientacao',    icon:'🧭', label:'Navigation Specialist',desc:'Improves pigeon navigation ability.',                     salarioBase:900,  atributos:['orientacao','tecnica','experiencia'] },
-    { id:'olheiro',       icon:'👁️', label:'Scout',               desc:'Discovers talented pigeons on the market.',                salarioBase:500,  atributos:['visao','negociacao','experiencia'] },
-  ],
-  es: [
-    { id:'veterinario',   icon:'🏥', label:'Veterinario',         desc:'Trata lesiones y enfermedades. Reduce tiempo de recuperación.', salarioBase:800,  atributos:['medicina','diagnostico','experiencia'] },
-    { id:'tratador',      icon:'🕊️', label:'Cuidador',            desc:'Cuida las palomas diariamente. Mejora el bienestar general.',  salarioBase:400,  atributos:['cuidado','dedicacao','experiencia'] },
-    { id:'nutricionista', icon:'🌾', label:'Nutricionista',        desc:'Optimiza alimentación. Mejora forma y resistencia.',           salarioBase:600,  atributos:['nutricao','planeamento','experiencia'] },
-    { id:'geneticista',   icon:'🔬', label:'Genetista',            desc:'Analiza ADN de palomas. Revela potencial oculto.',             salarioBase:1200, atributos:['genetica','analise','experiencia'] },
-    { id:'preparador',    icon:'🎯', label:'Preparador Físico',    desc:'Optimiza entrenamientos. Aumenta ganancia de atributos.',      salarioBase:700,  atributos:['treino','motivacao','experiencia'] },
-    { id:'orientacao',    icon:'🧭', label:'Esp. Orientación',     desc:'Mejora capacidad de orientación de las palomas.',              salarioBase:900,  atributos:['orientacao','tecnica','experiencia'] },
-    { id:'olheiro',       icon:'👁️', label:'Ojeador',              desc:'Descubre palomas talentosas en el mercado.',                   salarioBase:500,  atributos:['visao','negociacao','experiencia'] },
-  ],
+const STAFF_TIPOS = {
+  veterinario: {
+    icon:'🏥', label:'Veterinário', cor:'#2DD4A7',
+    efeitos:['Lesões curam 2× mais rápido','Previne doenças (-60%)','Consultas gratuitas'],
+    salarios:[800,1200,1800,2500],
+    candidatos:[
+      {id:'v1',nome:'Dr. Rui Figueiredo',   exp:8, idade:42, nota:'Especialista em columbofilia. Ex-clínica nacional.',    estrelas:4},
+      {id:'v2',nome:'Dra. Ana Sousa',        exp:5, idade:35, nota:'Boa base clínica. Especialização em aves.',            estrelas:3},
+      {id:'v3',nome:'Dr. Carlos Mendes',     exp:15,idade:54, nota:'Lendário no circuito. Tratou campeões nacionais.',     estrelas:5},
+    ]
+  },
+  treinador: {
+    icon:'🎯', label:'Treinador', cor:'#C9A84C',
+    efeitos:['+20% ganho de atributos por treino','Planos individualizados','Detecta potencial oculto mais rápido'],
+    salarios:[600,900,1400,2000],
+    candidatos:[
+      {id:'t1',nome:'João Correia',           exp:6, idade:38, nota:'Metodologia moderna. Especialista em velocidade.',     estrelas:3},
+      {id:'t2',nome:'Manuel Rodrigues',       exp:12,idade:51, nota:'Formado em zoologia desportiva. Resultados provados.',estrelas:4},
+      {id:'t3',nome:'António Silva',          exp:20,idade:62, nota:'Formou 3 campeões nacionais. Lenda viva.',            estrelas:5},
+    ]
+  },
+  geneticista: {
+    icon:'🧬', label:'Geneticista', cor:'#A855F7',
+    efeitos:['Revela 1 atributo oculto/semana','Análise de compatibilidade de casais','Detecta genes raros'],
+    salarios:[1000,1500,2200,3000],
+    candidatos:[
+      {id:'g1',nome:'Dra. Filipa Costa',     exp:4, idade:31, nota:'Doutorada em genética aviária. Muito promissora.',     estrelas:3},
+      {id:'g2',nome:'Prof. Jorge Leal',       exp:9, idade:45, nota:'Investigador universitário. Publicou 12 estudos.',    estrelas:4},
+      {id:'g3',nome:'Dra. Sofia Marques',    exp:14,idade:48, nota:'Descobriu o gene da orientação. Única no mundo.',     estrelas:5},
+    ]
+  },
+  nutricionista: {
+    icon:'🌾', label:'Nutricionista', cor:'#FB923C',
+    efeitos:['Fadiga recupera +15%/dia','Forma máxima +10 pontos','Misturas personalizadas'],
+    salarios:[500,750,1100,1600],
+    candidatos:[
+      {id:'n1',nome:'Luísa Ferreira',         exp:3, idade:28, nota:'Especialista em aves de competição. Energética.',     estrelas:3},
+      {id:'n2',nome:'Paulo Neves',            exp:7, idade:40, nota:'Criou protocolo nutricional adoptado por 50 clubes.', estrelas:4},
+      {id:'n3',nome:'Dr. Miguel Araújo',      exp:11,idade:47, nota:'Nutricionista da selecção nacional. Top absoluto.',   estrelas:5},
+    ]
+  },
+  olheiro: {
+    icon:'🔭', label:'Olheiro', cor:'#38BDF8',
+    efeitos:['Sugere 3 pombos/semana no Mercado','Negociação -15% no preço','Detecta talentos escondidos'],
+    salarios:[400,600,900,1300],
+    candidatos:[
+      {id:'o1',nome:'Tiago Mota',            exp:5, idade:33, nota:'Rede de contactos em Portugal e Espanha.',            estrelas:3},
+      {id:'o2',nome:'Fernando Gomes',         exp:8, idade:44, nota:'Descobriu 3 campeões nacionais. Olho clínico.',       estrelas:4},
+      {id:'o3',nome:'Ricardo Pereira',        exp:13,idade:50, nota:'Actua em toda a Europa. Agenda impressionante.',     estrelas:5},
+    ]
+  },
 }
 
-function gerarMembro(tipo, idioma) {
-  const nomes = ['Carlos Silva','João Ferreira','Ana Santos','Pedro Costa','Maria Oliveira','Rui Martins','Sofia Rodrigues','Miguel Pereira']
-  const nome = nomes[Math.floor(Math.random() * nomes.length)]
-  const nivel = Math.floor(Math.random() * 4) + 1
-  const atrs = {}
-  tipo.atributos.forEach(a => { atrs[a] = Math.floor(Math.random() * 40) + 40 + (nivel * 8) })
-  return {
-    id: `staff_${Date.now()}_${Math.random().toString(36).slice(2,6)}`,
-    nome, tipo: tipo.id, nivel,
-    salario: Math.round(tipo.salarioBase * (0.8 + nivel * 0.15)),
-    atributos: atrs,
-    contratado: false,
-  }
+function EstrelaRating({n,max=5,cor}){
+  return(
+    <div style={{display:'flex',gap:2}}>
+      {Array.from({length:max}).map((_,i)=>(
+        <span key={i} style={{fontSize:11,color:i<n?cor||T.gold:'rgba(255,255,255,.1)'}}>{i<n?'★':'☆'}</span>
+      ))}
+    </div>
+  )
 }
 
-function corNivel(n) {
-  return n >= 4 ? '#D4AF37' : n >= 3 ? '#2DD4A7' : n >= 2 ? '#4C8DFF' : '#7A8699'
-}
-
-export default function VLStaff({ carreira, onVoltar, onGuardar, idioma = 'pt' }) {
-  // Ler sempre do localStorage para ter dados mais recentes
-  const [carreiraLocal, setCarreiraLocal] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('vl_carreira')) || carreira } catch { return carreira }
-  })
-  const c = carreiraLocal
-
-  const salvarLocal = (dados) => {
-    try { localStorage.setItem('vl_carreira', JSON.stringify(dados)) } catch {}
-    setCarreiraLocal({ ...dados })
-    onGuardar?.(dados)
-  }
-
-  const tipos = TIPOS_STAFF[idioma] || TIPOS_STAFF.pt
-  const [tipoSel, setTipoSel] = useState(null)
-  const [candidatos, setCandidatos] = useState({})
-  const [msg, setMsg] = useState(null)
-
-  const staffAtual = c.staff || []
-  const salarioTotal = staffAtual.reduce((s, m) => s + (m.salario || 0), 0)
-
-  const pesquisarCandidatos = (tipo) => {
-    if (candidatos[tipo.id]) { setTipoSel(tipo); return }
-    // Gerar 3 candidatos
-    const lista = Array.from({length:3}, () => gerarMembro(tipo, idioma))
-    setCandidatos(c => ({ ...c, [tipo.id]: lista }))
-    setTipoSel(tipo)
-  }
-
-  const contratar = (membro) => {
-    if (c.orcamento < membro.salario * 12) {
-      setMsg({ tipo:'erro', texto: idioma==='en'?'Not enough budget for annual salary!':idioma==='es'?'¡Presupuesto insuficiente para salario anual!':'Orçamento insuficiente para salário anual!' })
-      setTimeout(() => setMsg(null), 2500)
-      return
-    }
-    // Verificar se já tem alguém deste tipo
-    const jatem = staffAtual.find(s => s.tipo === membro.tipo)
-    let novoStaff = [...staffAtual]
-    if (jatem) {
-      novoStaff = novoStaff.filter(s => s.tipo !== membro.tipo)
-    }
-    novoStaff.push({ ...membro, contratado: true })
-    const novaCarreira = {
-      ...carreira,
-      staff: novoStaff,
-      orcamento: c.orcamento - membro.salario * 3, // paga 3 meses adiantado
-    }
-    salvarLocal(novaCarreira)
-    setMsg({ tipo:'ok', texto: `${membro.nome} ${idioma==='en'?'hired!':idioma==='es'?'contratado!':'contratado!'}` })
-    setTimeout(() => setMsg(null), 2500)
-    setTipoSel(null)
-  }
-
-  const despedir = (membro) => {
-    const novoStaff = staffAtual.filter(s => s.id !== membro.id)
-    onGuardar?.({ ...c, staff: novoStaff })
-    setMsg({ tipo:'info', texto: `${membro.nome} ${idioma==='en'?'dismissed':idioma==='es'?'despedido':'despedido'}` })
-    setTimeout(() => setMsg(null), 2000)
-  }
-
-  const attrLabel = { medicina:{pt:'Medicina',en:'Medicine',es:'Medicina'}, diagnostico:{pt:'Diagnóstico',en:'Diagnosis',es:'Diagnóstico'}, cuidado:{pt:'Cuidado',en:'Care',es:'Cuidado'}, dedicacao:{pt:'Dedicação',en:'Dedication',es:'Dedicación'}, nutricao:{pt:'Nutrição',en:'Nutrition',es:'Nutrición'}, planeamento:{pt:'Planeamento',en:'Planning',es:'Planificación'}, genetica:{pt:'Genética',en:'Genetics',es:'Genética'}, analise:{pt:'Análise',en:'Analysis',es:'Análisis'}, treino:{pt:'Treino',en:'Training',es:'Entrenamiento'}, motivacao:{pt:'Motivação',en:'Motivation',es:'Motivación'}, orientacao:{pt:'Orientação',en:'Navigation',es:'Orientación'}, tecnica:{pt:'Técnica',en:'Technique',es:'Técnica'}, visao:{pt:'Visão',en:'Vision',es:'Visión'}, negociacao:{pt:'Negociação',en:'Negotiation',es:'Negociación'}, experiencia:{pt:'Experiência',en:'Experience',es:'Experiencia'} }
-
-  return (
-    <div style={{ minHeight:'100vh', background:T.bg, color:T.text, fontFamily:"'Inter',system-ui,sans-serif" }}>
-      <div style={{ background:'linear-gradient(180deg,#050D1A,#030812)', borderBottom:'1px solid rgba(255,255,255,.05)', padding:'14px 16px' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <button onClick={onVoltar} style={{ background:T.surface, border:'none', borderRadius:8, width:32, height:32, color:T.muted, cursor:'pointer', fontSize:16 }}>←</button>
-          <div>
-            <div style={{ fontSize:16, fontWeight:800 }}>👥 Staff</div>
-            <div style={{ fontSize:10, color:T.muted }}>{staffAtual.length} {idioma==='en'?'hired':idioma==='es'?'contratados':'contratados'} · {salarioTotal.toLocaleString()}€/{idioma==='en'?'mo':idioma==='es'?'mes':'mês'} · {c.orcamento.toLocaleString()}€</div>
+function CardStaffContratado({m, onDespedir, tipo}){
+  const cfg = STAFF_TIPOS[m.tipo] || STAFF_TIPOS[tipo]
+  if (!cfg) return null
+  const cor = cfg.cor
+  return(
+    <div style={{background:T.surface,border:`1px solid ${cor}25`,borderRadius:14,padding:'14px',position:'relative',overflow:'hidden'}}>
+      <GL/>
+      <div style={{display:'flex',gap:12,alignItems:'flex-start',marginBottom:10}}>
+        <div style={{width:46,height:46,borderRadius:12,background:`${cor}15`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}>{cfg.icon}</div>
+        <div style={{flex:1}}>
+          <div style={{fontSize:14,fontWeight:800,color:T.text}}>{m.nome}</div>
+          <div style={{fontSize:10,color:cor,fontWeight:600}}>{cfg.label}</div>
+          <div style={{display:'flex',gap:8,marginTop:3}}>
+            <span style={{fontSize:9,color:T.muted}}>Exp: {m.exp} anos</span>
+            <span style={{fontSize:9,color:T.muted}}>Idade: {m.idade}</span>
           </div>
+        </div>
+        <div style={{textAlign:'right',flexShrink:0}}>
+          <EstrelaRating n={m.estrelas} cor={cor}/>
+          <div style={{fontSize:11,color:T.gold,fontWeight:700,marginTop:4}}>{(m.salario||0).toLocaleString()}€/mês</div>
+        </div>
+      </div>
+      {/* Efeitos activos */}
+      <div style={{display:'flex',flexDirection:'column',gap:4,marginBottom:10}}>
+        {cfg.efeitos.map((ef,i)=>(
+          <div key={i} style={{display:'flex',alignItems:'center',gap:6,padding:'5px 8px',background:`${cor}08`,border:`1px solid ${cor}20`,borderRadius:6}}>
+            <span style={{fontSize:10,color:T.success}}>✓</span>
+            <span style={{fontSize:10,color:T.text}}>{ef}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{fontSize:9,color:T.muted,fontStyle:'italic',marginBottom:8}}>"{m.nota}"</div>
+      <button onClick={()=>onDespedir(m.id)}
+        style={{width:'100%',padding:'8px',borderRadius:8,border:`1px solid ${T.danger}20`,background:`${T.danger}08`,color:T.danger,fontSize:10,cursor:'pointer',fontFamily:'inherit'}}>
+        Despedir
+      </button>
+    </div>
+  )
+}
+
+function ModalContratar({tipo, onContratar, onFechar, orcamento}){
+  const cfg = STAFF_TIPOS[tipo]
+  if (!cfg) return null
+  const [sel, setSel] = useState(null)
+  const candidatoSel = cfg.candidatos.find(c=>c.id===sel)
+  const salario = candidatoSel ? cfg.salarios[candidatoSel.estrelas-3] || cfg.salarios[0] : 0
+  const podeContratar = sel && orcamento >= salario*3
+
+  return(
+    <div style={{position:'fixed',inset:0,background:'rgba(3,6,16,.96)',zIndex:1000,display:'flex',flexDirection:'column',fontFamily:"system-ui,sans-serif"}}>
+      <div style={{background:T.bg,flex:1,overflowY:'auto',maxWidth:480,margin:'0 auto',width:'100%'}}>
+        <div style={{background:`linear-gradient(180deg,${T.surface},${T.bg})`,borderBottom:`1px solid ${T.s2}`,padding:'16px',position:'relative'}}>
+          <GL/>
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <button onClick={onFechar} style={{background:T.s2,border:'none',borderRadius:8,width:32,height:32,color:T.muted,cursor:'pointer',fontSize:14}}>←</button>
+            <div>
+              <div style={{fontSize:15,fontWeight:800,color:cfg.cor}}>{cfg.icon} Contratar {cfg.label}</div>
+              <div style={{fontSize:9,color:T.muted}}>Selecciona um candidato</div>
+            </div>
+          </div>
+        </div>
+        <div style={{padding:'14px 16px',display:'flex',flexDirection:'column',gap:10}}>
+          {/* Efeitos do tipo */}
+          <div style={{padding:'12px',background:`${cfg.cor}08`,border:`1px solid ${cfg.cor}20`,borderRadius:10}}>
+            <div style={{fontSize:9,color:cfg.cor,fontWeight:700,letterSpacing:1,marginBottom:6}}>EFEITOS NO POMBAL</div>
+            {cfg.efeitos.map((ef,i)=><div key={i} style={{fontSize:10,color:T.text,padding:'3px 0'}}>✓ {ef}</div>)}
+          </div>
+
+          {/* Candidatos */}
+          {cfg.candidatos.map(c=>{
+            const sal = cfg.salarios[c.estrelas-3] || cfg.salarios[0]
+            const isSel = sel===c.id
+            const podeContr = orcamento >= sal*3
+            return(
+              <div key={c.id} onClick={()=>podeContr&&setSel(isSel?null:c.id)}
+                style={{padding:'14px',background:isSel?`${cfg.cor}10`:T.surface,border:`${isSel?2:1}px solid ${isSel?cfg.cor:T.s2}`,borderRadius:12,cursor:podeContr?'pointer':'not-allowed',opacity:podeContr?1:.5,position:'relative',overflow:'hidden',transition:'all .15s'}}>
+                {isSel&&<GL/>}
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:6}}>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:700,color:isSel?cfg.cor:T.text}}>{c.nome}</div>
+                    <div style={{fontSize:9,color:T.muted,marginTop:1}}>Exp: {c.exp} anos · {c.idade} anos</div>
+                  </div>
+                  <div style={{textAlign:'right'}}>
+                    <EstrelaRating n={c.estrelas} cor={cfg.cor}/>
+                    <div style={{fontSize:11,color:T.gold,fontWeight:700,marginTop:2}}>{sal.toLocaleString()}€/mês</div>
+                  </div>
+                </div>
+                <div style={{fontSize:10,color:T.muted,fontStyle:'italic'}}>"{c.nota}"</div>
+                {!podeContr&&<div style={{fontSize:9,color:T.danger,marginTop:6}}>Orçamento insuficiente (mín. {(sal*3).toLocaleString()}€)</div>}
+              </div>
+            )
+          })}
+
+          {sel&&(
+            <button onClick={()=>{
+              const c=cfg.candidatos.find(x=>x.id===sel)
+              const sal=cfg.salarios[c.estrelas-3]||cfg.salarios[0]
+              onContratar({...c, tipo, salario:sal, cfg_tipo:tipo})
+            }} style={{width:'100%',padding:'14px',borderRadius:12,border:'none',background:`linear-gradient(135deg,${cfg.cor},${cfg.cor}cc)`,color:'#050A14',fontSize:13,fontWeight:800,cursor:'pointer',fontFamily:'inherit',boxShadow:`0 4px 16px ${cfg.cor}30`}}>
+              ✅ Contratar — {(cfg.salarios[cfg.candidatos.find(x=>x.id===sel)?.estrelas-3]||0).toLocaleString()}€/mês
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function VLStaff({carreira, onVoltar, onGuardar}){
+  const [cl,setCL]=useState(()=>lerLS()||carreira)
+  const c=cl
+  const salvar=d=>{gravarLS(d);setCL({...d});onGuardar?.(d)}
+
+  const [tab,setTab]=useState('equipa')
+  const [modalTipo,setModalTipo]=useState(null)
+  const [msg,setMsg]=useState(null)
+
+  const staff=c.staff||[]
+  const custoMensal=staff.reduce((s,m)=>s+(m.salario||0),0)
+  const custoSemanal=Math.round(custoMensal/4)
+
+  const despedir=id=>{
+    salvar({...c,staff:staff.filter(m=>m.id!==id)})
+    setMsg({tipo:'info',texto:'Membro despedido.'})
+    setTimeout(()=>setMsg(null),3000)
+  }
+
+  const contratar=membro=>{
+    const novoStaff=[...staff,{...membro,id:`s_${Date.now()}`}]
+    salvar({...c,staff:novoStaff,orcamento:Math.max(0,(c.orcamento||0)-membro.salario*3)})
+    setModalTipo(null)
+    setMsg({tipo:'ok',texto:`${membro.nome} contratado!`})
+    setTimeout(()=>setMsg(null),3000)
+  }
+
+  const tiposContratados=new Set(staff.map(m=>m.tipo))
+
+  return(
+    <div style={{minHeight:'100vh',background:T.bg,color:T.text,fontFamily:"system-ui,sans-serif"}}>
+      {modalTipo&&<ModalContratar tipo={modalTipo} onContratar={contratar} onFechar={()=>setModalTipo(null)} orcamento={c.orcamento||0}/>}
+
+      <div style={{background:`linear-gradient(180deg,${T.surface},${T.bg})`,borderBottom:`1px solid ${T.s2}`,padding:'14px 16px',position:'relative'}}>
+        <GL/>
+        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
+          <button onClick={onVoltar} style={{background:T.surface,border:`1px solid ${T.s2}`,borderRadius:8,width:32,height:32,color:T.muted,cursor:'pointer',fontSize:16}}>←</button>
+          <div style={{flex:1}}>
+            <div style={{fontSize:16,fontWeight:800}}>👥 Staff</div>
+            <div style={{fontSize:9,color:T.muted}}>{staff.length} contratados · {custoSemanal.toLocaleString()}€/sem · {(c.orcamento||0).toLocaleString()}€ disponível</div>
+          </div>
+        </div>
+        <div style={{display:'flex',gap:6}}>
+          {[['equipa','Equipa'],['contratar','Contratar'],['efeitos','Efeitos']].map(([id,label])=>(
+            <button key={id} onClick={()=>setTab(id)}
+              style={{flex:'none',padding:'7px 12px',borderRadius:8,border:tab===id?'none':`1px solid ${T.s2}`,background:tab===id?`${T.blue}25`:'transparent',color:tab===id?T.blue:T.muted,fontSize:11,fontWeight:tab===id?700:400,cursor:'pointer',fontFamily:'inherit'}}>
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {msg && (
-        <div style={{ margin:'12px 16px 0', padding:'10px 14px', background: msg.tipo==='ok'?'rgba(45,212,167,.1)':msg.tipo==='erro'?'rgba(248,113,113,.1)':'rgba(76,141,255,.1)', border:`1px solid ${msg.tipo==='ok'?'rgba(45,212,167,.3)':msg.tipo==='erro'?'rgba(248,113,113,.3)':'rgba(76,141,255,.3)'}`, borderRadius:10, fontSize:12, color:msg.tipo==='ok'?'#2DD4A7':msg.tipo==='erro'?'#f87171':'#4C8DFF', fontWeight:600 }}>
-          {msg.tipo==='ok'?'✅':msg.tipo==='erro'?'❌':'ℹ️'} {msg.texto}
-        </div>
-      )}
+      {msg&&<div style={{margin:'10px 16px 0',padding:'10px 14px',background:msg.tipo==='ok'?`${T.success}10`:`${T.blue}10`,border:`1px solid ${msg.tipo==='ok'?T.success:T.blue}30`,borderRadius:10,fontSize:12,color:msg.tipo==='ok'?T.success:T.blue,fontWeight:600}}>{msg.tipo==='ok'?'✅':'ℹ️'} {msg.texto}</div>}
 
-      <div style={{ padding:'12px 16px', display:'flex', flexDirection:'column', gap:12 }}>
+      <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:10}}>
 
-        {/* Staff actual */}
-        {staffAtual.length > 0 && (
-          <div>
-            <div style={{ fontSize:9, color:T.success, fontWeight:700, letterSpacing:1.5, marginBottom:8 }}>
-              {idioma==='en'?'CURRENT STAFF':idioma==='es'?'STAFF ACTUAL':'STAFF ACTUAL'}
+        {/* EQUIPA ACTUAL */}
+        {tab==='equipa'&&(
+          staff.length===0?(
+            <div style={{textAlign:'center',padding:'40px 20px'}}>
+              <div style={{fontSize:40,marginBottom:12}}>👥</div>
+              <div style={{fontSize:13,color:T.muted,marginBottom:4}}>Nenhum staff contratado</div>
+              <div style={{fontSize:11,color:T.s2}}>Vai a "Contratar" para contratar especialistas</div>
             </div>
-            {staffAtual.map(m => {
-              const tipo = tipos.find(t => t.id === m.tipo)
-              return (
-                <div key={m.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px', background:'rgba(45,212,167,.05)', border:'1px solid rgba(45,212,167,.15)', borderRadius:10, marginBottom:6 }}>
-                  <span style={{ fontSize:20 }}>{tipo?.icon || '👤'}</span>
-                  <div style={{ flex:1 }}>
-                    <div style={{ fontSize:13, fontWeight:700 }}>{m.nome}</div>
-                    <div style={{ fontSize:10, color:T.muted }}>{tipo?.label} · {m.salario.toLocaleString()}€/{idioma==='en'?'mo':idioma==='es'?'mes':'mês'}</div>
+          ):staff.map(m=><CardStaffContratado key={m.id} m={m} onDespedir={despedir} tipo={m.tipo}/>)
+        )}
+
+        {/* CONTRATAR */}
+        {tab==='contratar'&&(
+          <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            <div style={{padding:'10px 14px',background:`${T.gold}08`,border:`1px solid ${T.gold}20`,borderRadius:10,fontSize:10,color:T.muted}}>
+              💡 O custo de contratação é 3× o salário mensal como caução.
+            </div>
+            {Object.entries(STAFF_TIPOS).map(([tipo,cfg])=>{
+              const jatem=tiposContratados.has(tipo)
+              const salMin=cfg.salarios[0]
+              return(
+                <div key={tipo} style={{background:T.surface,border:`1px solid ${jatem?cfg.cor+'40':T.s2}`,borderRadius:12,padding:'14px',position:'relative',overflow:'hidden'}}>
+                  {jatem&&<GL/>}
+                  <div style={{display:'flex',gap:12,alignItems:'center'}}>
+                    <div style={{width:44,height:44,borderRadius:12,background:`${cfg.cor}15`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,flexShrink:0}}>{cfg.icon}</div>
+                    <div style={{flex:1}}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                        <div style={{fontSize:13,fontWeight:700,color:jatem?cfg.cor:T.text}}>{cfg.label}</div>
+                        {jatem?<span style={{fontSize:9,color:cfg.cor,background:`${cfg.cor}15`,padding:'2px 6px',borderRadius:4,fontWeight:700}}>CONTRATADO</span>:
+                          <span style={{fontSize:10,color:T.gold}}>a partir de {salMin}€/mês</span>}
+                      </div>
+                      <div style={{fontSize:10,color:T.muted,marginTop:2}}>{cfg.efeitos[0]}</div>
+                    </div>
                   </div>
-                  <div style={{ display:'flex', gap:3 }}>
-                    {Array.from({length:5}).map((_,i)=><div key={i} style={{ width:6,height:6,borderRadius:1,background:i<m.nivel?corNivel(m.nivel):'rgba(255,255,255,.08)' }}/>)}
-                  </div>
-                  <button onClick={() => despedir(m)} style={{ background:'rgba(248,113,113,.1)', border:'1px solid rgba(248,113,113,.2)', borderRadius:6, padding:'4px 8px', color:T.danger, fontSize:10, cursor:'pointer', fontFamily:"'Inter',system-ui,sans-serif" }}>
-                    {idioma==='en'?'Fire':idioma==='es'?'Despedir':'Despedir'}
-                  </button>
+                  {!jatem&&(
+                    <button onClick={()=>setModalTipo(tipo)}
+                      style={{marginTop:10,width:'100%',padding:'9px',borderRadius:8,border:`1px solid ${cfg.cor}30`,background:`${cfg.cor}10`,color:cfg.cor,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>
+                      Ver candidatos →
+                    </button>
+                  )}
                 </div>
               )
             })}
           </div>
         )}
 
-        {/* Contratar */}
-        <div>
-          <div style={{ fontSize:9, color:T.blue, fontWeight:700, letterSpacing:1.5, marginBottom:8 }}>
-            {idioma==='en'?'HIRE STAFF':idioma==='es'?'CONTRATAR STAFF':'CONTRATAR STAFF'}
-          </div>
-          {tipos.map(tipo => {
-            const jatem = staffAtual.find(s => s.tipo === tipo.id)
-            const isOpen = tipoSel?.id === tipo.id
-            return (
-              <div key={tipo.id} style={{ marginBottom:8 }}>
-                <div onClick={() => pesquisarCandidatos(tipo)}
-                  style={{ display:'flex', gap:12, padding:'12px 14px', background: isOpen?'rgba(76,141,255,.08)':T.surface, border:`1px solid ${isOpen?'rgba(76,141,255,.3)':'rgba(255,255,255,.05)'}`, borderRadius:10, cursor:'pointer', transition:'all .15s' }}>
-                  <span style={{ fontSize:22, width:28, textAlign:'center' }}>{tipo.icon}</span>
-                  <div style={{ flex:1 }}>
-                    <div style={{ display:'flex', justifyContent:'space-between' }}>
-                      <div style={{ fontSize:13, fontWeight:700 }}>{tipo.label}</div>
-                      {jatem && <span style={{ fontSize:9, background:'rgba(45,212,167,.15)', color:T.success, padding:'2px 6px', borderRadius:4, fontWeight:700 }}>✓ CONTRATADO</span>}
+        {/* EFEITOS ACTIVOS */}
+        {tab==='efeitos'&&(
+          staff.length===0?(
+            <div style={{textAlign:'center',padding:'40px 20px'}}>
+              <div style={{fontSize:40,marginBottom:12}}>✨</div>
+              <div style={{fontSize:13,color:T.muted}}>Sem efeitos activos</div>
+            </div>
+          ):(
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              <div style={{padding:'10px 14px',background:`${T.success}08`,border:`1px solid ${T.success}20`,borderRadius:10,fontSize:11,color:T.success,fontWeight:600}}>
+                ✨ {staff.reduce((s,m)=>s+(STAFF_TIPOS[m.tipo]?.efeitos?.length||0),0)} efeitos activos no pombal
+              </div>
+              {staff.map(m=>{
+                const cfg=STAFF_TIPOS[m.tipo]
+                if(!cfg)return null
+                return(
+                  <div key={m.id} style={{background:T.surface,border:`1px solid ${cfg.cor}20`,borderRadius:12,padding:'12px 14px',position:'relative',overflow:'hidden'}}>
+                    <GL/>
+                    <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:8}}>
+                      <span style={{fontSize:18}}>{cfg.icon}</span>
+                      <div>
+                        <div style={{fontSize:12,fontWeight:700,color:cfg.cor}}>{m.nome}</div>
+                        <div style={{fontSize:9,color:T.muted}}>{cfg.label} · ★{m.estrelas}</div>
+                      </div>
                     </div>
-                    <div style={{ fontSize:10, color:T.muted, marginTop:2 }}>{tipo.desc}</div>
-                    <div style={{ fontSize:10, color:T.gold, marginTop:4 }}>~{tipo.salarioBase.toLocaleString()}€/{idioma==='en'?'mo':idioma==='es'?'mes':'mês'}</div>
-                  </div>
-                  <div style={{ fontSize:12, color:T.muted, alignSelf:'center' }}>{isOpen?'▲':'▼'}</div>
-                </div>
-
-                {/* Candidatos */}
-                {isOpen && candidatos[tipo.id] && (
-                  <div style={{ padding:'10px', background:T.surface, border:`1px solid ${T.surface2}`, borderTop:'none', borderBottomLeftRadius:10, borderBottomRightRadius:10 }}>
-                    <div style={{ fontSize:9, color:T.muted, fontWeight:700, letterSpacing:1, marginBottom:8 }}>
-                      {idioma==='en'?'AVAILABLE CANDIDATES':idioma==='es'?'CANDIDATOS DISPONIBLES':'CANDIDATOS DISPONÍVEIS'}
-                    </div>
-                    {candidatos[tipo.id].map(c => (
-                      <div key={c.id} style={{ padding:'10px', background:T.surface, border:`1px solid ${T.surface2}`, borderRadius:8, marginBottom:6 }}>
-                        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
-                          <div>
-                            <div style={{ fontSize:12, fontWeight:700 }}>{c.nome}</div>
-                            <div style={{ display:'flex', gap:3, marginTop:3 }}>
-                              {Array.from({length:5}).map((_,i)=><div key={i} style={{ width:8,height:8,borderRadius:2,background:i<c.nivel?corNivel(c.nivel):'rgba(255,255,255,.08)' }}/>)}
-                            </div>
-                          </div>
-                          <div style={{ textAlign:'right' }}>
-                            <div style={{ fontSize:12, fontWeight:700, color:T.gold }}>{c.salario.toLocaleString()}€/{idioma==='en'?'mo':idioma==='es'?'mes':'mês'}</div>
-                            <div style={{ fontSize:9, color:T.muted }}>{(c.salario*3).toLocaleString()}€ {idioma==='en'?'upfront':idioma==='es'?'adelanto':'adiantado'}</div>
-                          </div>
-                        </div>
-                        <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:8 }}>
-                          {tipo.atributos.map(a => (
-                            <div key={a} style={{ fontSize:9, color:T.muted }}>
-                              {attrLabel[a]?.[idioma]||a}: <span style={{ color:corNivel(Math.ceil(c.atributos[a]/20)), fontWeight:700 }}>{c.atributos[a]}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <button onClick={() => contratar(c)}
-                          style={{ width:'100%', padding:'8px', borderRadius:6, border:'none', background:'linear-gradient(135deg,#1E5FD9,#1456C0)', color:T.text, fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:"'Inter',system-ui,sans-serif" }}>
-                          {idioma==='en'?'Hire':idioma==='es'?'Contratar':'Contratar'} ({(c.salario*3).toLocaleString()}€)
-                        </button>
+                    {cfg.efeitos.map((ef,i)=>(
+                      <div key={i} style={{display:'flex',gap:6,padding:'5px 8px',background:`${cfg.cor}08`,borderRadius:6,marginBottom:3}}>
+                        <span style={{fontSize:10,color:T.success}}>✓</span>
+                        <span style={{fontSize:10,color:T.text}}>{ef}</span>
                       </div>
                     ))}
-                    <button onClick={() => { const lista = Array.from({length:3},()=>gerarMembro(tipo,idioma)); setCandidatos(c=>({...c,[tipo.id]:lista})) }}
-                      style={{ width:'100%', padding:'8px', borderRadius:6, border:`1px solid ${T.surface2}`, background:'transparent', color:T.muted, fontSize:11, cursor:'pointer', fontFamily:"'Inter',system-ui,sans-serif", marginTop:4 }}>
-                      🔄 {idioma==='en'?'New candidates':idioma==='es'?'Nuevos candidatos':'Novos candidatos'}
-                    </button>
                   </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
+                )
+              })}
+            </div>
+          )
+        )}
       </div>
     </div>
   )
