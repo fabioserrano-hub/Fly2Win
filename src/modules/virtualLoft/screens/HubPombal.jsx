@@ -91,6 +91,11 @@ function calcAvancarDia(c, acoes={}){
     const custoAlim=(n.pombos||[]).length*5
     const recPat=(n.patrocinios||[]).reduce((s,p)=>s+(p.valorSemanal||0),0)
     n.orcamento=Math.max(0,(n.orcamento||0)-custoStaff-custoAlim+recPat)
+    const novosMovs=[...(n.movimentos||[])]
+    if(custoStaff>0)novosMovs.push({tipo:'staff',descricao:'Salários semanais do staff',valor:-custoStaff,semana:n.semana})
+    if(custoAlim>0)novosMovs.push({tipo:'alimentacao',descricao:'Alimentação do plantel',valor:-custoAlim,semana:n.semana})
+    if(recPat>0)novosMovs.push({tipo:'patrocinio',descricao:'Receita de patrocínios',valor:recPat,semana:n.semana})
+    n.movimentos=novosMovs
     n.patrocinios=(n.patrocinios||[]).map(p=>({...p,semanasRestantes:Math.max(0,(p.semanasRestantes||8)-1)})).filter(p=>p.semanasRestantes>0)
     n.reputacao=Math.min(100,(n.reputacao||5)+0.1)
   }
@@ -207,10 +212,10 @@ const ACOES_DIA=[
 ]
 
 const EVENTOS=[
-  {p:.04,i:'🤒',t:'Doença no pombal',d:'Um pombo adoeceu. -200€',tipo:'alerta',f:x=>({...x,orcamento:Math.max(0,(x.orcamento||0)-200)})},
+  {p:.04,i:'🤒',t:'Doença no pombal',d:'Um pombo adoeceu. -200€',tipo:'alerta',f:x=>({...x,orcamento:Math.max(0,(x.orcamento||0)-200),movimentos:[...(x.movimentos||[]),{tipo:'evento',descricao:'Doença no pombal (veterinário)',valor:-200,semana:x.semana||1}]})},
   {p:.02,i:'🦅',t:'Ataque de falcão!',d:'Stress elevado hoje.',tipo:'alerta',f:x=>x},
   {p:.03,i:'⛈️',t:'Mau tempo',d:'Treinos condicionados.',tipo:'aviso',f:x=>x},
-  {p:.02,i:'🤝',t:'Patrocínio espontâneo!',d:'+300€',tipo:'sucesso',f:x=>({...x,orcamento:(x.orcamento||0)+300})},
+  {p:.02,i:'🤝',t:'Patrocínio espontâneo!',d:'+300€',tipo:'sucesso',f:x=>({...x,orcamento:(x.orcamento||0)+300,movimentos:[...(x.movimentos||[]),{tipo:'evento',descricao:'Patrocínio espontâneo',valor:300,semana:x.semana||1}]})},
   {p:.03,i:'💪',t:'Dia excepcional!',d:'Pombos em excelente forma.',tipo:'sucesso',f:x=>x},
   {p:.01,i:'🏆',t:'Recorde batido!',d:'+2 reputação',tipo:'sucesso',f:x=>({...x,reputacao:Math.min(100,(x.reputacao||5)+2)})},
 ]
