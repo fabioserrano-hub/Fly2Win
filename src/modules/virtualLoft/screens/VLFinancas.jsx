@@ -42,32 +42,50 @@ export default function VLFinancas({carreira,onVoltar,onGuardar}){
   const recPatrocinios=patrocinios.reduce((s,p)=>s+(p.valorSemanal||0),0)
   const recProvas=movimentos.filter(m=>m.tipo==='premio').reduce((s,m)=>s+(m.valor||0),0)
   const recVendas=movimentos.filter(m=>m.tipo==='venda').reduce((s,m)=>s+(m.valor||0),0)
-  const totalReceitas=recPatrocinios+recProvas+recVendas
+  const totalReceitas=recPatrocinios+recProvas+recVendas+recObjectivos+recEventos
 
   const despStaff=Math.round(staff.reduce((s,m)=>s+(m.salario||0),0)/4)
   const despAlim=pombos.filter(p=>p.estado==='activo').length*5
   const despCompras=movimentos.filter(m=>m.tipo==='compra').reduce((s,m)=>s+Math.abs(m.valor||0),0)
-  const totalDespesas=despStaff+despAlim+despCompras
+  const despSaude=movimentos.filter(m=>m.tipo==='saude').reduce((s,m)=>s+Math.abs(m.valor||0),0)
+  const despObras=movimentos.filter(m=>m.tipo==='obras').reduce((s,m)=>s+Math.abs(m.valor||0),0)
+  const despCaucoes=movimentos.filter(m=>m.tipo==='staff_caucao').reduce((s,m)=>s+Math.abs(m.valor||0),0)
+  const despEventos=movimentos.filter(m=>m.tipo==='evento'&&(m.valor||0)<0).reduce((s,m)=>s+Math.abs(m.valor||0),0)
+  const recEventos=movimentos.filter(m=>m.tipo==='evento'&&(m.valor||0)>0).reduce((s,m)=>s+(m.valor||0),0)
+  const recObjectivos=movimentos.filter(m=>m.tipo==='objectivo').reduce((s,m)=>s+(m.valor||0),0)
+  const totalDespesas=despStaff+despAlim+despCompras+despSaude+despObras+despCaucoes+despEventos
 
   const saldoSemanal=recPatrocinios-despStaff-despAlim
   const semanasSobrevivencia=saldoSemanal<0?Math.floor(orcamento/Math.abs(saldoSemanal)):99
 
   // Histórico do orçamento (últimas 10 semanas simulado)
-  const historicoOrc=c.historico_orcamento||(()=>{
-    const base=orcamento
-    return Array.from({length:10},(_,i)=>Math.max(0,base+(i-9)*Math.abs(saldoSemanal||50)))
+  // Saldo real das últimas 10 semanas, reconstruído a partir dos movimentos
+  const historicoOrc=(()=>{
+    if(!movimentos.length) return Array.from({length:10},()=>orcamento)
+    const semAtual=c.semana||1
+    const porSem={}
+    movimentos.forEach(m=>{const sw=m.semana||1;porSem[sw]=(porSem[sw]||0)+(m.valor||0)})
+    const pontos=[];let saldo=orcamento
+    for(let sw=semAtual;sw>Math.max(0,semAtual-10);sw--){pontos.unshift(Math.max(0,Math.round(saldo)));saldo-=(porSem[sw]||0)}
+    return pontos
   })()
 
   const CATEGORIAS_REC=[
     {label:'Patrocínios',valor:recPatrocinios,icon:'🤝',cor:T.success,periodo:'por semana'},
     {label:'Prémios Provas',valor:recProvas,icon:'🏆',cor:T.gold,periodo:'acumulado'},
     {label:'Vendas',valor:recVendas,icon:'💰',cor:T.blue,periodo:'acumulado'},
-  ]
+    {label:'Objectivos',valor:recObjectivos,icon:'🎯',cor:T.purple,periodo:'acumulado'},
+    {label:'Eventos',valor:recEventos,icon:'✨',cor:T.orange,periodo:'acumulado'},
+  ].filter((ct,i)=>i<3||ct.valor>0)
   const CATEGORIAS_DESP=[
     {label:'Staff',valor:despStaff,icon:'👥',cor:T.danger,periodo:'por semana'},
     {label:'Alimentação',valor:despAlim,icon:'🌾',cor:T.orange,periodo:'por semana'},
     {label:'Compras',valor:despCompras,icon:'🛒',cor:T.purple,periodo:'acumulado'},
-  ]
+    {label:'Saúde',valor:despSaude,icon:'🏥',cor:T.blue,periodo:'acumulado'},
+    {label:'Obras',valor:despObras,icon:'🔨',cor:T.gold,periodo:'acumulado'},
+    {label:'Cauções Staff',valor:despCaucoes,icon:'📝',cor:T.danger,periodo:'acumulado'},
+    {label:'Eventos',valor:despEventos,icon:'⚠️',cor:T.orange,periodo:'acumulado'},
+  ].filter((ct,i)=>i<3||ct.valor>0)
 
   return(
     <div style={{minHeight:'100vh',background:T.bg,color:T.text,fontFamily:"system-ui,sans-serif"}}>
