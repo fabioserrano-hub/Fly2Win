@@ -90,7 +90,7 @@ export default function VLObjectivos({carreira,onVoltar,onGuardar}){
   const reclamar=(obj,bonus)=>{
     const novos=new Set([...concluidos,obj.id])
     let nova={...c,objectivos_concluidos:[...novos]}
-    if(bonus.orc) nova.orcamento=(nova.orcamento||0)+bonus.orc
+    if(bonus.orc){nova.orcamento=(nova.orcamento||0)+bonus.orc;nova.movimentos=[...(nova.movimentos||[]),{tipo:'objectivo',descricao:`Objectivo: ${obj.titulo}`,valor:bonus.orc,semana:c.semana||1}]}
     if(bonus.rep) nova.reputacao=Math.min(100,(nova.reputacao||5)+bonus.rep)
     salvar(nova)
     showMsg(`🎉 "${obj.titulo}" concluído!${bonus.orc?` +${bonus.orc.toLocaleString()}€`:''}${bonus.rep?` +${bonus.rep} rep`:''}`)
