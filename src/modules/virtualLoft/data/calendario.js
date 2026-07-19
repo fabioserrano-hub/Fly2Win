@@ -1,0 +1,31 @@
+// src/modules/virtualLoft/data/calendario.js — Fonte única do calendário de provas
+// Usado por HubPombal e VLProvas — NUNCA duplicar este calendário noutro ficheiro.
+export const PROVAS_CALENDARIO = [
+  {id:'p1', nome:'Local - Santarém',       dist:80,  tipo:'velocidade',   semana:2,  nivel:'div3', pontos:10, premio:100},
+  {id:'p2', nome:'Local - Setúbal',        dist:150, tipo:'fundo',        semana:4,  nivel:'div3', pontos:10, premio:150},
+  {id:'p3', nome:'Local - Évora',          dist:120, tipo:'meio_fundo',   semana:6,  nivel:'div3', pontos:10, premio:200},
+  {id:'p4', nome:'Distrital - Badajoz',    dist:250, tipo:'velocidade',   semana:8,  nivel:'div2', pontos:20, premio:350},
+  {id:'p5', nome:'Distrital - Beja',       dist:300, tipo:'fundo',        semana:10, nivel:'div2', pontos:20, premio:400},
+  {id:'p6', nome:'Distrital - Mérida',     dist:280, tipo:'meio_fundo',   semana:12, nivel:'div2', pontos:20, premio:500},
+  {id:'p7', nome:'Regional - Salamanca',   dist:420, tipo:'velocidade',   semana:15, nivel:'div2', pontos:30, premio:700},
+  {id:'p8', nome:'Regional - Valladolid',  dist:500, tipo:'fundo',        semana:18, nivel:'div2', pontos:30, premio:900},
+  {id:'p9', nome:'Regional - Zaragoza',    dist:460, tipo:'meio_fundo',   semana:20, nivel:'div2', pontos:30, premio:1000},
+  {id:'p10',nome:'Nacional - Madrid',      dist:600, tipo:'velocidade',   semana:23, nivel:'div1', pontos:50, premio:2000},
+  {id:'p11',nome:'Nacional - Valladolid',  dist:650, tipo:'grande_fundo', semana:25, nivel:'div1', pontos:50, premio:2500},
+  {id:'p12',nome:'Nacional - Burgos',      dist:700, tipo:'fundo',        semana:27, nivel:'div1', pontos:50, premio:3000},
+  {id:'p13',nome:'Internacional - Lyon',   dist:900, tipo:'grande_fundo', semana:30, nivel:'elite',pontos:100,premio:8000},
+  {id:'p14',nome:'Internacional - Paris',  dist:1000,tipo:'velocidade',   semana:33, nivel:'elite',pontos:100,premio:10000},
+  {id:'p15',nome:'Grande Final - Pau',     dist:1100,tipo:'grande_fundo', semana:36, nivel:'elite',pontos:150,premio:20000},
+  // Expansão — semanas intermédias (ids novos, não mexer nos p1-p15)
+  {id:'p16',nome:'Regional - Cáceres',     dist:380, tipo:'velocidade',   semana:21, nivel:'div2', pontos:30, premio:800},
+  {id:'p17',nome:'Regional - Toledo',      dist:520, tipo:'grande_fundo', semana:22, nivel:'div2', pontos:30, premio:1200},
+  {id:'p18',nome:'Nacional - Ávila',       dist:560, tipo:'meio_fundo',   semana:24, nivel:'div1', pontos:50, premio:1800},
+  {id:'p19',nome:'Nacional - Segóvia',     dist:620, tipo:'velocidade',   semana:26, nivel:'div1', pontos:50, premio:2200},
+  {id:'p20',nome:'Nacional - León',        dist:680, tipo:'meio_fundo',   semana:28, nivel:'div1', pontos:50, premio:2800},
+  {id:'p21',nome:'Nacional - Palência',    dist:720, tipo:'fundo',        semana:29, nivel:'div1', pontos:60, premio:3500},
+  {id:'p22',nome:'Internacional - Pamplona',dist:820,tipo:'fundo',        semana:31, nivel:'elite',pontos:80, premio:6000},
+  {id:'p23',nome:'Internacional - Toulouse',dist:850,tipo:'meio_fundo',   semana:32, nivel:'elite',pontos:80, premio:7000},
+  {id:'p24',nome:'Internacional - Bordeaux',dist:950,tipo:'grande_fundo', semana:34, nivel:'elite',pontos:100,premio:9000},
+  {id:'p25',nome:'Internacional - Barcelona',dist:1050,tipo:'velocidade', semana:35, nivel:'elite',pontos:100,premio:12000},
+  {id:'p26',nome:'Maratona - Marselha',    dist:1250,tipo:'grande_fundo', semana:38, nivel:'elite',pontos:200,premio:30000},
+]
