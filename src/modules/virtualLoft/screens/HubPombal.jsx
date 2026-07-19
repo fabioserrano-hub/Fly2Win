@@ -148,6 +148,8 @@ const MODULOS=[
   {id:'objectivos', icon:'🎯',label:'Objectivos',    cor:'#2DD4A7'},
   {id:'halloffame', icon:'🏛️',label:'Hall of Fame',  cor:'#C9A84C'},
   {id:'timeline',   icon:'📜',label:'Timeline',      cor:'#94A3B8'},
+  {id:'noticias',   icon:'📰',label:'Notícias',       cor:'#FB923C'},
+  {id:'perfil',     icon:'👤',label:'Perfil',         cor:'#A855F7'},
 ]
 
 const NIVEL_CFG={
