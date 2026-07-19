@@ -545,7 +545,8 @@ export default function VLProvas({ carreira, onVoltar, onGuardar }) {
       return{...p,provas:(p.provas||0)+1,vitorias:(p.vitorias||0)+(r.posicao===1?1:0),percentil_medio:Math.round(((p.percentil_medio||0)*(p.provas||0)+r.percentil)/((p.provas||0)+1)),fadiga:Math.min(100,(p.fadiga||0)+20),atributos:{...p.atributos,potencial_revelado:Math.min(100,(p.atributos?.potencial_revelado||0)+5)}}
     })
     const premio=top2.some(p=>resultados.find(r=>r.pombo?.id===p.id&&r.posicao<=3))?provaAtiva.premio:0
-    salvar({...c,pombos:novosPombos,historico_provas:[...historico,...novosRes],orcamento:(c.orcamento||0)+premio})
+    const movsProva=premio>0?[...(c.movimentos||[]),{tipo:'premio',descricao:`Prémio: ${provaAtiva.nome}`,valor:premio,semana:semanaAtual}]:(c.movimentos||[])
+    salvar({...c,pombos:novosPombos,historico_provas:[...historico,...novosRes],orcamento:(c.orcamento||0)+premio,movimentos:movsProva})
     setSimulando(false);setResultados(null);setProvaAtiva(null);setPombosSelec([]);setMeteo(null)
     setTab('campeonato')
   }
