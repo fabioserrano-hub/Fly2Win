@@ -198,7 +198,7 @@ export default function VLStaff({carreira, onVoltar, onGuardar}){
 
   const contratar=membro=>{
     const novoStaff=[...staff,{...membro,id:`s_${Date.now()}`}]
-    salvar({...c,staff:novoStaff,orcamento:Math.max(0,(c.orcamento||0)-membro.salario*3)})
+    salvar({...c,staff:novoStaff,orcamento:Math.max(0,(c.orcamento||0)-membro.salario*3),movimentos:[...(c.movimentos||[]),{tipo:'staff_caucao',descricao:`Contratação: ${membro.nome} (caução)`,valor:-membro.salario*3,semana:c.semana||1}]})
     setModalTipo(null)
     setMsg({tipo:'ok',texto:`${membro.nome} contratado!`})
     setTimeout(()=>setMsg(null),3000)
