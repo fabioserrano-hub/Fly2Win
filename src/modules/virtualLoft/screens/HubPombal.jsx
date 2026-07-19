@@ -15,6 +15,7 @@ import VLHallOfFame from './VLHallOfFame'
 import VLObjectivos from './VLObjectivos'
 import VLTimeline from './VLTimeline'
 import VLPatrocinios from './VLPatrocinios'
+import VLPerfil from './VLPerfil'
 
 const T_ENGINE = {
   DIAS_SHORT: ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'],
@@ -251,6 +252,7 @@ export default function HubPombal(props) {
     if (modulo==='objectivos') return <VLObjectivos {...mp}/>
     if (modulo==='timeline')   return <VLTimeline   {...mp}/>
     if (modulo==='patrocinios')return <VLPatrocinios {...mp}/>
+    if (modulo==='perfil')    return <VLPerfil {...mp} onApagar={props.onApagarCarreira} userId={props.userId}/>
     return null
   }
 
