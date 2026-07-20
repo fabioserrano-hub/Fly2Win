@@ -380,16 +380,10 @@ function PainelCampeonato({ carreira, provasRealizadas }) {
   const pontosReais = calcPontos(tabC === 'geral' ? null : tabC)
   const totalPontosJogador = pontosReais.reduce((s,[,p])=>s+p, 0)
 
-  // Adversários fictícios para dar contexto
-  const adversariosIA = [
-    {nome:'Pombal da Serra', pontos: 180+Math.floor(Math.random()*50)},
-    {nome:'Pombal Elite',    pontos: 160+Math.floor(Math.random()*40)},
-    {nome:'Pombal Campeão',  pontos: 140+Math.floor(Math.random()*40)},
-    {nome:'Pombal Norte',    pontos: 120+Math.floor(Math.random()*30)},
-    {nome:'Pombal Real',     pontos: 100+Math.floor(Math.random()*30)},
-    {nome:'Pombal Dourado',  pontos: 80+Math.floor(Math.random()*20)},
-    {nome:'Pombal Ibérico',  pontos: 60+Math.floor(Math.random()*20)},
-  ]
+  // Clubes IA persistentes — todos começam a 0 e pontuam prova a prova
+  const ia = carreira.campeonato_ia || {clubes:POMBAIS_ADV.slice(0,7).map(n=>({nome:n})),pontos:{}}
+  const chaveTab = tabC==='geral'?'geral':tabC
+  const adversariosIA = ia.clubes.map(cl=>({nome:cl.nome,pontos:(ia.pontos?.[cl.nome]?.[chaveTab])||0}))
 
   const rankingGeral = [...adversariosIA, {nome:`${carreira.nomePombal} ← TU`, pontos: totalPontosJogador, isMeu:true}]
     .sort((a,b)=>b.pontos-a.pontos)
@@ -530,7 +524,14 @@ export default function VLProvas({ carreira, onVoltar, onGuardar }) {
     })
     const premio=top2.some(p=>resultados.find(r=>r.pombo?.id===p.id&&r.posicao<=3))?provaAtiva.premio:0
     const movsProva=premio>0?[...(c.movimentos||[]),{tipo:'premio',descricao:`Prémio: ${provaAtiva.nome}`,valor:premio,semana:semanaAtual}]:(c.movimentos||[])
-    salvar({...c,pombos:novosPombos,historico_provas:[...historico,...novosRes],orcamento:(c.orcamento||0)+premio,movimentos:movsProva})
+    // Campeonato persistente: clubes IA pontuam apenas nas provas disputadas
+    const ia={...(c.campeonato_ia||{clubes:POMBAIS_ADV.slice(0,7).map((n,i)=>({nome:n,forca:0.85-i*0.08})),pontos:{}})}
+    ia.pontos={...ia.pontos}
+    ia.clubes.forEach(cl=>{
+      const ganho=Math.random()<cl.forca?Math.round(provaAtiva.pontos*(0.2+Math.random()*0.8)):0
+      if(ganho){const e={...(ia.pontos[cl.nome]||{})};e.geral=(e.geral||0)+ganho;e[provaAtiva.tipo]=(e[provaAtiva.tipo]||0)+ganho;ia.pontos[cl.nome]=e}
+    })
+    salvar({...c,pombos:novosPombos,historico_provas:[...historico,...novosRes],orcamento:(c.orcamento||0)+premio,movimentos:movsProva,campeonato_ia:ia})
     setSimulando(false);setResultados(null);setProvaAtiva(null);setPombosSelec([]);setMeteo(null)
     setTab('campeonato')
   }
