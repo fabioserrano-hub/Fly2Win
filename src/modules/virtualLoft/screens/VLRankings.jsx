@@ -23,16 +23,19 @@ const TIPOS_ESP=['velocidade','meio_fundo','fundo','grande_fundo']
 const TIPO_ICON={velocidade:'⚡',meio_fundo:'🌊',fundo:'💪',grande_fundo:'🏔️'}
 const TIPO_LABEL={velocidade:'Velocidade',meio_fundo:'Meio-Fundo',fundo:'Fundo',grande_fundo:'Grande Fundo'}
 
-// Gerar pombais IA com pontos baseados na época
+// Pombais IA reais persistentes da carreira
 function gerarPombaisIA(carreira){
-  const epoca=carreira.epoca||1
-  const seed=epoca*7+13
-  return POMBAIS_IA.map((p,i)=>{
-    const base=Math.max(0, 200-(i*15)+epoca*20+(seed*(i+1))%80)
-    const vits=Math.floor(base/30)
-    const provas=Math.floor(base/8)+3
-    return{...p, pontos:base, vitorias:vits, provas, melhorPct:Math.min(99,70+Math.floor(Math.random()*29))}
-  })
+  const ia=carreira.clubes_ia||[]
+  const camp=carreira.campeonato_ia||{}
+  if(!ia.length) return POMBAIS_IA.map(p=>({...p,pontos:0,vitorias:0,provas:0,melhorPct:0}))
+  return ia.map(cl=>({
+    nome:cl.nome, pais:cl.pais||'PT',
+    pontos:(camp.pontos?.[cl.nome]?.geral)||0,
+    vitorias:cl.vitorias||0,
+    provas:cl.pombos?.reduce((s,p)=>(s+(p.provas||0)),0)||0,
+    melhorPct:Math.round(cl.reputacao||5),
+    nivel:cl.nivel,
+  }))
 }
 
 // Calcular pontos do jogador
