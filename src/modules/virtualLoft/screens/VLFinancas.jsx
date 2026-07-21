@@ -42,6 +42,8 @@ export default function VLFinancas({carreira,onVoltar,onGuardar}){
   const recPatrocinios=patrocinios.reduce((s,p)=>s+(p.valorSemanal||0),0)
   const recProvas=movimentos.filter(m=>m.tipo==='premio').reduce((s,m)=>s+(m.valor||0),0)
   const recVendas=movimentos.filter(m=>m.tipo==='venda').reduce((s,m)=>s+(m.valor||0),0)
+  const recEventos=movimentos.filter(m=>m.tipo==='evento'&&(m.valor||0)>0).reduce((s,m)=>s+(m.valor||0),0)
+  const recObjectivos=movimentos.filter(m=>m.tipo==='objectivo').reduce((s,m)=>s+(m.valor||0),0)
   const totalReceitas=recPatrocinios+recProvas+recVendas+recObjectivos+recEventos
 
   const despStaff=Math.round(staff.reduce((s,m)=>s+(m.salario||0),0)/4)
@@ -51,8 +53,6 @@ export default function VLFinancas({carreira,onVoltar,onGuardar}){
   const despObras=movimentos.filter(m=>m.tipo==='obras').reduce((s,m)=>s+Math.abs(m.valor||0),0)
   const despCaucoes=movimentos.filter(m=>m.tipo==='staff_caucao').reduce((s,m)=>s+Math.abs(m.valor||0),0)
   const despEventos=movimentos.filter(m=>m.tipo==='evento'&&(m.valor||0)<0).reduce((s,m)=>s+Math.abs(m.valor||0),0)
-  const recEventos=movimentos.filter(m=>m.tipo==='evento'&&(m.valor||0)>0).reduce((s,m)=>s+(m.valor||0),0)
-  const recObjectivos=movimentos.filter(m=>m.tipo==='objectivo').reduce((s,m)=>s+(m.valor||0),0)
   const totalDespesas=despStaff+despAlim+despCompras+despSaude+despObras+despCaucoes+despEventos
 
   const saldoSemanal=recPatrocinios-despStaff-despAlim
