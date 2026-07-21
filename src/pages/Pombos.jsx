@@ -1164,7 +1164,7 @@ export default function Pombos({ nav, params }) {
           {/* TABS de detalhe (Info, Provas, Saúde, Família, Treinos) */}
           <div style={{ display:'flex', gap:4, background:'#101F40', borderRadius:8, padding:4, marginBottom:14, overflowX:'auto' }}>
             {[['info','📋 Info'],['provas','🏆 Provas'],['saude','🏥 Saúde'],['familia','🌳 Família'],['treinos','🎯 Treinos']].map(([k,l])=>(
-              <button key={k} onClick={()=>setTabDetail(k)} style={{ flex:'none', padding:'10px 18px', borderRadius:10, fontSize:13, fontWeight:tab===k?700:500, cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap', border:tab===v?'none':'1px solid rgba(255,255,255,.08)', background:tab===v?'linear-gradient(135deg,#1E5FD9,#1456C0)':'rgba(255,255,255,.05)', color:tab===v?'#fff':'#cbd5e1', boxShadow:tab===v?'0 2px 8px rgba(0,0,0,.3)':'none', transform:tab===v?'translateY(-1px)':'none', transition:'all .15s', minHeight:40 }}>{l}</button>
+              <button key={k} onClick={()=>setTabDetail(k)} style={{ flex:'none', padding:'10px 18px', borderRadius:10, fontSize:13, fontWeight:tabDetail===k?700:500, cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap', border:tabDetail===k?'none':'1px solid rgba(255,255,255,.08)', background:tabDetail===k?'linear-gradient(135deg,#1E5FD9,#1456C0)':'rgba(255,255,255,.05)', color:tabDetail===k?'#fff':'#cbd5e1', boxShadow:tabDetail===k?'0 2px 8px rgba(0,0,0,.3)':'none', transform:tabDetail===k?'translateY(-1px)':'none', transition:'all .15s', minHeight:40 }}>{l}</button>
             ))}
           </div>
 
