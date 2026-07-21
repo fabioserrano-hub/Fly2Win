@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../../lib/supabase'
 import { PROVAS_CALENDARIO } from '../data/calendario'
+import { inicializarClubesIA, processWeek } from '../engine/gameEngine'
 // Engine inline — sem dependências externas
 import VLPombos from './VLPombos'
 import VLTreinos from './VLTreinos'
@@ -60,6 +61,8 @@ function calcAvancarDia(c, acoes={}){
 
   // Custos semanais ao Domingo
   if(diaIdx===6){
+    // Pipeline semanal do motor de jogo
+    const nComEngine=processWeek(n); Object.assign(n,nComEngine)
     const custoStaff=Math.round((n.staff||[]).reduce((s,m)=>s+(m.salario||0),0)/4)
     const custoAlim=(n.pombos||[]).length*5
     const recPat=(n.patrocinios||[]).reduce((s,p)=>s+(p.valorSemanal||0),0)
@@ -170,7 +173,10 @@ const EVENTOS=[
 
 export default function HubPombal(props) {
   const { onApagarCarreira, userId } = props
-  const [c, setC] = useState(()=>lerLS()||props.carreira)
+  const [c, setC] = useState(()=>{
+    const salvo=lerLS()||props.carreira
+    return salvo ? inicializarClubesIA(salvo) : null
+  })
   const [modulo, setModulo] = useState(null)
   const [evento, setEvento] = useState(null)
   const [avancando, setAvancando] = useState(false)
