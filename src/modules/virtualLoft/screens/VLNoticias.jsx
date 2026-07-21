@@ -1,5 +1,6 @@
 // src/modules/virtualLoft/screens/VLNoticias.jsx — Notícias geradas automaticamente
 import { useState, useMemo } from 'react'
+import { gerarNoticiasEngine } from '../engine/gameEngine'
 
 const T={bg:'#050A14',surface:'#0D1829',s2:'#1A2A45',gold:'#C9A84C',blue:'#4FC3F7',text:'#E8EDF5',muted:'#6B7A99',success:'#2DD4A7',danger:'#F87171',purple:'#A855F7',orange:'#FB923C'}
 function lerLS(){try{return JSON.parse(localStorage.getItem('vl_carreira'))}catch{return null}}
@@ -125,7 +126,9 @@ export default function VLNoticias({carreira,onVoltar}){
   const c=cl
   const [filtro,setFiltro]=useState('todas')
 
-  const noticias=useMemo(()=>gerarNoticias(c),[c.semana,c.dia])
+  const noticiasBase=useMemo(()=>gerarNoticias(c),[c.semana,c.dia])
+  const noticiasEngine=useMemo(()=>gerarNoticiasEngine(c),[c.eventos_engine])
+  const noticias=useMemo(()=>[...noticiasEngine,...noticiasBase].sort((a,b)=>(b.semana||0)-(a.semana||0)||(a.prioridade||5)-(b.prioridade||5)),[noticiasBase,noticiasEngine])
   const pessoais=noticias.filter(n=>n.tipo==='pessoal')
   const mundo=noticias.filter(n=>n.tipo==='mundo')
   const lista=filtro==='pessoais'?pessoais:filtro==='mundo'?mundo:noticias
